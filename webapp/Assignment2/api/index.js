@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 dotenv.config();
 
-//Importing routes
+//Importing routes for api
 const authRoute  = require('./routes/auth');
 
 //connect to DB
