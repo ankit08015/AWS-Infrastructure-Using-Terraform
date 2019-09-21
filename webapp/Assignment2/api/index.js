@@ -1,4 +1,5 @@
 // npm install dotenv
+// npm install @hapi/joi // for validation
 const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
