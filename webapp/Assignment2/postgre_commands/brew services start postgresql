@@ -1,0 +1,39 @@
+brew services start postgresql
+psql postgres
+\conninfo
+
+================================
+\q | Exit psql connection
+\c | Connect to a new database
+\dt | List all tables
+\du | List all roles
+\list | List databases
+================================
+CREATE ROLE me WITH LOGIN PASSWORD 'Ajaygoel@123';
+
+ALTER ROLE me CREATEDB;
+\du
+\q
+
+psql -d postgres -U me
+
+CREATE DATABASE api;
+\c api
+CREATE TABLE users (
+  ID SERIAL PRIMARY KEY,
+  name VARCHAR(30),
+  email VARCHAR(30)
+);
+
+INSERT INTO users (name, email)
+  VALUES ('Jerry', 'jerry@example.com'), ('George', 'george@example.com');
+SELECT * FROM users;
+
+==================================
+GET — / | displayHome()
+GET — /users | getUsers()
+GET — /users/id | getUserById()
+POST — users | createUser()
+PUT — /users/id | updateUser()
+DELETE — /users/id | deleteUser()
+==================================
