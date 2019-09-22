@@ -1,9 +1,22 @@
 const Pool = require('pg').Pool
 const pool = new Pool({
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bd999bf2ae2d3eff99b50a7c3f16804097267f83
   user: 'me',
   host: 'localhost',
   database: 'api',
   password: 'Ajaygoel@123',
+<<<<<<< HEAD
+=======
+  user: "me",
+  host: "localhost",
+  database: "api",
+  password: "Ajaygoel@123",
+>>>>>>> 8e08598173dfaf3eb0a01efcec7a9a1999760061
+=======
+>>>>>>> bd999bf2ae2d3eff99b50a7c3f16804097267f83
   port: 5432,
 });
 const bcrypt = require("bcrypt");
