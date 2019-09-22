@@ -16,7 +16,7 @@ ALTER ROLE me CREATEDB;
 \q
 
 psql -d postgres -U me
-
+^c
 CREATE DATABASE api;
 \c api
 CREATE TABLE users (
@@ -28,6 +28,11 @@ CREATE TABLE users (
   created_date TIMESTAMP,
   updated_date TIMESTAMP
 );
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me; --- this grants privileges on new tables generated in new database "foo"
+GRANT USAGE ON SCHEMA public to me; 
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
 
 
 INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
