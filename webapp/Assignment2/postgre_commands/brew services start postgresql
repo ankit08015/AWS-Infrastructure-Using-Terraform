@@ -19,7 +19,7 @@ psql -d postgres -U me
 
 CREATE DATABASE api;
 \c api
-CREATE TABLE users_data (
+CREATE TABLE users (
   ID SERIAL PRIMARY KEY,
   first_name VARCHAR(30),
   last_name VARCHAR(30),
