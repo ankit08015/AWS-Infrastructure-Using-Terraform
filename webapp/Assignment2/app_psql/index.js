@@ -17,11 +17,11 @@ app.get('/', (request, response) => {
   });
 
 
-app.get('/users', db.getUsers)
-app.get('/users/:id', db.getUserById)
-app.post('/users', db.createUser)
-app.put('/users/:id', db.updateUser)
-app.delete('/users/:id', db.deleteUser)
+app.get('/api/users', db.getUsers)
+app.get('/api/user/:id', db.getUserById)
+app.post('/api/user/signup', db.createUser)
+app.put('/api/user/update/:id', db.updateUser)
+app.delete('/api/user/delete/:id', db.deleteUser)
 
 
 app.listen(port, () => {
