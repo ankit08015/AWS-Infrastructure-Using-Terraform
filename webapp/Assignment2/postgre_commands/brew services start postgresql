@@ -19,20 +19,31 @@ psql -d postgres -U me
 
 CREATE DATABASE api;
 \c api
-CREATE TABLE users_data (
+CREATE TABLE users (
   ID SERIAL PRIMARY KEY,
   first_name VARCHAR(30),
   last_name VARCHAR(30),
   email VARCHAR(30),
   password VARCHAR(30),
-  created_date TIMESTAMP,
-  updated_date TIMESTAMP
+  created_date Date,
+  updated_date Date
+);
+
+CREATE TABLE users (
+  ID SERIAL PRIMARY KEY,
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  email VARCHAR(30),
+  password VARCHAR(1000)
 );
 
 
 INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
-  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-  
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', NOW(), NOW());
+
+  INSERT INTO users (first_name, last_name,email,password)
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123');
+
 SELECT * FROM users;
 
 ==================================
@@ -43,4 +54,11 @@ POST — users | createUser()
 PUT — /users/id | updateUser()
 DELETE — /users/id | deleteUser()
 ==================================
+
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me; --- this grants privileges on new tables generated in new database "foo"
+GRANT USAGE ON SCHEMA public to me; 
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public to me;
 
