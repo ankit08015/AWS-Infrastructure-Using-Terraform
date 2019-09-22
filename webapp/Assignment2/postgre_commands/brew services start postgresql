@@ -1,0 +1,51 @@
+brew services start postgresql
+psql postgres
+\conninfo
+
+================================
+\q | Exit psql connection
+\c | Connect to a new database
+\dt | List all tables
+\du | List all roles
+\list | List databases
+================================
+CREATE ROLE me WITH LOGIN PASSWORD 'Ajaygoel@123';
+
+ALTER ROLE me CREATEDB;
+\du
+\q
+
+psql -d postgres -U me
+^c
+CREATE DATABASE api;
+\c api
+CREATE TABLE users (
+  ID SERIAL PRIMARY KEY,
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  email VARCHAR(30),
+  password VARCHAR(30),
+  created_date TIMESTAMP,
+  updated_date TIMESTAMP
+);
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me; --- this grants privileges on new tables generated in new database "foo"
+GRANT USAGE ON SCHEMA public to me; 
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
+
+
+INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  
+SELECT * FROM users;
+
+==================================
+GET — / | displayHome()
+GET — /users | getUsers()
+GET — /users/id | getUserById()
+POST — users | createUser()
+PUT — /users/id | updateUser()
+DELETE — /users/id | deleteUser()
+==================================
+
