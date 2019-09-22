@@ -19,14 +19,20 @@ psql -d postgres -U me
 
 CREATE DATABASE api;
 \c api
-CREATE TABLE users (
+CREATE TABLE users_data (
   ID SERIAL PRIMARY KEY,
-  name VARCHAR(30),
-  email VARCHAR(30)
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  email VARCHAR(30),
+  password VARCHAR(30),
+  created_date TIMESTAMP,
+  updated_date TIMESTAMP
 );
 
-INSERT INTO users (name, email)
-  VALUES ('Jerry', 'jerry@example.com'), ('George', 'george@example.com');
+
+INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  
 SELECT * FROM users;
 
 ==================================
@@ -37,3 +43,4 @@ POST — users | createUser()
 PUT — /users/id | updateUser()
 DELETE — /users/id | deleteUser()
 ==================================
+
