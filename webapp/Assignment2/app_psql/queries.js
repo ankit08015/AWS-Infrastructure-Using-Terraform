@@ -1,13 +1,15 @@
 const Pool = require('pg').Pool
 const pool = new Pool({
-  user: "me",
-  host: "localhost",
-  database: "api",
-  password: "Ajaygoel@123",
+  user: 'me',
+  host: 'localhost',
+  database: 'api',
+  password: 'Ajaygoel@123',
   port: 5432,
 });
+const bcrypt = require("bcrypt");
 
 const getUsers = (request, response) => {
+    console.log("Here");
     pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
       if (error) {
         throw error
@@ -27,22 +29,45 @@ const getUsers = (request, response) => {
     })
   }
   const createUser = (request, response) => {
-    const { name, email } = request.body
-  
-    pool.query('INSERT INTO users (name, email) VALUES ($1, $2)', [name, email], (error, results) => {
-      if (error) {
-        throw error
-      }
-    //   const data;
-    //   pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
-    //     if (error) {
-    //       throw error
-    //     }
-    //     response.status(200).json(results.fields.id)
-    //     // data = results;
-    //   })
-        response.status(201).send(`User added with ID: ${results.rows}`);
-    })
+     const { first_name, last_name, email, password } = request.body;
+     const created_date = Date.now;
+     const updated_date = Date.now;
+
+     console.log("Here");
+        // pool.query('INSERT INTO users (first_name, last_name,email,password ) VALUES ($1,$2,$3,$4)'
+        // , [first_name, last_name, email, password ], (error,results) => {
+        // if (error) {
+        //     console.log(error);
+        //     throw error
+        //   }
+        //   response.status(201).json({
+        //     message: "User added",
+        //     details: request.body
+        //   });
+        // });
+    // const { first_name, last_name,email,password } = request.body;
+    // const created_date = Date.now;
+    // const updated_date = Date.now;
+    bcrypt.hash(request.body.password, 10, (err, hash) => { 
+        if (err) {
+          return res.status(500).json({
+            error: err
+          });
+        } else {
+            pool.query('INSERT INTO users (first_name, last_name,email,password ) VALUES ($1,$2,$3,$4)'
+            , [first_name, last_name, email, hash ], (error,results) => {
+            if (error) {
+                console.log(error);
+                throw error
+            }
+            response.status(201).json({
+                message: "User added",
+                details: request.body,
+                password: hash
+            });
+            });
+        }
+    });
   }
 
   const updateUser = (request, response) => {
