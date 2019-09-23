@@ -110,29 +110,56 @@ const getUsers = (request, response) => {
   const updateUser = (request, response) => {
     const email = request.body.email;
     console.log(email);
-    const { first_name, last_name, password } = request.body;
-    pool.query(
-      'UPDATE users SET first_name = $1, last_name = $2, password =$3 WHERE email = $4',
-      [first_name, last_name, password, email],
-      (error, results) => {
-        if (error) {
-          throw error
-        }
 
-        response.status(200).send(`User modified with ID: ${email}`)
-      }
-    )
-    // const id = parseInt(request.params.id)
-    // const { name, email } = request.body
-  
+    const { first_name, last_name, password } = request.body;
+    const email_check = request.body.email;
+    const password_check = request.body.password;
+
+    pool.query('SELECT * FROM users WHERE email = $1', [email_check], (error, results) => {
+        if (results.rows.length==0) {
+          response.status(400).json({
+              message: "User Email doesn't exist..!!"
+          });
+        } else {
+            if(validator.validate(email_check) && schema.validate(password_check)){
+                bcrypt.hash(request.body.password, 10, (err, hash) => { 
+                    if (err) {
+                      return res.status(500).json({
+                        error: err
+                      });
+                    } else {
+                        pool.query(
+                            'UPDATE users SET first_name = $1, last_name = $2, password =$3 WHERE email = $4',
+                            [first_name, last_name, password, email],
+                            (error, results) => {
+                              if (error) {
+                                throw error
+                              }
+                              response.status(200).send(`User modified with ID: ${email}`)
+                            }
+                        );
+                    }
+                });
+            } else {
+                response.status(401).json({
+                    message: "Invalid Email or password..!!",
+                    "password_guidelines: ": ["Minimum length 8","Maximum length 100","Must have uppercase letters",
+                                        "Must have lowercase letters","Must have digits","Should not have spaces"],
+                    "Status code": 401
+                });
+            }
+        }
+    });
+
     // pool.query(
-    //   'UPDATE users SET name = $1, email = $2 WHERE id = $3',
-    //   [name, email, id],
+    //   'UPDATE users SET first_name = $1, last_name = $2, password =$3 WHERE email = $4',
+    //   [first_name, last_name, password, email],
     //   (error, results) => {
     //     if (error) {
     //       throw error
     //     }
-    //     response.status(200).send(`User modified with ID: ${id}`)
+
+    //     response.status(200).send(`User modified with ID: ${email}`)
     //   }
     // )
   }
@@ -155,3 +182,4 @@ const getUsers = (request, response) => {
     updateUser,
     deleteUser,
   }
+
