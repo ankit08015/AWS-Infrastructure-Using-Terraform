@@ -41,24 +41,10 @@ const getUsers = (request, response) => {
   }
   const createUser = (request, response) => {
      const { first_name, last_name, email, password } = request.body;
-     const created_date = Date.now;
-     const updated_date = Date.now;
+     const created_date = new Date();
+     const updated_date = new Date();
      
      console.log("Here");
-        // pool.query('INSERT INTO users (first_name, last_name,email,password ) VALUES ($1,$2,$3,$4)'
-        // , [first_name, last_name, email, password ], (error,results) => {
-        // if (error) {
-        //     console.log(error);
-        //     throw error
-        //   }
-        //   response.status(201).json({
-        //     message: "User added",
-        //     details: request.body
-        //   });
-        // });
-    // const { first_name, last_name,email,password } = request.body;
-    // const created_date = Date.now;
-    // const updated_date = Date.now;
     const email_check = request.body.email;
     const password_check = request.body.password;
     console.log(schema.validate(request.body.password));
@@ -79,8 +65,8 @@ const getUsers = (request, response) => {
                 error: err
               });
             } else {
-                pool.query('INSERT INTO users (first_name, last_name,email,password ) VALUES ($1,$2,$3,$4)'
-                , [first_name, last_name, email, hash ], (error,results) => {
+                pool.query('INSERT INTO users (first_name, last_name,email,password, created_date, updated_date ) VALUES ($1,$2,$3,$4,$5,$6)'
+                , [first_name, last_name, email, hash, created_date, updated_date ], (error,results) => {
                 if (error) {
                     console.log(error);
                     throw error
@@ -88,6 +74,8 @@ const getUsers = (request, response) => {
                 response.status(201).json({
                     message: "User added",
                     details: request.body,
+                    "created_date": created_date,
+                    "updated_date": updated_date,
                     password: hash
                 });
                 });
@@ -114,6 +102,7 @@ const getUsers = (request, response) => {
     const { first_name, last_name, password } = request.body;
     const email_check = request.body.email;
     const password_check = request.body.password;
+    const updated_date = new Date();
 
     pool.query('SELECT * FROM users WHERE email = $1', [email_check], (error, results) => {
         if (results.rows.length==0) {
@@ -129,8 +118,8 @@ const getUsers = (request, response) => {
                       });
                     } else {
                         pool.query(
-                            'UPDATE users SET first_name = $1, last_name = $2, password =$3 WHERE email = $4',
-                            [first_name, last_name, password, email],
+                            'UPDATE users SET first_name = $1, last_name = $2, password =$3, updated_date =$4 WHERE email = $5',
+                            [first_name, last_name, password, updated_date,email],
                             (error, results) => {
                               if (error) {
                                 throw error
@@ -182,4 +171,3 @@ const getUsers = (request, response) => {
     updateUser,
     deleteUser,
   }
-

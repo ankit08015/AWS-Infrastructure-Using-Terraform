@@ -34,7 +34,9 @@ CREATE TABLE users (
   first_name VARCHAR(30),
   last_name VARCHAR(30),
   email VARCHAR(30),
-  password VARCHAR(1000)
+  password VARCHAR(1000),
+  created_date TIMESTAMP NOT NULL,
+  updated_date TIMESTAMP NOT NULL
 );
 
 
@@ -56,7 +58,7 @@ DELETE — /users/id | deleteUser()
 ==================================
 
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me; --- this grants privileges on new tables generated in new database "foo"
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me;
 GRANT USAGE ON SCHEMA public to me; 
 GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
