@@ -8,7 +8,7 @@ const pool = new Pool({
 });
 const bcrypt = require("bcrypt");
 
-  const getUsers = (request, response) => {
+const getUsers = (request, response) => {
 
   // check for basic auth header
   if (!request.headers.authorization || request.headers.authorization.indexOf('Basic ') === -1) {
