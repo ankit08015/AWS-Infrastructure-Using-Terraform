@@ -1,46 +1,39 @@
 const Pool = require('pg').Pool
 const pool = new Pool({
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> bd999bf2ae2d3eff99b50a7c3f16804097267f83
   user: 'me',
   host: 'localhost',
   database: 'api',
   password: 'Ajaygoel@123',
-<<<<<<< HEAD
-=======
-  user: "me",
-  host: "localhost",
-  database: "api",
-  password: "Ajaygoel@123",
->>>>>>> 8e08598173dfaf3eb0a01efcec7a9a1999760061
-=======
->>>>>>> bd999bf2ae2d3eff99b50a7c3f16804097267f83
   port: 5432,
 });
 const bcrypt = require("bcrypt");
 
 const getUsers = (request, response) => {
-    console.log("Here");
-    pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
+
+  // check for basic auth header
+  if (!request.headers.authorization || request.headers.authorization.indexOf('Basic ') === -1) {
+      return response.status(401).json({ message: 'Missing Authorization Header' });
+  }
+
+  // verify auth credentials
+  const base64Credentials =  request.headers.authorization.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  
+    pool.query('SELECT * FROM users WHERE email = $1 and password = $2', [username, password], (error, results) => {
       if (error) {
         throw error
       }
+      else if(results.rows.length == 0){
+        response.status(403).json({ message: 'Authorization failed' });
+      }
+      else{
       response.status(200).json(results.rows)
+      }
     })
   }
 
-  const getUserById = (request, response) => {
-    const id = parseInt(request.params.id)
-  
-    pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
-      if (error) {
-        throw error
-      }
-      response.status(200).json(results.rows)
-    })
-  }
   const createUser = (request, response) => {
      const { first_name, last_name, email, password } = request.body;
      const created_date = Date.now;
@@ -113,7 +106,6 @@ const getUsers = (request, response) => {
 
   module.exports = {
     getUsers,
-    getUserById,
     createUser,
     updateUser,
     deleteUser,
