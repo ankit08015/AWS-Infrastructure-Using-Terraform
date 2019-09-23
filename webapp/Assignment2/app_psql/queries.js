@@ -9,10 +9,8 @@ const pool = new Pool({
 const bcrypt = require("bcrypt");
 
   const getUsers = (request, response) => {
-    console.log("Here Auth");
 
   // check for basic auth header
-  console.log(request.headers.authorization);
   if (!request.headers.authorization || request.headers.authorization.indexOf('Basic ') === -1) {
       return response.status(401).json({ message: 'Missing Authorization Header' });
   }
@@ -21,10 +19,7 @@ const bcrypt = require("bcrypt");
   const base64Credentials =  request.headers.authorization.split(' ')[1];
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
-  console.log("Here befor auth username "+ username);
 
-
-    //const id = parseInt(request.params.id)
   
     pool.query('SELECT * FROM users WHERE email = $1 and password = $2', [username, password], (error, results) => {
       if (error) {
@@ -34,7 +29,6 @@ const bcrypt = require("bcrypt");
         response.status(403).json({ message: 'Authorization failed' });
       }
       else{
-      console.log(results.rows.length);
       response.status(200).json(results.rows)
       }
     })
