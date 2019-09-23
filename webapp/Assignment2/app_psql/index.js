@@ -18,7 +18,6 @@ app.get('/', (request, response) => {
 
 
 app.get('/api/users', db.getUsers)
-app.get('/api/user/:id', db.getUserById)
 app.post('/api/user/signup', db.createUser)
 app.put('/api/user/update/', db.updateUser)
 app.delete('/api/user/delete/:id', db.deleteUser)
