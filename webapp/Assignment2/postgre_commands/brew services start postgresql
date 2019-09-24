@@ -16,7 +16,7 @@ ALTER ROLE me CREATEDB;
 \q
 
 psql -d postgres -U me
-^c
+
 CREATE DATABASE api;
 \c api
 CREATE TABLE users (
@@ -34,13 +34,10 @@ CREATE TABLE users (
   first_name VARCHAR(30),
   last_name VARCHAR(30),
   email VARCHAR(30),
-  password VARCHAR(1000)
+  password VARCHAR(1000),
+  created_date TIMESTAMP NOT NULL,
+  updated_date TIMESTAMP NOT NULL
 );
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me; --- this grants privileges on new tables generated in new database "foo"
-GRANT USAGE ON SCHEMA public to me; 
-GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
 
 
 INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
@@ -61,9 +58,10 @@ DELETE — /users/id | deleteUser()
 ==================================
 
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me; --- this grants privileges on new tables generated in new database "foo"
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me;
 GRANT USAGE ON SCHEMA public to me; 
 GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public to me;
-
+GRANT ALL PRIVILEGES ON DATABASE api to me;
+GRANT ALL PRIVILEGES ON TABLE users TO me;
