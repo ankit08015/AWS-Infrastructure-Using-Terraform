@@ -26,8 +26,8 @@
 
 
 ## Running Tests
-1. Goto the folder that has the index.js and run the command **node index.js.
-2. Open another terminal goto the folder that has test.js then run the command **npm run test.
+1. Goto the folder that has the index.js and run the command ** node index.js.
+2. Open another terminal goto the folder that has test.js then run the command ** npm run test.
 
 ## CI/CD
 
