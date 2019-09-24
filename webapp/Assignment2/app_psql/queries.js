@@ -53,8 +53,8 @@ const getUsers = (request, response) => {
         if (result) {
           response.status(200).json(results.rows);
         } else {
-          response.status(401).json({
-            message: 'Authorization failed'
+          response.status(403).json({
+            message: 'Unauthorized Access Denied'
           });
         }
       });
