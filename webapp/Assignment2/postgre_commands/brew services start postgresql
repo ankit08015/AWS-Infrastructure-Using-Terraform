@@ -19,15 +19,6 @@ psql -d postgres -U me
 
 CREATE DATABASE api;
 \c api
-CREATE TABLE users (
-  ID SERIAL PRIMARY KEY,
-  first_name VARCHAR(30),
-  last_name VARCHAR(30),
-  email VARCHAR(30),
-  password VARCHAR(30),
-  created_date Date,
-  updated_date Date
-);
 
 CREATE TABLE users (
   ID SERIAL PRIMARY KEY,
@@ -42,9 +33,6 @@ CREATE TABLE users (
 
 INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
   VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', NOW(), NOW());
-
-  INSERT INTO users (first_name, last_name,email,password)
-  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123');
 
 SELECT * FROM users;
 
@@ -63,4 +51,5 @@ GRANT USAGE ON SCHEMA public to me;
 GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public to me;
-
+GRANT ALL PRIVILEGES ON DATABASE api to me;
+GRANT ALL PRIVILEGES ON TABLE users TO me;
