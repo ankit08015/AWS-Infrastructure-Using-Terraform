@@ -10,6 +10,9 @@
 
 ## Technology Stack
 
+### Backend: Node.js
+### Database: PostgresSQL
+
 
 ## Build Instructions
 
