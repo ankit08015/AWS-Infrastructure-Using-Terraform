@@ -13,17 +13,15 @@ app.use(
 )
 
 app.get('/', (request, response) => {
-  response.json({
-    info: 'Node.js, Express, and Postgres API'
-  })
-});
+    response.json({ info: 'Node.js, Express, and Postgres API' })
+  });
 
 
-app.get('/api/users', db.getUsers)
-app.post('/api/user/signup', db.createUser)
-app.put('/api/user/update/', db.updateUser)
+app.get('/v1/user/self', db.getUsers)
+app.post('/v1/user', db.createUser)
+app.put('/v1/user/self', db.updateUser)
 
 
 app.listen(port, () => {
-  console.log(`App running on port ${port}.`)
+    console.log(`App running on port ${port}.`)
 });
