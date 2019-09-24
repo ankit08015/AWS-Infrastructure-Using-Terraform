@@ -16,11 +16,11 @@
 
 ## Build Instructions
 
-1. clone the project using git clone git@github.com:ankit08015/ccwebapp.git
-2. Create Database using commands in folder webapp/Assignment2/postgre_commands
-3. navigate to folder webapp/Assignment2/app_psql
-4. run npm install in terminal
-5. run application by nodemon index.js
+1. clone the project using ` git clone git@github.com:ankit08015/ccwebapp.git `
+2. Create Database using commands in folder `webapp/Assignment2/postgre_commands`
+3. navigate to folder ` webapp/Assignment2/app_psql `
+4. run `npm install` in terminal
+5. run application by ` nodemon index.js `
 
 ## Deploy Instructions
 
