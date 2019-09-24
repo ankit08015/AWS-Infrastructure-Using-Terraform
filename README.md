@@ -15,7 +15,9 @@
 
 
 ## Build Instructions
-
+-- Create Database using postgre_commands
+-- Create table, role
+-- Give grants
 
 ## Deploy Instructions
 
