@@ -15,7 +15,14 @@ ALTER ROLE me CREATEDB;
 \du
 \q
 
+## // mac command
 psql -d postgres -U me
+
+//ubuntu command
+sudo -i -u postgres
+
+// ubuntu exit
+exit
 
 CREATE DATABASE api;
 \c api
