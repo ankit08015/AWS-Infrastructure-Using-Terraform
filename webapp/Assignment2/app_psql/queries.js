@@ -43,7 +43,7 @@ const getUsers = (request, response) => {
     } else {
 
       const db_password = results.rows[0].password;
-      console.log("db pass " + results.rows[0].password);
+
       bcrypt.compare(password, db_password, (err, result) => {
         if (err) {
           result.status(400).json({
@@ -53,8 +53,8 @@ const getUsers = (request, response) => {
         if (result) {
           response.status(200).json(results.rows);
         } else {
-          response.status(401).json({
-            message: 'Authorization failed'
+          response.status(403).json({
+            message: 'Unauthorized Access Denied'
           });
         }
       });
@@ -72,11 +72,10 @@ const createUser = (request, response) => {
   const created_date = new Date();
   const updated_date = new Date();
 
-  console.log("Here");
+
   const email_check = request.body.email;
   const password_check = request.body.password;
-  console.log(schema.validate(request.body.password));
-  console.log(email_check);
+
 
   if (validator.validate(email_check) && schema.validate(password_check)) {
 
@@ -110,7 +109,6 @@ const createUser = (request, response) => {
         });
       }
 
-      //response.status(200).json(results.rows)
     })
   } else {
     response.status(401).json({
@@ -147,7 +145,7 @@ const updateUser = (request, response) => {
     } else {
 
       const db_password = results.rows[0].password;
-      console.log("db pass " + results.rows[0].password);
+      //console.log("db pass " + results.rows[0].password);
       bcrypt.compare(password, db_password, (err, result) => {
         if (err) {
           result.status(400).json({
@@ -163,7 +161,7 @@ const updateUser = (request, response) => {
             last_name,
             password
           } = request.body;
-          //const email_check = request.body.email;
+
           const password_check = request.body.password;
           const updated_date = new Date();
           if (schema.validate(password_check)) {

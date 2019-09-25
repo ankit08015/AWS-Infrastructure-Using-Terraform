@@ -7,9 +7,34 @@ chai.use(chaiHttp);
 
 // This agent refers to PORT where program is runninng.
 
-var server = supertest.agent("http://localhost:3000/vi/user");
+var server = supertest.agent("http://localhost:3000/v1");
 
 // UNIT test begin
+
+
+describe("Unit test for Posting an user", function () {
+
+    it("should return Data of the created user", function (done) {
+
+        server
+            .post("/user")
+            .send({
+                "first_name": "Anthony",
+                "last_name": "Lawrence",
+                "email": "Anthony@gmail.com",
+                "password": "Test@123"
+            })
+            .end(function (err, res) {
+                (res).should.have.status(201);
+                (res).should.be.json;
+                (res).body.should.have.property('message');
+                (res).body.details.first_name.should.equal('Anthony');
+                (res).body.details.last_name.should.equal('Lawrence');
+                done();
+            })
+        //.catch((err) => done(err));
+    });
+});
 
 describe("Unit test for Getting a user", function () {
 
@@ -19,28 +44,41 @@ describe("Unit test for Getting a user", function () {
 
         // calling home page api
         server
-            .get("/self")
-            .auth('Yagnik2@gmail.com', 'Test@13')
-            //.expect(200) // THis is HTTP response
-            //.expect(body.to.contain.property('id'))
-            //.send({name :'Ajay'})
+            .get("/user/self")
+            .auth('Anthony@gmail.com', 'Test@123')
             .end(function (err, res) {
-                //if(!err){
-                    // HTTP status should be 200
-                    // var r = res.status;
-                    // if (r==200)
-                    //     res.status.should.equal(200);
-                    // Error key should be false.
-                    // else {
-                    //     res.body.error.equal(false);
-                    // }
+                if (!err) {
                     (res).should.have.status(200);
                     (res.body[0]).should.be.a('object');
                     (res.body.length).should.be.eq(1);
+                    (res).body[0].first_name.should.equal('Anthony');
+                    (res).body[0].last_name.should.equal('Lawrence');
                     done();
-               // }
+                }
             })
-            .catch((err) => done(err));
+    });
+
+});
+
+
+describe("Unit test for Updating an user", function () {
+
+    it("Should return Data of the updated user", function (done) {
+        server
+            .put("/user/self")
+            .auth('Anthony@gmail.com', 'Test@123')
+            .send({
+                "first_name": "Anthony_update",
+                "last_name": "Lawrence_update",
+                "password": "Test@123"
+            })
+            .end(function (err, res) {
+                (res).should.have.status(200);
+                (res).should.be.json;
+                (res).body.should.have.property('message');
+                done();
+            })
+        //.catch((err) => done(err));
     });
 
 });
