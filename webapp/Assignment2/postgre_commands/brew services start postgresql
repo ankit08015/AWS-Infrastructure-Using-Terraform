@@ -1,3 +1,4 @@
+// install on mac
 brew services start postgresql
 psql postgres
 \conninfo
@@ -9,13 +10,13 @@ psql postgres
 \du | List all roles
 \list | List databases
 ================================
+// create role
 CREATE ROLE me WITH LOGIN PASSWORD 'Ajaygoel@123';
-
 ALTER ROLE me CREATEDB;
 \du
 \q
 
-## // mac command
+// mac command
 psql -d postgres -U me
 
 //ubuntu command
@@ -24,9 +25,11 @@ sudo -i -u postgres
 // ubuntu exit
 exit
 
+//create database
 CREATE DATABASE api;
 \c api
 
+//create table
 CREATE TABLE users (
   ID SERIAL PRIMARY KEY,
   first_name VARCHAR(30),
@@ -37,7 +40,7 @@ CREATE TABLE users (
   updated_date TIMESTAMP NOT NULL
 );
 
-
+// insert sample data
 INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
   VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', NOW(), NOW());
 
@@ -52,7 +55,7 @@ PUT — /users/id | updateUser()
 DELETE — /users/id | deleteUser()
 ==================================
 
-
+// give grants
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me;
 GRANT USAGE ON SCHEMA public to me; 
 GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
