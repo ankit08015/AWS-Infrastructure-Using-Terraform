@@ -16,15 +16,6 @@ describe("Unit test for Posting an user", function () {
 
     it("should return Data of the created user", function (done) {
 
-        // var params = {
-        //     "first_name": "Ira",
-        //     "last_name": "Hoffman",
-        //     "email": "I@gmail.com",
-        //     "password":"Test@123"
-        // }
-        // var expected = JSON.stringify(params);
-        // calling home page api
-        
         server
             .post("/user")
             .send({
@@ -55,9 +46,6 @@ describe("Unit test for Getting a user", function () {
         server
             .get("/user/self")
             .auth('Anthony@gmail.com', 'Test@123')
-            //.expect(200) // THis is HTTP response
-            //.expect(body.to.contain.property('id'))
-            //.send({name :'Ajay'})
             .end(function (err, res) {
                 if (!err) {
                     (res).should.have.status(200);
@@ -68,7 +56,6 @@ describe("Unit test for Getting a user", function () {
                     done();
                 }
             })
-        //.catch((err) => done(err));
     });
 
 });

@@ -13,8 +13,10 @@ app.use(
 )
 
 app.get('/', (request, response) => {
-    response.json({ info: 'Node.js, Express, and Postgres API' })
-  });
+  response.json({
+    info: 'Node.js, Express, and Postgres API'
+  })
+});
 
 
 app.get('/v1/user/self', db.getUsers)
@@ -23,5 +25,5 @@ app.put('/v1/user/self', db.updateUser)
 
 
 app.listen(port, () => {
-    console.log(`App running on port ${port}.`)
+  console.log(`App running on port ${port}.`)
 });
