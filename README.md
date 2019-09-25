@@ -27,7 +27,7 @@
 
 ## Running Tests
 1. Goto the folder that has the `webapp/Assignment2/app_psql/index.js` and run the command `node index.js`.
-2. Open another terminal goto the folder that has `webapp/Assignment2/app_psql/test.js` then run the command 'npm run test`.
+2. Open another terminal goto the folder that has `webapp/Assignment2/app_psql/test.js` then run the command `npm run test`.
 
 ## CI/CD
 
