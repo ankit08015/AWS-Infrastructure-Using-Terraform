@@ -43,7 +43,7 @@ const getUsers = (request, response) => {
     } else {
 
       const db_password = results.rows[0].password;
-      console.log("db pass " + results.rows[0].password);
+      //console.log("db pass " + results.rows[0].password);
       bcrypt.compare(password, db_password, (err, result) => {
         if (err) {
           result.status(400).json({
@@ -72,11 +72,11 @@ const createUser = (request, response) => {
   const created_date = new Date();
   const updated_date = new Date();
 
-  console.log("Here");
+  //console.log("Here");
   const email_check = request.body.email;
   const password_check = request.body.password;
-  console.log(schema.validate(request.body.password));
-  console.log(email_check);
+  //console.log(schema.validate(request.body.password));
+  //console.log(email_check);
 
   if (validator.validate(email_check) && schema.validate(password_check)) {
 
@@ -147,7 +147,7 @@ const updateUser = (request, response) => {
     } else {
 
       const db_password = results.rows[0].password;
-      console.log("db pass " + results.rows[0].password);
+      //console.log("db pass " + results.rows[0].password);
       bcrypt.compare(password, db_password, (err, result) => {
         if (err) {
           result.status(400).json({
