@@ -29,9 +29,14 @@ exit
 CREATE DATABASE api;
 \c api
 
+// install UUID extension for id
+create extension "uuid-ossp";
+// check by generating id
+select uuid_generate_v4();
+
 //create table
 CREATE TABLE users (
-  ID SERIAL PRIMARY KEY,
+  ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
   first_name VARCHAR(30),
   last_name VARCHAR(30),
   email VARCHAR(30),
