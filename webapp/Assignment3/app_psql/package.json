@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "bcryptjs": "^2.4.3",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
@@ -19,7 +20,8 @@
     "nodemon": "^1.19.2",
     "password-validator": "^5.0.2",
     "pg": "^7.12.1",
-    "save": "^2.4.0"
+    "save": "^2.4.0",
+    "sequelize": "^5.19.1"
   },
   "devDependencies": {
     "mocha": "^6.2.0",

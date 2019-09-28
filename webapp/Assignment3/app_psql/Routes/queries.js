@@ -1,11 +1,18 @@
+
+const express = require('express');
+const router = express.Router();
+const db = require('../config/database');
+const Gig = require('../Model/Gig');
+
 const Pool = require('pg').Pool
-const pool = new Pool({
-  user: 'me',
-  host: 'localhost',
-  database: 'api',
-  password: 'Ajaygoel@123',
-  port: 5432,
-});
+const pool = require('../config/database');
+// const pool = new Pool({
+//   user: 'me',
+//   host: 'localhost',
+//   database: 'api',
+//   password: 'Ajaygoel@123',
+//   port: 5432,
+// });
 const bcrypt = require("bcrypt");
 var validator = require("email-validator");
 var passwordValidator = require('password-validator');
