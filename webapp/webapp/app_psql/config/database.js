@@ -14,7 +14,7 @@ module.exports = new Sequelize('api', 'me', 'Ajaygoel@123', {
       idle: 10000
     },
     define: {
-      "createdAt": "createdat",
-      "updatedAt": "updatedat"
+      "createdAt": "created_date",
+      "updatedAt": "updated_date"
     }
   });
