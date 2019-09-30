@@ -47,20 +47,28 @@ router.post('/recipie', (req, res) => {
 
                         const {
                             title,
-                            cook_time_in_min
+                            cook_time_in_min,
+                            prep_time_in_min,
+                            cusine,
+                            servings,
+                            ingredients
                         } = req.body;
+                        
+                        const total_time_in_min = cook_time_in_min + prep_time_in_min;
                         Gig.create({
-                                title,
-                                cook_time_in_min,
-                                author_id
+                            author_id,
+                            cook_time_in_min,
+                            title,
+                            prep_time_in_min,
+                            total_time_in_min,
+                            cusine,
+                            servings,
+                            ingredients
                             })
                             .then(gig => res.sendStatus(200))
                             .catch(err => res.status(401).json({
                                 message:err.message
                             }));
-                        //console.log("HERRRRRRREEEEEEEEEE")
-                        //user_authorized = true;
-                        //console.log(user_authorized+"HERRRRRRREEEEEEEEEE")
                     } else {
                         res.status(403).json({
                             message: 'Unauthorized Access Denied'
@@ -72,35 +80,59 @@ router.post('/recipie', (req, res) => {
                     "message": "Email doesn't exist"
                 }); // return wrong email
             }
-            //console.log(user_authorized +"==========");
-            //user_authorized = true;
-            // console.log(user_authorized +"==========");
-            // console.log(user_authorized +"==========");
-            // console.log(user_authorized +"==========");
-            // console.log(user_authorized +"==========");
-            // console.log(user_authorized +"==========");
-            // if (user_authorized) {
-            //     console.log("HERRRRRRREEEEEEEEEE2")
-            //     const {
-            //         title,
-            //         cook_time_in_min
-            //     } = req.body;
-            //     Gig.create({
-            //             title,
-            //             cook_time_in_min,
-            //             author_id
-            //         })
-            //         .then(gig => res.sendStatus(200))
-            //         .catch(err => console.log(err));
-            // }
-            //  else {
-            //     res.status(403).json({
-            //         "message": "Wrong Password or Email"
-            //     }); // return wrong email
-            // }
         })
         .catch();
 
 })
+
+////// DELETE
+
+router.delete('/recipie/:id', (req, res) => {
+    Gig_user.findAll({
+        where: {
+            email: email
+        }
+    })
+    .then(data => {
+        let user_authorized = false;
+        const author_id = data[0].id;
+        if (data[0] != undefined) {
+            const db_password = data[0].password;
+            bcrypt.compare(password, db_password, (err, result) => {
+
+                //result= true;
+                if (err) {
+                    res.status(400).json({
+                        message: 'Bad Request'
+                    });
+                } else if (result) {
+
+                    const {
+                        recipe_id
+                    } = req.params.id;
+                    
+                    Gig.destroy({
+                            where : { id : recipe_id}
+                        })
+                        .then(deletedRecipe => res.Status(200).json({
+                            deletedRecipe
+                        }))
+                        .catch(err => res.status(401).json({
+                            message:err.message
+                        }));
+                } else {
+                    res.status(403).json({
+                        message: 'Unauthorized Access Denied'
+                    });
+                }
+            })
+        } else {
+            res.status(400).json({
+                "message": "Email doesn't exist"
+            }); // return wrong email
+        }
+    })
+    .catch();
+});
 
 module.exports = router;
