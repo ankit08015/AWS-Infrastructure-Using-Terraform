@@ -272,4 +272,153 @@ router.get('/recipie/:id', (req, res) => {
 
 });
 
+
+
+// PUT Recipe
+
+router.put('/recipie/:id', (req, res) => {
+
+    // check for basic auth header
+    if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+        return res.status(401).json({
+            message: 'Missing Authorization Header'
+        });
+    }
+
+    // verify auth credentials
+    const base64Credentials = req.headers.authorization.split(' ')[1];
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+    const [email, password] = credentials.split(':');
+    //const result;
+
+    db.user.findAll({
+            where: {
+                email: email
+            }
+        })
+        .then(data => {
+            let user_authorized = false;
+            const author_id = data[0].id;
+            if (data[0] != undefined) {
+                const db_password = data[0].password;
+                bcrypt.compare(password, db_password, (err, result) => {
+
+                    //result= true;
+                    if (err) {
+                        res.status(400).json({
+                            message: 'Bad Request'
+                        });
+                    } else if (result) {
+
+                        const {
+                            title,
+                            cook_time_in_min,
+                            prep_time_in_min,
+                            cusine,
+                            servings,
+                            ingredients,
+                            steps,
+                            nutritionInformation
+                        } = req.body;
+
+                        const calories = nutritionInformation.calories;
+                        const cholesterol_in_mg = nutritionInformation.cholesterol_in_mg;
+                        const sodium_in_mg = nutritionInformation.sodium_in_mg;
+                        const carbohydrates_in_grams = nutritionInformation.carbohydrates_in_grams;
+                        const protein_in_grams = nutritionInformation.protein_in_grams;
+
+                        // router.put('/update/:Id', function (req, res, next) {
+                        //     Gig.update(
+                        //       //{first_name: req.body.first_name},
+                        //       {first_name: "Ajay"},
+                        //       {returning: true, where: {id: req.params.Id}}
+                        //     )
+                            // .then(function([ rowsUpdate, [updatedDetail] ]) {
+                            //   res.json(updatedDetail)
+                            // })
+                        //     .catch(next)
+                        //    });
+                        
+
+                        //console.log(nutritionInformation);
+                        const total_time_in_min = cook_time_in_min + prep_time_in_min;
+                        db.recipe.update({
+                                title : title,
+                                cook_time_in_min:cook_time_in_min,
+                                prep_time_in_min:prep_time_in_min,
+                                total_time_in_min:total_time_in_min,
+                                cusine:cusine,
+                                servings:servings,
+                                ingredients:ingredients,
+                                steps:steps//,
+                                // "userId": author_id
+                            },
+                            {
+                                returning: true, where : {id:req.params.id}
+                            })
+                            .then(function([ rowsUpdate, [data] ]) {
+                                //data => 
+                                db.nutInfo.update({
+                                    //"recipe_id": data.id,
+                                    calories:calories,
+                                    cholesterol_in_mg:cholesterol_in_mg,
+                                    sodium_in_mg:sodium_in_mg,
+                                    carbohydrates_in_grams:carbohydrates_in_grams,
+                                    protein_in_grams:protein_in_grams,
+                                    //"recipeId": data.id
+                                },
+                                {
+                                    returning: true, where : {recipe_id:data.id}
+                                })
+                                .then(function([ rowsUpdated, [nutrition_information] ]) {
+                                    //nutrition_information => {
+                                    res.header("Content-Type", 'application/json');
+
+                                    res.status(200).send(JSON.stringify(
+
+                                        {
+                                            "id": data.id,
+                                            "created_ts": data.created_date,
+                                            "updated_ts": data.updated_date,
+                                            "author_id": data.author_id,
+                                            "cook_time_in_min": data.cook_time_in_min,
+                                            "prep_time_in_min": data.prep_time_in_min,
+                                            "total_time_in_min": data.total_time_in_min,
+                                            "title": data.title,
+                                            "cusine": data.cusine,
+                                            "servings": data.servings,
+                                            "ingredients": data.ingredients,
+                                            "steps": data.steps,
+                                            "nutrition_information": {
+                                                "calories": nutrition_information.calories,
+                                                "cholesterol_in_mg": nutrition_information.cholesterol_in_mg,
+                                                "sodium_in_mg": nutrition_information.sodium_in_mg,
+                                                "carbohydrates_in_grams": nutrition_information.carbohydrates_in_grams,
+                                                "protein_in_grams": nutrition_information.protein_in_grams
+                                            }
+                                        }
+                                    ));
+                                })})
+                            .catch(err => res.status(401).json({
+                                message: err.message + " manually"
+                            }));
+
+
+                    } else {
+                        res.status(403).json({
+                            message: 'Unauthorized Access Denied'
+                        });
+                    }
+                })
+            } else {
+                res.status(400).json({
+                    "message": "Email doesn't exist"
+                }); // return wrong email
+            }
+        })
+        .catch();
+
+})
+
+
 module.exports = router;
