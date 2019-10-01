@@ -50,7 +50,11 @@ const recipe = sequelize.define('recipes', {
   },
   servings :{
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      min:1,
+      max:5
+    }
   },  
   ingredients :{
     type : DataTypes.ARRAY(DataTypes.STRING),
