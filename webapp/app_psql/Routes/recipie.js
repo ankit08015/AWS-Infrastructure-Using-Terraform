@@ -175,7 +175,7 @@ router.delete('/recipie/:id', (req, res) => {
                         res.status(400).json({
                             message: 'Bad Request'
                         });
-                    } else if (result) {
+                    } else if (result ) {
 
                         const {
                             recipe_id
@@ -183,7 +183,8 @@ router.delete('/recipie/:id', (req, res) => {
 
                         db.recipe.destroy({
                                 where: {
-                                    id: req.params.id
+                                    id: req.params.id,
+                                    author_id:author_id     
                                 }
                             })
                             // TODO-- delete nutrition also
@@ -202,7 +203,7 @@ router.delete('/recipie/:id', (req, res) => {
                             }
                                 else {
                                     res.status(400).json({
-                                        Message:"Recipe does not exist"
+                                        Message:"Bad Request"
                                             })
                                 }
                                 
