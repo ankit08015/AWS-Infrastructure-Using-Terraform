@@ -1,19 +1,30 @@
-const Sequelize = require('sequelize');
-const db = require('../config/database');
 
-const user = db.define('users', {
+'use strict'
+
+module.exports = (sequelize, DataTypes) => {
+
+const user = sequelize.define('users', {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    allowNull: false
+  },
   first_name: {
-    type: Sequelize.STRING
+    type: DataTypes.STRING
   },
   last_name: {
-    type: Sequelize.STRING
+    type: DataTypes.STRING
   },
   email: {
-    type: Sequelize.STRING
+    type: DataTypes.STRING
   },
   password: {
-    type: Sequelize.STRING
+    type: DataTypes.STRING
   }
-})
+},  {
+  underscored: true
+});
 
-module.exports = user;
+return user;
+};

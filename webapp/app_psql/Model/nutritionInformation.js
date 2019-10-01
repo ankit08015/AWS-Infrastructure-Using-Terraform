@@ -1,25 +1,40 @@
-const Sequelize = require('sequelize');
-const db = require('../config/database');
 
-const nutritionInformation = db.define('nutritionInformation', {
+'use strict'
+
+module.exports = (sequelize, DataTypes) => {
+
+const nutInfo = sequelize.define('nutrition', {
+    nutr_id: {
+        type: DataTypes.UUID,
+        primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
+        allowNull: false
+    },
     recipe_id: {
-        type: Sequelize.UUIDV4
+        type: DataTypes.UUID,
+        allowNull: false
     },
     calories: {
-        type: Sequelize.INTEGER
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     cholesterol_in_mg: {
-        type: Sequelize.FLOAT
+        type: DataTypes.FLOAT,
+        allowNull: false
     },
     sodium_in_mg: {
-        type: Sequelize.INTEGER
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     carbohydrates_in_grams: {
-        type: Sequelize.FLOAT
+        type: DataTypes.FLOAT,
+        allowNull: false
     },
     protein_in_grams: {
-        type: Sequelize.FLOAT
+        type: DataTypes.FLOAT,
+        allowNull: false
     }
 })
 
-module.exports = nutritionInformation;
+return nutInfo;
+};
