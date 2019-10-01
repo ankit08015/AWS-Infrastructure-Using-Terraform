@@ -1,17 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
-const Gig = require('../Model/recipe');
-const Gig_user = require('../Model/user');
-const Sequelize = require('sequelize');
-const Op = Sequelize.Op;
 const bcrypt = require("bcrypt");
 
-
-
 ////POST
-
-console.log("in recipess");
 
 router.post('/recipie', (req, res) => {
 
@@ -78,7 +70,7 @@ router.post('/recipie', (req, res) => {
                                 servings,
                                 ingredients,
                                 steps,
-                                "userId" : author_id
+                                "userId": author_id
                             })
                             .then(data => db.nutInfo.create({
                                     "recipe_id": data.id,
@@ -90,37 +82,37 @@ router.post('/recipie', (req, res) => {
                                     "recipeId": data.id
 
                                 })
-                                .then(nutrition_information =>  {
+                                .then(nutrition_information => {
                                     res.header("Content-Type", 'application/json');
-                
+
                                     res.status(200).send(JSON.stringify(
-                
+
                                         {
-                                                "id": data.id,
-                                                "created_ts": data.created_date,
-                                                "updated_ts": data.updated_date,
-                                                "author_id": data.author_id,
-                                                "cook_time_in_min": data.cook_time_in_min,
-                                                "prep_time_in_min": data.prep_time_in_min,
-                                                "total_time_in_min": data.total_time_in_min,
-                                                "title": data.title,
-                                                "cusine": data.cusine,
-                                                "servings": data.servings,
-                                                "ingredients": data.ingredients,
-                                                "steps": data.steps,
-                                                "nutrition_information": {
-                                                  "calories": nutrition_information.calories,
-                                                  "cholesterol_in_mg": nutrition_information.cholesterol_in_mg,
-                                                  "sodium_in_mg": nutrition_information.sodium_in_mg,
-                                                  "carbohydrates_in_grams": nutrition_information.carbohydrates_in_grams,
-                                                  "protein_in_grams": nutrition_information.protein_in_grams
-                                                }
-                                        }                        
+                                            "id": data.id,
+                                            "created_ts": data.created_date,
+                                            "updated_ts": data.updated_date,
+                                            "author_id": data.author_id,
+                                            "cook_time_in_min": data.cook_time_in_min,
+                                            "prep_time_in_min": data.prep_time_in_min,
+                                            "total_time_in_min": data.total_time_in_min,
+                                            "title": data.title,
+                                            "cusine": data.cusine,
+                                            "servings": data.servings,
+                                            "ingredients": data.ingredients,
+                                            "steps": data.steps,
+                                            "nutrition_information": {
+                                                "calories": nutrition_information.calories,
+                                                "cholesterol_in_mg": nutrition_information.cholesterol_in_mg,
+                                                "sodium_in_mg": nutrition_information.sodium_in_mg,
+                                                "carbohydrates_in_grams": nutrition_information.carbohydrates_in_grams,
+                                                "protein_in_grams": nutrition_information.protein_in_grams
+                                            }
+                                        }
                                     ));
                                 }))
-                                .catch(err => res.status(401).json({
-                                    message: err.message + " manually"
-                                }));
+                            .catch(err => res.status(401).json({
+                                message: err.message + " manually"
+                            }));
 
 
                     } else {
@@ -135,8 +127,7 @@ router.post('/recipie', (req, res) => {
                 }); // return wrong email
             }
         })
-        .catch(
-            );
+        .catch();
 
 })
 
@@ -144,8 +135,8 @@ router.post('/recipie', (req, res) => {
 
 router.delete('/recipie/:id', (req, res) => {
 
-      // check for basic auth header
-      if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+    // check for basic auth header
+    if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         return res.status(401).json({
             message: 'Missing Authorization Header'
         });
@@ -175,7 +166,7 @@ router.delete('/recipie/:id', (req, res) => {
                         res.status(400).json({
                             message: 'Bad Request'
                         });
-                    } else if (result ) {
+                    } else if (result) {
 
                         const {
                             recipe_id
@@ -184,12 +175,12 @@ router.delete('/recipie/:id', (req, res) => {
                         db.recipe.destroy({
                                 where: {
                                     id: req.params.id,
-                                    author_id:author_id     
+                                    author_id: author_id
                                 }
                             })
                             // TODO-- delete nutrition also
                             .then(deletedRecipe => {
-                                if (deletedRecipe>0){
+                                if (deletedRecipe > 0) {
                                     db.nutInfo.destroy({
                                         where: {
                                             recipe_id: req.params.id
@@ -197,16 +188,15 @@ router.delete('/recipie/:id', (req, res) => {
                                     }).then(
                                         res.status(200).json({
                                             deletedRecipe
-                                                })
+                                        })
                                     )
-                                    
-                            }
-                                else {
+
+                                } else {
                                     res.status(400).json({
-                                        Message:"Bad Request"
-                                            })
+                                        Message: "Bad Request"
+                                    })
                                 }
-                                
+
                             })
                             .catch(err => res.status(401).json({
                                 message: err.message
@@ -252,26 +242,26 @@ router.get('/recipie/:id', (req, res) => {
                     res.status(200).send(JSON.stringify(
 
                         {
-                                "id": data[0].id,
-                                "created_ts": data[0].created_date,
-                                "updated_ts": data[0].updated_date,
-                                "author_id": data[0].author_id,
-                                "cook_time_in_min": data[0].cook_time_in_min,
-                                "prep_time_in_min": data[0].prep_time_in_min,
-                                "total_time_in_min": data[0].total_time_in_min,
-                                "title": data[0].title,
-                                "cusine": data[0].cusine,
-                                "servings": data[0].servings,
-                                "ingredients": data[0].ingredients,
-                                "steps": data[0].steps,
-                                "nutrition_information": {
-                                  "calories": nutrition_information[0].calories,
-                                  "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
-                                  "sodium_in_mg": nutrition_information[0].sodium_in_mg,
-                                  "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
-                                  "protein_in_grams": nutrition_information[0].protein_in_grams
-                                }
-                        }                        
+                            "id": data[0].id,
+                            "created_ts": data[0].created_date,
+                            "updated_ts": data[0].updated_date,
+                            "author_id": data[0].author_id,
+                            "cook_time_in_min": data[0].cook_time_in_min,
+                            "prep_time_in_min": data[0].prep_time_in_min,
+                            "total_time_in_min": data[0].total_time_in_min,
+                            "title": data[0].title,
+                            "cusine": data[0].cusine,
+                            "servings": data[0].servings,
+                            "ingredients": data[0].ingredients,
+                            "steps": data[0].steps,
+                            "nutrition_information": {
+                                "calories": nutrition_information[0].calories,
+                                "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
+                                "sodium_in_mg": nutrition_information[0].sodium_in_mg,
+                                "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
+                                "protein_in_grams": nutrition_information[0].protein_in_grams
+                            }
+                        }
                     ));
                 })
         })
