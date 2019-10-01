@@ -33,7 +33,7 @@ module.exports = router;
 
 
 //POST
-router.post('/add', (req, res) => {
+router.post('/user', (req, res) => {
 
   ////
   db.user.findAll({
@@ -99,7 +99,7 @@ router.post('/add', (req, res) => {
 
 //GET
 
-router.get('/self', (req, res) => {
+router.get('/user/self', (req, res) => {
 
   // check for basic auth header
   if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
@@ -161,7 +161,7 @@ router.get('/self', (req, res) => {
 
 // PUT REQUEST
 
-router.put('/self', function (req, res, next) {
+router.put('/user/self', function (req, res, next) {
 
 
   // check for basic auth header
@@ -176,7 +176,7 @@ router.put('/self', function (req, res, next) {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [email, password] = credentials.split(':');
   //const result;
-  Gig.findAll({
+  db.user.findAll({
       where: {
         email: email
       }
@@ -213,7 +213,7 @@ router.put('/self', function (req, res, next) {
                     });
                   } else {
 
-                    Gig.update({
+                    db.user.update({
                           first_name: req.body.first_name,
                           password: hash
                         },
