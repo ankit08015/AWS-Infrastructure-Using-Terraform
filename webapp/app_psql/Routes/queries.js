@@ -17,11 +17,16 @@ schema
   .has().not().spaces() // Should not have spaces
   .is().not().oneOf(['Passw0rd', 'Password123']);
 
+//console.log(Gig);
+
 router.get('/', (req, res) =>
-  Gig.findAll()
+  db.user.findAll()
   .then(users => {
     console.log(users);
-    res.sendStatus(200);
+    res.status(200).json({
+      message: res.statusCode,
+      users: users
+    });
   })
   .catch(err => console.log(err)));
 module.exports = router;
@@ -31,7 +36,7 @@ module.exports = router;
 router.post('/add', (req, res) => {
 
   ////
-  Gig.findAll({
+  db.user.findAll({
       where: {
         email: req.body.email
       }
@@ -60,7 +65,7 @@ router.post('/add', (req, res) => {
               hash = String(hash);
               console.log(hash);
               password = hash;
-              Gig.create({
+              db.user.create({
                   first_name,
                   last_name,
                   email,
@@ -108,7 +113,7 @@ router.get('/self', (req, res) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [email, password] = credentials.split(':');
   //const result;
-  Gig.findAll({
+  db.user.findAll({
       where: {
         email: email
       }

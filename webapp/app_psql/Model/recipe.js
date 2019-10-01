@@ -1,12 +1,22 @@
-const Sequelize = require('sequelize');
-const db = require('../config/database');
 
-const recipe = db.define('recipes', {
+'use strict'
+
+module.exports = (sequelize, DataTypes) => {
+
+const recipe = sequelize.define('recipes', {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    allowNull: false
+  },
   author_id: {
-    type: Sequelize.UUIDV4
+    type: DataTypes.UUID,
+    allowNull: false
   },
   cook_time_in_min: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
+    allowNull: false,
     validate :{
       isMul5: function(value) {
         if(parseInt(value) % 5 != 0) {
@@ -16,10 +26,12 @@ const recipe = db.define('recipes', {
     }
   },
   title: {
-    type: Sequelize.STRING
+    type: DataTypes.STRING,
+    allowNull: false
   },
   prep_time_in_min: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
+    allowNull: false,
     validate :{
       isMul5: function(value) {
         if(parseInt(value) % 5 != 0) {
@@ -29,18 +41,31 @@ const recipe = db.define('recipes', {
     }
   },
   total_time_in_min :{
-    type: Sequelize.INTEGER
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   cusine:{
-    type: Sequelize.STRING
+    type: DataTypes.STRING,
+    allowNull: false
   },
   servings :{
-    type: Sequelize.INTEGER
+    type: DataTypes.INTEGER,
+    allowNull: false
   },  
   ingredients :{
-    type : Sequelize.ARRAY(Sequelize.STRING),
-    unique : true
+    type : DataTypes.ARRAY(DataTypes.STRING),
+    allowNull: false
+   // unique : true
+  } ,
+  steps :{
+    type : DataTypes.JSON(DataTypes.STRING),
+    allowNull: false
+    //unique : true
   }
-})
+},  
+  {
+    underscored: true
+  });
 
-module.exports = recipe;
+return recipe;
+};

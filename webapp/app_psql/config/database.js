@@ -1,3 +1,4 @@
+'use strict'
 const Sequelize = require('sequelize');
 //const recipe = require('../Model/recipe');
 const sequelize = new Sequelize('api', 'me', 'Ajaygoel@123', {
@@ -16,4 +17,22 @@ const sequelize = new Sequelize('api', 'me', 'Ajaygoel@123', {
   }
 });
 
-module.exports = sequelize;
+const db = {};
+
+db.Sequelize = Sequelize;
+db.sequelize = sequelize;
+
+//Models/tables
+db.user = require('../Model/user')(sequelize, Sequelize);
+db.recipe = require('../Model/recipe')(sequelize, Sequelize);
+db.nutInfo = require('../Model/nutritionInformation')(sequelize, Sequelize);
+
+//Relations
+db.nutInfo.belongsTo(db.recipe);
+db.recipe.hasOne(db.nutInfo);
+db.recipe.belongsTo(db.user);
+db.user.hasMany(db.recipe);
+
+module.exports = db;
+
+//module.exports = sequelize;
