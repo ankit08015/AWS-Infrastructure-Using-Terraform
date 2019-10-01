@@ -26,12 +26,15 @@ db.sequelize = sequelize;
 db.user = require('../Model/user')(sequelize, Sequelize);
 db.recipe = require('../Model/recipe')(sequelize, Sequelize);
 db.nutInfo = require('../Model/nutritionInformation')(sequelize, Sequelize);
+db.recipeSteps = require('../Model/recipeSteps')(sequelize,Sequelize);
 
 //Relations
 db.nutInfo.belongsTo(db.recipe);
 db.recipe.hasOne(db.nutInfo);
 db.recipe.belongsTo(db.user);
 db.user.hasMany(db.recipe);
+db.recipeSteps.belongsTo(db.recipe);
+db.recipe.hasMany(db.recipeSteps);
 
 module.exports = db;
 

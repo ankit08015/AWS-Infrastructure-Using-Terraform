@@ -21,68 +21,73 @@ router.post('/recipie', (req, res) => {
     //const result;
 
     db.user.findAll({
-            where: {
-                email: email
-            }
-        })
-        .then(data => {
-            let user_authorized = false;
-            const author_id = data[0].id;
-            if (data[0] != undefined) {
-                const db_password = data[0].password;
-                bcrypt.compare(password, db_password, (err, result) => {
+        where: {
+            email: email
+        }
+    })
+    .then(data => {
+        let user_authorized = false;
+        const author_id = data[0].id;
+        if (data[0] != undefined) {
+            const db_password = data[0].password;
+            bcrypt.compare(password, db_password, (err, result) => {
 
-                    //result= true;
-                    if (err) {
-                        res.status(400).json({
-                            message: 'Bad Request'
-                        });
-                    } else if (result) {
+                //result= true;
+                if (err) {
+                    res.status(400).json({
+                        message: 'Bad Request'
+                    });
+                } else if (result) {
 
-                        const {
+                    const {
+                        title,
+                        cook_time_in_min,
+                        prep_time_in_min,
+                        cusine,
+                        servings,
+                        ingredients,
+                        steps,
+                        nutritionInformation
+                    } = req.body;
+
+                    const calories = nutritionInformation.calories;
+                    const cholesterol_in_mg = nutritionInformation.cholesterol_in_mg;
+                    const sodium_in_mg = nutritionInformation.sodium_in_mg;
+                    const carbohydrates_in_grams = nutritionInformation.carbohydrates_in_grams;
+                    const protein_in_grams = nutritionInformation.protein_in_grams;
+
+                    //console.log(nutritionInformation);
+                    const total_time_in_min = cook_time_in_min + prep_time_in_min;
+
+
+                    db.recipe.create({
+                            author_id,
                             title,
                             cook_time_in_min,
                             prep_time_in_min,
+                            total_time_in_min,
                             cusine,
                             servings,
                             ingredients,
                             steps,
-                            nutritionInformation
-                        } = req.body;
+                            "userId": author_id
+                        })
+                        .then(data => db.nutInfo.create({
+                                "recipe_id": data.id,
+                                calories,
+                                cholesterol_in_mg,
+                                sodium_in_mg,
+                                carbohydrates_in_grams,
+                                protein_in_grams,
+                                "recipeId": data.id
 
-                        const calories = nutritionInformation.calories;
-                        const cholesterol_in_mg = nutritionInformation.cholesterol_in_mg;
-                        const sodium_in_mg = nutritionInformation.sodium_in_mg;
-                        const carbohydrates_in_grams = nutritionInformation.carbohydrates_in_grams;
-                        const protein_in_grams = nutritionInformation.protein_in_grams;
-
-                        //console.log(nutritionInformation);
-                        const total_time_in_min = cook_time_in_min + prep_time_in_min;
-
-
-                        db.recipe.create({
-                                author_id,
-                                title,
-                                cook_time_in_min,
-                                prep_time_in_min,
-                                total_time_in_min,
-                                cusine,
-                                servings,
-                                ingredients,
-                                steps,
-                                "userId": author_id
                             })
-                            .then(data => db.nutInfo.create({
+                            .then(nutrition_information => db.recipeSteps.create({
                                     "recipe_id": data.id,
-                                    calories,
-                                    cholesterol_in_mg,
-                                    sodium_in_mg,
-                                    carbohydrates_in_grams,
-                                    protein_in_grams,
+                                    steps,
                                     "recipeId": data.id
-
                                 })
-                                .then(nutrition_information => {
+                                .then(recipeSteps => {
                                     res.header("Content-Type", 'application/json');
 
                                     res.status(200).send(JSON.stringify(
@@ -99,7 +104,7 @@ router.post('/recipie', (req, res) => {
                                             "cusine": data.cusine,
                                             "servings": data.servings,
                                             "ingredients": data.ingredients,
-                                            "steps": data.steps,
+                                            "steps": recipeSteps.steps,
                                             "nutrition_information": {
                                                 "calories": nutrition_information.calories,
                                                 "cholesterol_in_mg": nutrition_information.cholesterol_in_mg,
@@ -110,24 +115,25 @@ router.post('/recipie', (req, res) => {
                                         }
                                     ));
                                 }))
-                            .catch(err => res.status(401).json({
-                                message: err.message + " manually"
-                            }));
+                        )
+                        .catch(err => res.status(401).json({
+                            message: err.message + " manually"
+                        }));
 
 
-                    } else {
-                        res.status(403).json({
-                            message: 'Unauthorized Access Denied'
-                        });
-                    }
-                })
-            } else {
-                res.status(400).json({
-                    "message": "Email doesn't exist"
-                }); // return wrong email
-            }
-        })
-        .catch();
+                } else {
+                    res.status(403).json({
+                        message: 'Unauthorized Access Denied'
+                    });
+                }
+            })
+        } else {
+            res.status(400).json({
+                "message": "Email doesn't exist"
+            }); // return wrong email
+        }
+    })
+    .catch();
 
 })
 
