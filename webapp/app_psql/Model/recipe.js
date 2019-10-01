@@ -70,7 +70,14 @@ const recipe = sequelize.define('recipes', {
   } ,
   steps :{
     type : DataTypes.JSON(DataTypes.STRING),
-    allowNull: false
+    allowNull: false,
+    validate: {
+      MinSteps : function(json_data){
+        if(json_data.length<1){
+          throw new Error('Minimum 1 step is required in steps of preparing!')
+        }
+      }
+    }
     //unique : true
   }
 },  
