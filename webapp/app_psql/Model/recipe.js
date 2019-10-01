@@ -58,7 +58,14 @@ const recipe = sequelize.define('recipes', {
   },  
   ingredients :{
     type : DataTypes.ARRAY(DataTypes.STRING),
-    allowNull: false
+    allowNull: false,
+    validate: {
+      isUnique: function(array){
+        if(new Set(array).size !== array.length){
+          throw new Error('Only unique ingredients are allowed!')
+        }
+      }
+    }
    // unique : true
   } ,
   steps :{
