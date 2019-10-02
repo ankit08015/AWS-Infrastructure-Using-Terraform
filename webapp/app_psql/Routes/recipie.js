@@ -246,6 +246,14 @@ router.get('/recipie/:id', (req, res) => {
         })
         .then(data => {
 
+            if(data.length<1){
+                return res.status(401).json({
+                    message: 'Invalid Id'
+                });
+                
+            }
+            else{
+            console.log(data.length);
             db.nutInfo.findAll({
                     where: {
                         recipe_id: req.params.id
@@ -279,7 +287,7 @@ router.get('/recipie/:id', (req, res) => {
                         }
                     ));
                 })
-        })
+        }})
 
         .catch(err => res.status(401).json({
             message: err.message
