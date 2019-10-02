@@ -21,7 +21,7 @@ describe("Unit test for Posting an user", function () {
             .send({
                 "first_name": "Anthony",
                 "last_name": "Lawrence",
-                "email": "Anthony25@gmail.com",
+                "email": "Anthony26@gmail.com",
                 "password": "Test@123"
             })
             .end(function (err, res) {
@@ -41,7 +41,7 @@ describe("Unit test for Getting a user", function () {
         // calling home page api
         server
             .get("/user/self")
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .end(function (err, res) {
                 if (!err) {
                     //console.log(res);
@@ -62,7 +62,7 @@ describe("Unit test for Updating an user", function () {
     it("Should return Data of the updated user", function (done) {
         server
             .put("/user/self")
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .send({
                 "first_name": "Anthony2",
                 "last_name": "Lawrence2",
@@ -89,7 +89,7 @@ describe("Unit test for Posting a recepie", function () {
     it("should return Data of the created recepie", function (done) {
 
         server
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .post("/recipie")
             .send({
                 "title": "Paneer Tikka",
@@ -98,31 +98,30 @@ describe("Unit test for Posting a recepie", function () {
                 "total_time_in_min": 15,
                 "cusine": "Indian",
                 "ingredients": [
-                                "Paneer",
-                                "Musturd seeds"
-                               ],
+                    "Paneer",
+                    "Musturd seeds"
+                ],
                 "servings": 3,
-                "steps": [
-                            {
-                               "position": 1,
-                               "item": "Open frozen packet and heat it for 3 mins"
-                            },
-                            {
-                               "position": 2,
-                               "item": "Open frozen packet and heat it for 3 mins"
-                            }
-                        ],
+                "steps": [{
+                        "position": 1,
+                        "item": "Open frozen packet and heat it for 3 mins"
+                    },
+                    {
+                        "position": 2,
+                        "item": "Open frozen packet and heat it for 3 mins"
+                    }
+                ],
                 "nutritionInformation": {
-                            "calories": 70,
-                            "cholesterol_in_mg": 55.5,
-                            "sodium_in_mg": 80,
-                            "carbohydrates_in_grams": 150,
-                            "protein_in_grams": 7
-                        }
-                        
+                    "calories": 70,
+                    "cholesterol_in_mg": 55.5,
+                    "sodium_in_mg": 80,
+                    "carbohydrates_in_grams": 150,
+                    "protein_in_grams": 7
+                }
+
             })
             .end(function (err, res) {
-                (res).should.have.status(200);                
+                (res).should.have.status(200);
                 res.body.title.should.equal('Paneer Tikka');
                 res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
                 res.body.nutrition_information.calories.should.equal(70);
@@ -145,7 +144,7 @@ describe("Unit test for Getting a recipie of a user", function () {
         // calling home page api
         server
             .get("/recipie/"+id)
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .end(function (err, res) {
                 if (!err) {
                     (res).should.have.status(200);
@@ -167,7 +166,7 @@ describe("Unit test for Getting a recipie of a user", function () {
 //     it("Should return Data of the updated recepie", function (done) {
 //         server
 //             .put("/recipie/2b2be7cb-e0f8-477e-9235-45241bf450a6")
-//             .auth('Anthony25@gmail.com', 'Test@123')
+//             .auth('Anthony26@gmail.com', 'Test@123')
 //             .send({
 //                 "title": "Paneer Tikka",
 //                 "cook_time_in_min": 35,
@@ -221,7 +220,7 @@ describe("Unit test for updating a recepie", function () {
     it("should return Data of the updated recepie", function (done) {
 
         server
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .put("/recipie/"+id)
             .send({
                 "title": "Paneer",
@@ -234,12 +233,10 @@ describe("Unit test for updating a recepie", function () {
                     "Musturd seeds"
                 ],
                 "servings": 3,
-                "steps": [
-                    {
-                        "position": 1,
-                        "item": "Open frozen packet and heat it for 3 mins"
-                    }
-                ],
+                "steps": [{
+                    "position": 1,
+                    "item": "Open frozen packet and heat it for 3 mins"
+                }],
                 "nutritionInformation": {
                     "calories": 700,
                     "cholesterol_in_mg": 55.5,
@@ -250,7 +247,7 @@ describe("Unit test for updating a recepie", function () {
             })
             .end(function (err, res) {
                 console.log(res.body);
-                (res).should.have.status(200);                
+                (res).should.have.status(200);
                 res.body.title.should.equal('Paneer');
                 //res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
                 res.body.nutrition_information.calories.should.equal(700);
@@ -266,11 +263,11 @@ describe("Unit test for deleting a recepie", function () {
     it("should return deleted recipe =1 ", function (done) {
 
         server
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .delete("/recipie/"+id)
             .end(function (err, res) {
                 console.log(res.body);
-                (res).should.have.status(200);                
+                (res).should.have.status(200);
                 res.body.deletedRecipe.should.equal(1);
                 //res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
                 //res.body.nutrition_information.calories.should.equal(700);

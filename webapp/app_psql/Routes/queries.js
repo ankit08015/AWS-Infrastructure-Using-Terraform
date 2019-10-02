@@ -57,7 +57,7 @@ router.post('/user', (req, res) => {
 
           bcrypt.hash(password, 10, (err, hash) => {
             if (err) {
-              return res.status(500).json({
+              return res.status(401).json({
                 error: err
               });
             } else {
@@ -89,7 +89,7 @@ router.post('/user', (req, res) => {
           });
         }
       } else {
-        res.status(403).json({
+        res.status(400).json({
           message: "User Email exist.",
         })
       }
@@ -130,7 +130,7 @@ router.get('/user/self', (req, res) => {
         bcrypt.compare(password, db_password, (err, result) => {
           console.log(result);
           if (err) {
-            res.status(400).json({
+            res.status(401).json({
               message: 'Bad Request'
             });
           } else if (result) {
@@ -142,14 +142,14 @@ router.get('/user/self', (req, res) => {
               "updated_date": data[0].updated_date
             });
           } else {
-            res.status(403).json({
+            res.status(401).json({
               message: 'Unauthorized Access Denied'
             });
           }
         });
       } else {
         //console.log(res);
-        res.status(400).json({
+        res.status(404).json({
           "message": "Email doesn't exist"
         }); // return wrong email
       }
@@ -208,7 +208,7 @@ router.put('/user/self', function (req, res, next) {
               if (schema.validate(req.body.password)) {
                 bcrypt.hash(req.body.password, 10, (err, hash) => {
                   if (err) {
-                    return res.status(500).json({
+                    return res.status(401).json({
                       error: err
                     });
                   } else {
@@ -252,7 +252,7 @@ router.put('/user/self', function (req, res, next) {
             //   "updated_date": data[0].updated_date
             // });
           } else {
-            res.status(403).json({
+            res.status(401).json({
               message: 'Unauthorized Access Denied'
             });
           }

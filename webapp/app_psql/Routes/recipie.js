@@ -116,13 +116,13 @@ router.post('/recipie', (req, res) => {
                                         ));
                                     }))
                             )
-                            .catch(err => res.status(401).json({
+                            .catch(err => res.status(406).json({
                                 message: err.message + " manually"
                             }));
 
 
                     } else {
-                        res.status(403).json({
+                        res.status(401).json({
                             message: 'Unauthorized Access Denied'
                         });
                     }
@@ -212,17 +212,17 @@ router.delete('/recipie/:id', (req, res) => {
                                 }
 
                             })
-                            .catch(err => res.status(401).json({
+                            .catch(err => res.status(406).json({
                                 message: err.message
                             }));
                     } else {
-                        res.status(403).json({
+                        res.status(401).json({
                             message: 'Unauthorized Access Denied'
                         });
                     }
                 })
             } else {
-                res.status(400).json({
+                res.status(404).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
             }
@@ -247,7 +247,7 @@ router.get('/recipie/:id', (req, res) => {
         .then(data => {
 
             if(data.length<1){
-                return res.status(401).json({
+                return res.status(404).json({
                     message: 'Invalid Id'
                 });
                 
@@ -289,7 +289,7 @@ router.get('/recipie/:id', (req, res) => {
                 })
         }})
 
-        .catch(err => res.status(401).json({
+        .catch(err => res.status(406).json({
             message: err.message
         }));
 
@@ -429,13 +429,13 @@ router.put('/recipie/:id', (req, res) => {
 
                                     })
                             })
-                            .catch(err => res.status(401).json({
+                            .catch(err => res.status(404).json({
                                 message: err.message + " manually"
                             }));
 
 
                     } else {
-                        res.status(403).json({
+                        res.status(401).json({
                             message: 'Unauthorized Access Denied'
                         });
                     }
