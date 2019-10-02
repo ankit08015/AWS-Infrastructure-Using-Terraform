@@ -138,6 +138,7 @@ router.post('/recipie', (req, res) => {
 })
 
 ////// DELETE
+////// DELETE
 
 router.delete('/recipie/:id', (req, res) => {
 
@@ -191,12 +192,19 @@ router.delete('/recipie/:id', (req, res) => {
                                         where: {
                                             recipe_id: req.params.id
                                         }
-                                    }).then(
-                                        res.status(200).json({
-                                            deletedRecipe
-                                        })
+                                    })
+                                    .then(
+                                        deletedRecipeSteps => {
+                                            db.recipeSteps.destroy({
+                                                    where: {
+                                                        recipe_id: req.params.id
+                                                    }
+                                                })
+                                                .then(res.status(200).json({
+                                                    deletedRecipe
+                                                }))
+                                        }
                                     )
-
                                 } else {
                                     res.status(400).json({
                                         Message: "Bad Request"
@@ -223,6 +231,7 @@ router.delete('/recipie/:id', (req, res) => {
 
         );
 });
+
 
 module.exports = router;
 

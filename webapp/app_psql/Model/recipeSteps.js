@@ -2,7 +2,7 @@
 
 module.exports = (sequelize, DataTypes) => {
 
-    const recipeSteps = sequelize.define('recipeSteps', {
+    const recipeSteps = sequelize.define('steps', {
         recipeSteps_id: {
             type: DataTypes.UUID,
             primaryKey: true,

@@ -34,7 +34,7 @@ db.recipe.hasOne(db.nutInfo);
 db.recipe.belongsTo(db.user);
 db.user.hasMany(db.recipe);
 db.recipeSteps.belongsTo(db.recipe);
-db.recipe.hasMany(db.recipeSteps);
+db.recipe.hasOne(db.recipeSteps);
 
 module.exports = db;
 
