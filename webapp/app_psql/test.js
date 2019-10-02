@@ -21,7 +21,7 @@ describe("Unit test for Posting an user", function () {
             .send({
                 "first_name": "Anthony",
                 "last_name": "Lawrence",
-                "email": "Anthony25@gmail.com",
+                "email": "Anthony26@gmail.com",
                 "password": "Test@123"
             })
             .end(function (err, res) {
@@ -41,7 +41,7 @@ describe("Unit test for Getting a user", function () {
         // calling home page api
         server
             .get("/user/self")
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .end(function (err, res) {
                 if (!err) {
                     //console.log(res);
@@ -62,7 +62,7 @@ describe("Unit test for Updating an user", function () {
     it("Should return Data of the updated user", function (done) {
         server
             .put("/user/self")
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .send({
                 "first_name": "Anthony2",
                 "last_name": "Lawrence2",
@@ -89,7 +89,7 @@ describe("Unit test for Posting a recepie", function () {
     it("should return Data of the created recepie", function (done) {
 
         server
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .auth('Anthony26@gmail.com', 'Test@123')
             .post("/recipie")
             .send({
                 "title": "Paneer Tikka",
@@ -143,8 +143,8 @@ describe("Unit test for Getting a recipie of a user", function () {
 
         // calling home page api
         server
-            .get("/recipie/" + id)
-            .auth('Anthony25@gmail.com', 'Test@123')
+            .get("/recipie/"+id)
+            .auth('Anthony26@gmail.com', 'Test@123')
             .end(function (err, res) {
                 if (!err) {
                     (res).should.have.status(200);
@@ -166,7 +166,7 @@ describe("Unit test for Getting a recipie of a user", function () {
 //     it("Should return Data of the updated recepie", function (done) {
 //         server
 //             .put("/recipie/2b2be7cb-e0f8-477e-9235-45241bf450a6")
-//             .auth('Anthony25@gmail.com', 'Test@123')
+//             .auth('Anthony26@gmail.com', 'Test@123')
 //             .send({
 //                 "title": "Paneer Tikka",
 //                 "cook_time_in_min": 35,
@@ -220,8 +220,8 @@ describe("Unit test for updating a recepie", function () {
     it("should return Data of the updated recepie", function (done) {
 
         server
-            .auth('Anthony25@gmail.com', 'Test@123')
-            .put("/recipie/" + id)
+            .auth('Anthony26@gmail.com', 'Test@123')
+            .put("/recipie/"+id)
             .send({
                 "title": "Paneer",
                 "cook_time_in_min": 15,
@@ -263,8 +263,8 @@ describe("Unit test for deleting a recepie", function () {
     it("should return deleted recipe =1 ", function (done) {
 
         server
-            .auth('Anthony25@gmail.com', 'Test@123')
-            .delete("/recipie/" + id)
+            .auth('Anthony26@gmail.com', 'Test@123')
+            .delete("/recipie/"+id)
             .end(function (err, res) {
                 console.log(res.body);
                 (res).should.have.status(200);
