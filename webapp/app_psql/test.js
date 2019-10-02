@@ -98,31 +98,30 @@ describe("Unit test for Posting a recepie", function () {
                 "total_time_in_min": 15,
                 "cusine": "Indian",
                 "ingredients": [
-                                "Paneer",
-                                "Musturd seeds"
-                               ],
+                    "Paneer",
+                    "Musturd seeds"
+                ],
                 "servings": 3,
-                "steps": [
-                            {
-                               "position": 1,
-                               "item": "Open frozen packet and heat it for 3 mins"
-                            },
-                            {
-                               "position": 2,
-                               "item": "Open frozen packet and heat it for 3 mins"
-                            }
-                        ],
+                "steps": [{
+                        "position": 1,
+                        "item": "Open frozen packet and heat it for 3 mins"
+                    },
+                    {
+                        "position": 2,
+                        "item": "Open frozen packet and heat it for 3 mins"
+                    }
+                ],
                 "nutritionInformation": {
-                            "calories": 70,
-                            "cholesterol_in_mg": 55.5,
-                            "sodium_in_mg": 80,
-                            "carbohydrates_in_grams": 150,
-                            "protein_in_grams": 7
-                        }
-                        
+                    "calories": 70,
+                    "cholesterol_in_mg": 55.5,
+                    "sodium_in_mg": 80,
+                    "carbohydrates_in_grams": 150,
+                    "protein_in_grams": 7
+                }
+
             })
             .end(function (err, res) {
-                (res).should.have.status(200);                
+                (res).should.have.status(200);
                 res.body.title.should.equal('Paneer Tikka');
                 res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
                 res.body.nutrition_information.calories.should.equal(70);
@@ -144,7 +143,7 @@ describe("Unit test for Getting a recipie of a user", function () {
 
         // calling home page api
         server
-            .get("/recipie/"+id)
+            .get("/recipie/" + id)
             .auth('Anthony25@gmail.com', 'Test@123')
             .end(function (err, res) {
                 if (!err) {
@@ -222,7 +221,7 @@ describe("Unit test for updating a recepie", function () {
 
         server
             .auth('Anthony25@gmail.com', 'Test@123')
-            .put("/recipie/"+id)
+            .put("/recipie/" + id)
             .send({
                 "title": "Paneer",
                 "cook_time_in_min": 15,
@@ -234,12 +233,10 @@ describe("Unit test for updating a recepie", function () {
                     "Musturd seeds"
                 ],
                 "servings": 3,
-                "steps": [
-                    {
-                        "position": 1,
-                        "item": "Open frozen packet and heat it for 3 mins"
-                    }
-                ],
+                "steps": [{
+                    "position": 1,
+                    "item": "Open frozen packet and heat it for 3 mins"
+                }],
                 "nutritionInformation": {
                     "calories": 700,
                     "cholesterol_in_mg": 55.5,
@@ -250,7 +247,7 @@ describe("Unit test for updating a recepie", function () {
             })
             .end(function (err, res) {
                 console.log(res.body);
-                (res).should.have.status(200);                
+                (res).should.have.status(200);
                 res.body.title.should.equal('Paneer');
                 //res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
                 res.body.nutrition_information.calories.should.equal(700);
@@ -267,10 +264,10 @@ describe("Unit test for deleting a recepie", function () {
 
         server
             .auth('Anthony25@gmail.com', 'Test@123')
-            .delete("/recipie/"+id)
+            .delete("/recipie/" + id)
             .end(function (err, res) {
                 console.log(res.body);
-                (res).should.have.status(200);                
+                (res).should.have.status(200);
                 res.body.deletedRecipe.should.equal(1);
                 //res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
                 //res.body.nutrition_information.calories.should.equal(700);
