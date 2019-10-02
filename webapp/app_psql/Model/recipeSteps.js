@@ -17,13 +17,13 @@ module.exports = (sequelize, DataTypes) => {
             //type: DataTypes.JSON(DataTypes.STRING),
             type : DataTypes.ARRAY(DataTypes.JSON),
             allowNull: false,
-            // validate: {
-            //     MinSteps: function (json_data) {
-            //         if (json_data.length < 1) {
-            //             throw new Error('Minimum 1 step is required in steps of preparing!')
-            //         }
-            //     }
-            // }
+            validate: {
+                MinSteps: function (array_data) {
+                    if (array_data.length < 1) {
+                        throw new Error('Minimum 1 step is required in steps of preparing!')
+                    }
+                }
+            }
         }
     },
     {
