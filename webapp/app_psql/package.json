@@ -17,7 +17,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
-    "morgan": "1.7.0",
+    "morgan": "^1.9.1",
     "nodemon": "^1.19.3",
     "password-validator": "^5.0.2",
     "pg": "^7.12.1",
@@ -26,7 +26,7 @@
     "sequelize-cli": "2.4.0"
   },
   "devDependencies": {
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.1",
     "should": "^13.2.3",
     "supertest": "^4.0.2"
   }
