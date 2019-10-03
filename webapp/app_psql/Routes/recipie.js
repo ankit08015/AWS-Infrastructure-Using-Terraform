@@ -26,6 +26,12 @@ router.post('/recipie', (req, res) => {
             }
         })
         .then(data => {
+            console.log(data);
+            if(data.length<=0){
+                return res.status(400).json({
+                    "message": "Email doesn't exist"
+                }); // return wrong email
+            }
             let user_authorized = false;
             const author_id = data[0].id;
             if (data[0] != undefined) {
@@ -117,7 +123,7 @@ router.post('/recipie', (req, res) => {
                                     }))
                             )
                             .catch(err => res.status(406).json({
-                                message: err.message + " manually"
+                                message: err.message
                             }));
 
 
@@ -162,6 +168,12 @@ router.delete('/recipie/:id', (req, res) => {
             }
         })
         .then(data => {
+            console.log(data);
+            if(data.length<=0){
+                return res.status(400).json({
+                    "message": "Email doesn't exist"
+                }); // return wrong email
+            }
             let user_authorized = false;
             const author_id = data[0].id;
             if (data[0] != undefined) {
@@ -320,6 +332,12 @@ router.put('/recipie/:id', (req, res) => {
             }
         })
         .then(data => {
+            console.log(data);
+            if(data.length<=0){
+                return res.status(400).json({
+                    "message": "Email doesn't exist"
+                }); // return wrong email
+            }
             let user_authorized = false;
             const author_id = data[0].id;
             if (data[0] != undefined) {
@@ -430,7 +448,7 @@ router.put('/recipie/:id', (req, res) => {
                                     })
                             })
                             .catch(err => res.status(404).json({
-                                message: err.message
+                                message: "Wrong user Id or Recipe Id"
                             }));
 
 
