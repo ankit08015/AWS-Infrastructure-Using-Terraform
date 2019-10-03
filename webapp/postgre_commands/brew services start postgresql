@@ -1,0 +1,127 @@
+// install on mac
+brew services start postgresql
+psql postgres
+\conninfo
+
+================================
+\q | Exit psql connection
+\c | Connect to a new database
+\dt | List all tables
+\du | List all roles
+\list | List databases
+================================
+// create role
+CREATE ROLE me WITH LOGIN PASSWORD 'Ajaygoel@123';
+ALTER ROLE me CREATEDB;
+\du
+\q
+
+// mac command
+psql -d postgres -U me
+
+//ubuntu command
+sudo -i -u postgres
+
+// ubuntu exit
+exit
+
+//create database
+CREATE DATABASE api;
+\c api
+
+//create table
+CREATE TABLE users (
+  ID SERIAL PRIMARY KEY,
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  email VARCHAR(30),
+  password VARCHAR(1000),
+  created_date TIMESTAMP NOT NULL,
+  updated_date TIMESTAMP NOT NULL
+);
+
+// insert sample data
+INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', NOW(), NOW());
+
+SELECT * FROM users;
+
+==================================
+GET — / | displayHome()
+GET — /users | getUsers()
+GET — /users/id | getUserById()
+POST — users | createUser()
+PUT — /users/id | updateUser()
+DELETE — /users/id | deleteUser()
+==================================
+
+// give grants
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO me;
+GRANT USAGE ON SCHEMA public to me; 
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO me;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO me;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public to me;
+GRANT ALL PRIVILEGES ON DATABASE api to me;
+GRANT ALL PRIVILEGES ON TABLE users TO me;
+
+
+============================TESTING========================
+CREATE TABLE gigs (
+  ID SERIAL ,
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  createdAt DATE,
+  updatedAt DATE
+);
+
+ALTER TABLE gigs 
+RENAME createdat TO createdAt;
+/////////////////////////////////////////////////////////////
+
+CREATE TABLE recipes(
+   ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
+   author_id VARCHAR (255) NOT NULL,
+   cook_time_in_min INTEGER NOT NULL,
+   title VARCHAR (255) NOT NULL,
+   prep_time_in_min INTEGER NOT NULL,
+   total_time_in_min INTEGER NOT NULL,
+   cusine VARCHAR (50) NOT NULL,
+   servings INTEGER NOT NULL,
+   ingredients TEXT[],
+   created_date TIMESTAMP,
+   updated_date TIMESTAMP
+);
+
+
+////////////////
+// install UUID extension for id
+create extension "uuid-ossp";
+// check by generating id
+select uuid_generate_v4();
+
+//create table
+CREATE TABLE users (
+  ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  email VARCHAR(30),
+  password VARCHAR(1000),
+  created_date TIMESTAMP NOT NULL,
+  updated_date TIMESTAMP NOT NULL
+);
+
+// insert sample data
+INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', NOW(), NOW());
+
+CREATE TABLE nutritionInformation(
+    ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
+    recipe_id uuid NOT NULL,
+    calories INTEGER NOT NULL,
+    cholesterol_in_mg FLOAT NOT NULL,
+    sodium_in_mg INTEGER NOT NULL,
+    carbohydrates_in_grams FLOAT NOT NULL,
+    protein_in_grams FLOAT NOT NULL,
+    created_date DATE,
+    updated_date DATE
+);
