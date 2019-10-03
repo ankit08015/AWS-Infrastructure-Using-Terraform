@@ -25,7 +25,7 @@ describe("Unit test for Posting an user", function () {
                 "password": "Test@123"
             })
             .end(function (err, res) {
-                (res).should.have.status(200);
+                (res).should.have.status(201);
                 done();
             })
         //.catch((err) => done(err));
