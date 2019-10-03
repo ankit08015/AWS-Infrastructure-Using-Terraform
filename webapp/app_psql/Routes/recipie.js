@@ -430,7 +430,7 @@ router.put('/recipie/:id', (req, res) => {
                                     })
                             })
                             .catch(err => res.status(404).json({
-                                message: err.message + " manually"
+                                message: err.message
                             }));
 
 
