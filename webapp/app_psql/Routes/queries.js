@@ -72,10 +72,14 @@ router.post('/user', (req, res) => {
                   password
                 })
                 //.then(gig => res.redirect('/gigs'))
-                .then(gig => res.sendStatus(200))
-                // .json({
-                //   message : "Created User "+email
-                // })
+                .then(gig => res.status(201).json({
+                  "id": gig.id,
+                  "first_name": gig.first_name,
+                  "last_name": gig.last_name,
+                  "email_address": gig.email,
+                  "account_created": gig.created_date,
+                  "account_updated": gig.updated_date
+                }))
                 .catch(err => console.log(err));
             }
           });
@@ -135,11 +139,12 @@ router.get('/user/self', (req, res) => {
             });
           } else if (result) {
             res.status(200).json({
+              "id": data[0].id,
               "first_name": data[0].first_name,
               "last_name": data[0].last_name,
-              "email": data[0].email,
-              "created_date": data[0].created_date,
-              "updated_date": data[0].updated_date
+              "email_address": data[0].email,
+              "account_created": data[0].created_date,
+              "account_updated": data[0].updated_date
             });
           } else {
             res.status(401).json({
