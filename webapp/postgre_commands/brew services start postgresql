@@ -76,3 +76,52 @@ CREATE TABLE gigs (
 
 ALTER TABLE gigs 
 RENAME createdat TO createdAt;
+/////////////////////////////////////////////////////////////
+
+CREATE TABLE recipes(
+   ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
+   author_id VARCHAR (255) NOT NULL,
+   cook_time_in_min INTEGER NOT NULL,
+   title VARCHAR (255) NOT NULL,
+   prep_time_in_min INTEGER NOT NULL,
+   total_time_in_min INTEGER NOT NULL,
+   cusine VARCHAR (50) NOT NULL,
+   servings INTEGER NOT NULL,
+   ingredients TEXT[],
+   created_date TIMESTAMP,
+   updated_date TIMESTAMP
+);
+
+
+////////////////
+// install UUID extension for id
+create extension "uuid-ossp";
+// check by generating id
+select uuid_generate_v4();
+
+//create table
+CREATE TABLE users (
+  ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
+  first_name VARCHAR(30),
+  last_name VARCHAR(30),
+  email VARCHAR(30),
+  password VARCHAR(1000),
+  created_date TIMESTAMP NOT NULL,
+  updated_date TIMESTAMP NOT NULL
+);
+
+// insert sample data
+INSERT INTO users (first_name, last_name,email,password, created_date, updated_date)
+  VALUES ('Jerry', 'Sehgal','jerry@example.com','Test@123', NOW(), NOW());
+
+CREATE TABLE nutritionInformation(
+    ID uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
+    recipe_id uuid NOT NULL,
+    calories INTEGER NOT NULL,
+    cholesterol_in_mg FLOAT NOT NULL,
+    sodium_in_mg INTEGER NOT NULL,
+    carbohydrates_in_grams FLOAT NOT NULL,
+    protein_in_grams FLOAT NOT NULL,
+    created_date DATE,
+    updated_date DATE
+);
