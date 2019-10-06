@@ -1,0 +1,9 @@
+
+[dev]
+aws_access_key_id = AKIA2XLRXCUPYQ4KMUHG
+aws_secret_access_key = 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
+
+[prod]
+aws_access_key_id = AKIAJXSP6JVHGKFYO7VA
+aws_secret_access_key = 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
+
