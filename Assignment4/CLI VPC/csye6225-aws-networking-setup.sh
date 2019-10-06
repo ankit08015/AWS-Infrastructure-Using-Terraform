@@ -1,6 +1,7 @@
 AWS_REGION="us-east-1"
 VPC_NAME="My VPC"
 VPC_CIDR="10.0.0.0/16"
+INTERNET_GATEWAY_NAME="MY INTERNET GATEWAY"
 
 echo "==================================================================="
 echo "Creating VPC in preferred region..."
@@ -118,6 +119,17 @@ IGW_ID=$(aws ec2 create-internet-gateway \
   --region $AWS_REGION)
 echo "  Internet Gateway ID '$IGW_ID' CREATED."
 echo "==================================================================="
+
+
+# Add Name tag to Interney Gateway
+aws ec2 create-tags \
+  --resources $IGW_ID \
+  --tags "Key=Name,Value=$INTERNET_GATEWAY_NAME" \
+  --region $AWS_REGION
+
+echo "  IGW ID '$IGW_ID' NAMED as '$INTERNET_GATEWAY_NAME'."
+echo "==================================================================="
+
 
 # Attach Internet gateway to your VPC
 aws ec2 attach-internet-gateway \
