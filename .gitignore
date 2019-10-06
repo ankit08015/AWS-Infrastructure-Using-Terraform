@@ -535,3 +535,5 @@ typings/
 .next
 
 __MACOSX
+
+.terraform
