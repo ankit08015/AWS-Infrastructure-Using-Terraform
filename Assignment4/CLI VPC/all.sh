@@ -17,6 +17,8 @@ aws ec2 delete-vpc --vpc-id vpc-04a3b1513e06ccd16
 aws ec2 delete-vpc --vpc-id vpc-07603c448f1f3f06f
 aws ec2 delete-vpc --vpc-id vpc-091d55312d720990c
 aws ec2 delete-vpc --vpc-id vpc-01bcdd21a6237eff5
+
+aws ec2 delete-vpc --vpc-id $VPC_ID
 ---------------------------------------------------------------
 
 
@@ -80,7 +82,7 @@ aws ec2 attach-internet-gateway \
 echo "  Internet Gateway ID '$IGW_ID' ATTACHED to VPC ID '$VPC_ID'."
 
 -----------------------------------------------------------------------------------
-aws ec2 detach-internet-gateway --internet-gateway-id igw-c0a643a9 --vpc-id $VPC_ID
+aws ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
 --------------------------------------------------------------------------------
 
 # Create Route Table
