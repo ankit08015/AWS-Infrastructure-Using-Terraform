@@ -30,10 +30,36 @@ resource "aws_vpc" "vpc" {
 
 resource "aws_subnet" "subnet" {
     cidr_block                          =   var.cidr_block
-    vpc_id              = aws_vpc.vpc.id
-    availability_zone   = "us-east-1a"
-    map_public_ip_on_launch     = true
-    tags    =   {
-        Name = "csye6225-subnet"   
+    vpc_id                              = aws_vpc.vpc.id
+    availability_zone                   = "us-east-1a"
+    map_public_ip_on_launch             = true
+    tags        =   {
+        Name                            = "csye6225-subnet"   
     }   
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc.id
+  tags   = {
+    Name = "csye6225-IGW"
+  }
+}
+
+resource "aws_route_table" "rt" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags   = {
+    Name = "csye6225-RT"
+  }
+}
+
+resource "aws_route" "route" {
+    route_table_id = aws_route_table.rt.id
+    destination_cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
 }
