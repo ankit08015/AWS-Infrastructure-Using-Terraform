@@ -43,10 +43,9 @@
 
 - run ` export AWS_PROFILE=prod ` for exporting prod aws environment variables
 
+- Give the access to run the command ` chmod +x /path/to/yourscript.sh ` to both setup and teardown script
+
 - Run the ` infrastructure/aws/csye6225-aws-networking-setup.sh ` to create and configure required networking resources using AWS CLI
 
 - Run the ` infrastructure/aws/ csye6225-aws-networking-teardown.sh ` to delete networking resources using AWS CLI
 
-## 2. Infrastructure as Code with AWS CloudFormation¶
-
-## 3. Infrastructure as Code with Terraform¶
