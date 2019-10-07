@@ -1,3 +1,4 @@
+#!/bin/sh
 aws ec2 delete-route --route-table-id $ROUTE_TABLE_ID --destination-cidr-block 0.0.0.0/0
 echo "======================== DELETED ROUTE ============================"
 

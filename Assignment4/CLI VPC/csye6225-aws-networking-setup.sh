@@ -1,8 +1,24 @@
+#!/bin/sh
+handle_error()
+{
+    if [ -z "$1" ] 
+     then exit 
+    fi
+}
+
+handle_creation_error()
+{
+    if [ $1 -ne "0" ] 
+     then exit 
+    fi
+}
+
+
 AWS_REGION="us-east-1"
-VPC_NAME="My VPC"
+VPC_NAME=$1
 VPC_CIDR="10.0.0.0/16"
-INTERNET_GATEWAY_NAME="MY INTERNET GATEWAY"
-ROUTE_TABLE_NAME="RT-CLI"
+#INTERNET_GATEWAY_NAME="MY INTERNET GATEWAY"
+#ROUTE_TABLE_NAME="RT-CLI"
 
 echo "==================================================================="
 echo "Creating VPC in preferred region..."
@@ -11,6 +27,8 @@ VPC_ID=$(aws ec2 create-vpc \
   --query 'Vpc.{VpcId:VpcId}' \
   --output text \
   --region $AWS_REGION)
+
+handle_error $VPC_ID
 echo "  VPC ID '$VPC_ID' CREATED in '$AWS_REGION' region."
 
 echo "==================================================================="
@@ -18,15 +36,15 @@ echo "==================================================================="
 # Add Name tag to VPC
 aws ec2 create-tags \
   --resources $VPC_ID \
-  --tags "Key=Name,Value=$VPC_NAME" \
+  --tags "Key=Name,Value=$VPC_NAME-csye6225-vpc" \
   --region $AWS_REGION
-echo "  VPC ID '$VPC_ID' NAMED as '$VPC_NAME'."
+echo "  VPC ID '$VPC_ID' NAMED as '$VPC_NAME-csye6225-vpc'."
 echo "==================================================================="
 
 
 SUBNET_PUBLIC_CIDR="10.0.1.0/24"
 SUBNET_PUBLIC_AZ="us-east-1a"
-SUBNET_PUBLIC_NAME="10.0.1.0 - us-east-1a"
+## SUBNET_PUBLIC_NAME="10.0.1.0 - us-east-1a"
 
 echo "==================================================================="
 
@@ -39,6 +57,8 @@ SUBNET_PUBLIC_ID=$(aws ec2 create-subnet \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text \
   --region $AWS_REGION)
+
+handle_error $SUBNET_PUBLIC_ID
 echo "  Subnet ID '$SUBNET_PUBLIC_ID' CREATED in '$SUBNET_PUBLIC_AZ'" \
   "Availability Zone."
 echo "==================================================================="
@@ -47,15 +67,15 @@ echo "==================================================================="
 # Add Name tag to Public Subnet 1
 aws ec2 create-tags \
   --resources $SUBNET_PUBLIC_ID \
-  --tags "Key=Name,Value=$SUBNET_PUBLIC_NAME" \
+  --tags "Key=Name,Value=$VPC_NAME-csye6225-subnet1" \
   --region $AWS_REGION
-echo "  Subnet ID '$SUBNET_PUBLIC_ID' NAMED as" \
-  "'$SUBNET_PUBLIC_NAME'."
+echo "  Subnet ID 1 '$SUBNET_PUBLIC_ID' NAMED as" \
+  "'$VPC_NAME-csye6225-subnet1'."
 echo "==================================================================="
 
 SUBNET_PUBLIC_CIDR2="10.0.2.0/24"
 SUBNET_PUBLIC_AZ2="us-east-1b"
-SUBNET_PUBLIC_NAME2="10.0.2.0 - us-east-1b"
+##SUBNET_PUBLIC_NAME2="10.0.2.0 - us-east-1b"
 
 echo "==================================================================="
 
@@ -68,7 +88,10 @@ SUBNET_PUBLIC_ID2=$(aws ec2 create-subnet \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text \
   --region $AWS_REGION)
-echo "  Subnet ID '$SUBNET_PUBLIC_ID2' CREATED in '$SUBNET_PUBLIC_AZ2'" \
+
+handle_error $SUBNET_PUBLIC_ID2
+
+echo "  Subnet ID 2'$SUBNET_PUBLIC_ID2' CREATED in '$SUBNET_PUBLIC_AZ2'" \
   "Availability Zone."
 echo "==================================================================="
 
@@ -76,10 +99,10 @@ echo "==================================================================="
 # Add Name tag to Public Subnet 2
 aws ec2 create-tags \
   --resources $SUBNET_PUBLIC_ID2 \
-  --tags "Key=Name,Value=$SUBNET_PUBLIC_NAME2" \
+  --tags "Key=Name,Value=$VPC_NAME-csye6225-subnet2" \
   --region $AWS_REGION
 echo "  Subnet ID '$SUBNET_PUBLIC_ID2' NAMED as" \
-  "'$SUBNET_PUBLIC_NAME2'."
+  "'$VPC_NAME-csye6225-subnet2'."
 echo "==================================================================="
 
 SUBNET_PUBLIC_CIDR3="10.0.3.0/24"
@@ -97,7 +120,9 @@ SUBNET_PUBLIC_ID3=$(aws ec2 create-subnet \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text \
   --region $AWS_REGION)
-echo "  Subnet ID '$SUBNET_PUBLIC_ID3' CREATED in '$SUBNET_PUBLIC_AZ3'" \
+
+handle_error $SUBNET_PUBLIC_ID3
+echo "  Subnet ID 3'$SUBNET_PUBLIC_ID3' CREATED in '$SUBNET_PUBLIC_AZ3'" \
   "Availability Zone."
 echo "==================================================================="
 
@@ -105,10 +130,10 @@ echo "==================================================================="
 # Add Name tag to Public Subnet 3
 aws ec2 create-tags \
   --resources $SUBNET_PUBLIC_ID3 \
-  --tags "Key=Name,Value=$SUBNET_PUBLIC_NAME3" \
+  --tags "Key=Name,Value=$VPC_NAME-csye6225-subnet3" \
   --region $AWS_REGION
 echo "  Subnet ID '$SUBNET_PUBLIC_ID3' NAMED as" \
-  "'$SUBNET_PUBLIC_NAME3'."
+  "'$VPC_NAME-csye6225-subnet3'."
 echo "==================================================================="
 
 
@@ -118,6 +143,8 @@ IGW_ID=$(aws ec2 create-internet-gateway \
   --query 'InternetGateway.{InternetGatewayId:InternetGatewayId}' \
   --output text \
   --region $AWS_REGION)
+
+handle_error $IGW_ID
 echo "  Internet Gateway ID '$IGW_ID' CREATED."
 echo "==================================================================="
 
@@ -125,10 +152,10 @@ echo "==================================================================="
 # Add Name tag to Interney Gateway
 aws ec2 create-tags \
   --resources $IGW_ID \
-  --tags "Key=Name,Value=$INTERNET_GATEWAY_NAME" \
+  --tags "Key=Name,Value=$VPC_NAME-csye6225-ig" \
   --region $AWS_REGION
 
-echo "  IGW ID '$IGW_ID' NAMED as '$INTERNET_GATEWAY_NAME'."
+echo "  IGW ID '$IGW_ID' NAMED as '$VPC_NAME-csye6225-ig'."
 echo "==================================================================="
 
 
@@ -137,6 +164,8 @@ aws ec2 attach-internet-gateway \
   --vpc-id $VPC_ID \
   --internet-gateway-id $IGW_ID \
   --region $AWS_REGION
+
+handle_error $IGW_ID
 echo "  Internet Gateway ID '$IGW_ID' ATTACHED to VPC ID '$VPC_ID'."
 echo "==================================================================="
 
@@ -148,17 +177,28 @@ ROUTE_TABLE_ID=$(aws ec2 create-route-table \
   --query 'RouteTable.{RouteTableId:RouteTableId}' \
   --output text \
   --region $AWS_REGION)
+
+handle_error $ROUTE_TABLE_ID
 echo "  Route Table ID '$ROUTE_TABLE_ID' CREATED."
 echo "==================================================================="
 
 # Create tag for Route Table
-# Add Name tag to Interney Gateway
 aws ec2 create-tags \
   --resources $ROUTE_TABLE_ID \
-  --tags "Key=Name,Value=$ROUTE_TABLE_NAME" \
+  --tags "Key=Name,Value=$VPC_NAME-csye6225-rt" \
   --region $AWS_REGION
 
-echo "  RTI ID '$ROUTE_TABLE_ID' NAMED as '$ROUTE_TABLE_NAME'."
+echo "  RTI ID '$ROUTE_TABLE_ID' NAMED as '$VPC_NAME-csye6225-rt'."
+echo "==================================================================="
+
+echo "Associating subnets to route table..."
+aws ec2 associate-route-table --route-table-id $ROUTE_TABLE_ID --subnet-id $SUBNET_PUBLIC_ID
+aws ec2 associate-route-table --route-table-id $ROUTE_TABLE_ID --subnet-id $SUBNET_PUBLIC_ID2
+aws ec2 associate-route-table --route-table-id $ROUTE_TABLE_ID --subnet-id $SUBNET_PUBLIC_ID3
+echo "Subnets Associated"
+
+echo "==================================================================="
+
 
 # Create route to Internet Gateway
 RESULT=$(aws ec2 create-route \
