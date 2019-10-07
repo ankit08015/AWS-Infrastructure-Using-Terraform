@@ -43,9 +43,11 @@
 
 - run ` export AWS_PROFILE=prod ` for exporting prod aws environment variables
 
-- Run the ` infrastructure/aws/csye6225-aws-networking-setup.sh ` to create and configure required networking resources using AWS CLI
+- Run the ` sh csye6225-aws-networking-setup.sh <AWS_REGION> <VPC_NAME> <VPC_CIDR_BLOCK>` to create and configure required networking resources using AWS CLI
 
-- Run the ` infrastructure/aws/ csye6225-aws-networking-teardown.sh ` to delete networking resources using AWS CLI
+- Run the ` sh csye6225-aws-networking-teardown.sh <VPC_NAME>` to delete networking resources using AWS CLI
+
+    e.g. ` sh csye6225-aws-networking-setup.sh us-east-1 aj 10.0.0.0/16`
 
 ## 2. Infrastructure as Code with AWS CloudFormation¶
 
