@@ -2,6 +2,7 @@ AWS_REGION="us-east-1"
 VPC_NAME="My VPC"
 VPC_CIDR="10.0.0.0/16"
 INTERNET_GATEWAY_NAME="MY INTERNET GATEWAY"
+ROUTE_TABLE_NAME="RT-CLI"
 
 echo "==================================================================="
 echo "Creating VPC in preferred region..."
@@ -149,6 +150,15 @@ ROUTE_TABLE_ID=$(aws ec2 create-route-table \
   --region $AWS_REGION)
 echo "  Route Table ID '$ROUTE_TABLE_ID' CREATED."
 echo "==================================================================="
+
+# Create tag for Route Table
+# Add Name tag to Interney Gateway
+aws ec2 create-tags \
+  --resources $ROUTE_TABLE_ID \
+  --tags "Key=Name,Value=$ROUTE_TABLE_NAME" \
+  --region $AWS_REGION
+
+echo "  RTI ID '$ROUTE_TABLE_ID' NAMED as '$ROUTE_TABLE_NAME'."
 
 # Create route to Internet Gateway
 RESULT=$(aws ec2 create-route \
