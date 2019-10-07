@@ -537,3 +537,5 @@ typings/
 __MACOSX
 
 .terraform
+*.tfstate
+*.tfstate.backup
