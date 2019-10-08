@@ -49,6 +49,6 @@
 
     e.g. ` sh csye6225-aws-networking-setup.sh us-east-1 aj 10.0.0.0/16`
 
-## 2. Infrastructure as Code with AWS CloudFormation¶
-
-## 3. Infrastructure as Code with Terraform¶
+NOTE : DO CHECK THE AWS CONFIGURE AND THE REGION THAT YOU ARE TRAVERSING
+- dev --> us-east-1
+- prod --> us-east-2

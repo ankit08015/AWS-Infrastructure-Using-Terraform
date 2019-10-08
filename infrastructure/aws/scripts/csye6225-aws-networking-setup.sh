@@ -46,7 +46,7 @@ echo "==================================================================="
 
 
 SUBNET_PUBLIC_CIDR="10.0.1.0/24"
-# SUBNET_PUBLIC_AZ="us-east-1a"
+SUBNET_PUBLIC_AZ="${AWS_REGION}a"
 ## SUBNET_PUBLIC_NAME="10.0.1.0 - us-east-1a"
 
 echo "==================================================================="
@@ -56,13 +56,13 @@ echo "Creating Public Subnet..."
 SUBNET_PUBLIC_ID=$(aws ec2 create-subnet \
   --vpc-id $VPC_ID \
   --cidr-block $SUBNET_PUBLIC_CIDR \
-  --availability-zone us-east-1a \
+  --availability-zone $SUBNET_PUBLIC_AZ \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text \
   --region $AWS_REGION)
 
 handle_error $SUBNET_PUBLIC_ID
-echo "  Subnet ID '$SUBNET_PUBLIC_ID' CREATED in us-east-1a" \
+echo "  Subnet ID '$SUBNET_PUBLIC_ID' CREATED in '$SUBNET_PUBLIC_AZ'" \
   "Availability Zone."
 echo "==================================================================="
 
@@ -77,7 +77,7 @@ echo "  Subnet ID 1 '$SUBNET_PUBLIC_ID' NAMED as" \
 echo "==================================================================="
 
 SUBNET_PUBLIC_CIDR2="10.0.2.0/24"
-# SUBNET_PUBLIC_AZ2="us-east-1b"
+SUBNET_PUBLIC_AZ="${AWS_REGION}b"
 ##SUBNET_PUBLIC_NAME2="10.0.2.0 - us-east-1b"
 
 echo "==================================================================="
@@ -87,14 +87,14 @@ echo "Creating Public Subnet..."
 SUBNET_PUBLIC_ID2=$(aws ec2 create-subnet \
   --vpc-id $VPC_ID \
   --cidr-block $SUBNET_PUBLIC_CIDR2 \
-  --availability-zone us-east-1b \
+  --availability-zone $SUBNET_PUBLIC_AZ \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text \
   --region $AWS_REGION)
 
 handle_error $SUBNET_PUBLIC_ID2
 
-echo "  Subnet ID 2'$SUBNET_PUBLIC_ID2' CREATED in us-east-1b " \
+echo "  Subnet ID 2'$SUBNET_PUBLIC_ID2' CREATED in '$SUBNET_PUBLIC_AZ' " \
   "Availability Zone."
 echo "==================================================================="
 
@@ -109,7 +109,7 @@ echo "  Subnet ID '$SUBNET_PUBLIC_ID2' NAMED as" \
 echo "==================================================================="
 
 SUBNET_PUBLIC_CIDR3="10.0.3.0/24"
-#SUBNET_PUBLIC_AZ3="us-east-1c"
+SUBNET_PUBLIC_AZ="${AWS_REGION}c"
 SUBNET_PUBLIC_NAME3="10.0.3.0 - us-east-1c"
 
 echo "==================================================================="
@@ -119,13 +119,13 @@ echo "Creating Public Subnet..."
 SUBNET_PUBLIC_ID3=$(aws ec2 create-subnet \
   --vpc-id $VPC_ID \
   --cidr-block $SUBNET_PUBLIC_CIDR3 \
-  --availability-zone us-east-1c \
+  --availability-zone $SUBNET_PUBLIC_AZ \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text \
   --region $AWS_REGION)
 
 handle_error $SUBNET_PUBLIC_ID3
-echo "  Subnet ID 3'$SUBNET_PUBLIC_ID3' CREATED in us-east-1c " \
+echo "  Subnet ID 3'$SUBNET_PUBLIC_ID3' CREATED in '$SUBNET_PUBLIC_AZ " \
   "Availability Zone."
 echo "==================================================================="
 
