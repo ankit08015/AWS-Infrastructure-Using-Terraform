@@ -11,7 +11,7 @@
 
      ` sudo apt-get install unzip `
 - Install Terraform 
- ` wget https://releases.hashicorp.com/terraform/0.12.7/terraform_0.12.9_linux_amd64.zip `
+ ` wget https://releases.hashicorp.com/terraform/0.12.10/terraform_0.12.10_linux_amd64.zip `
 
 - Extract the downloaded file archive
 
@@ -28,7 +28,7 @@
 - open Terminal
 ` ls -a ` 
 
-- ` terraform init ` - to initialize terraform in the particular folder
+- ` terraform init ` - to initialize terraform in the ` /ccwebapp/infrastructure/aws/terraform/Networking` folder
 
 - ` aws configure ` - to get the Access Key ID and Secret Access Key
 

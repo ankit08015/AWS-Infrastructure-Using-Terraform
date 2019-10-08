@@ -45,16 +45,16 @@
 
 - Run the ` sh csye6225-aws-networking-setup.sh <AWS_REGION> <VPC_NAME> <VPC_CIDR_BLOCK> <SUBNET1_CIDR_BLOCK> <SUBNET2_CIDR_BLOCK> <SUBNET3_CIDR_BLOCK>` to create and configure required networking resources using AWS CLI
 
-- Run the ` sh csye6225-aws-networking-teardown.sh <VPC_NAME>` to delete networking resources using AWS CLI
+- Run the ` sh csye6225-aws-networking-teardown.sh <VPC_NAME> <REGION_NAME>` to delete networking resources using AWS CLI
 
     e.g., 
     
     Creation : ` sh csye6225-aws-networking-setup.sh us-east-1 aj 10.0.0.0/16 10.0.1.0/24 10.0.2.0/24 10.0.3.0/24 `
 
-    Delete : ` sh csye6225-aws-networking-teardown aj `
+    Delete : ` sh csye6225-aws-networking-teardown aj us-east-1`
 
 
 
-NOTE : DO CHECK THE AWS CONFIGURE AND THE REGION THAT YOU ARE TRAVERSING
+NOTE : Profile --> Region
 - dev --> us-east-1
 - prod --> us-east-2
