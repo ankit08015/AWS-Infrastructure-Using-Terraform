@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-
-
 STACK_NAME=$1
 AWS_REGION=$2
 #EAST= "us-east-1"
@@ -34,7 +32,7 @@ fi
 
 echo "Creating stack..."
 STACK_ID=$( \
-  /home/ankit/.local/bin/aws cloudformation create-stack \
+  aws cloudformation create-stack \
   --stack-name ${STACK_NAME} \
   --template-body file:///home/ankit/Documents/CSYE6225/dev/ccwebapp/infrastructure/aws/cloudformation/csye6225-cf-networking.json \
   --capabilities CAPABILITY_IAM \
@@ -47,4 +45,4 @@ STACK_ID=$( \
 )
 
 echo "Waiting on ${STACK_ID} create completion..."
-/home/ankit/.local/bin/aws cloudformation wait stack-create-complete --stack-name ${STACK_ID}
+aws cloudformation wait stack-create-complete --stack-name ${STACK_ID}
