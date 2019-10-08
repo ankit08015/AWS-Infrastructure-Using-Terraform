@@ -3,10 +3,20 @@
 #!/bin/bash
 
 STACK_NAME="$1"
-if [ -z "$STACK_NAME" ];then
-	echo "No parameters were given"
-	exit 0
+
+if test "$#" -ne 1; then
+    echo "Illegal number of parameters. Please provide all required parameters as follows:"
+    echo "sh csye6225-aws-networking-teardown.sh <AWS_REGION>"
+    exit 1
 fi
+
+
+# if [ -z "$STACK_NAME" ];then
+# 	echo "No parameters were given"
+# 	exit 0
+# fi
+
+
 
 ## Getting the VPC ID
 vpc_name="$STACK_NAME-csye6225-vpc"

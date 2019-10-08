@@ -1,17 +1,23 @@
 #!/bin/sh
-handle_error()
-{
-    if [ -z "$1" ] 
-     then exit 
-    fi
-}
+# handle_error()
+# {
+#     if [ -z "$1" ] 
+#      then exit 
+#     fi
+# }
 
-handle_creation_error()
-{
-    if [ $1 -ne "0" ] 
-     then exit 
-    fi
-}
+# handle_creation_error()
+# {
+#     if [ $1 -ne "0" ] 
+#      then exit 
+#     fi
+# }
+
+if test "$#" -ne 6; then
+    echo "Illegal number of parameters. Please provide all required parameters as follows:"
+    echo "sh csye6225-aws-networking-setup.sh <AWS_REGION> <VPC_NAME> <VPC_CIDR_BLOCK> <SUBNET1_CIDR_BLOCK> <SUBNET2_CIDR_BLOCK> <SUBNET3_CIDR_BLOCK>"
+    exit 1
+fi
 
 
 AWS_REGION=$1
