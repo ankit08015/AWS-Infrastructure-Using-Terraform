@@ -10,6 +10,12 @@ SUBNET1=$5
 SUBNET2=$6
 SUBNET3=$7
 
+if test "$#" -ne 7; then
+    echo "Illegal number of parameters. Please provide all required parameters as follows:"
+    echo "csye6225-aws-cf-create-stack.sh STACK_NAME REGION_NAME VPC_NAME VPC_CIDR_BLOCK SUBNETCIDR1 SUBNETCIDR2 SUBNETCIDR3"
+    exit 1
+fi
+
 if [ $AWS_REGION = "us-east-1" ]
   then
     export AWS_PROFILE=dev
@@ -34,7 +40,7 @@ echo "Creating stack..."
 STACK_ID=$( \
   aws cloudformation create-stack \
   --stack-name ${STACK_NAME} \
-  --template-body file:///home/ankit/Documents/CSYE6225/dev/ccwebapp/infrastructure/aws/cloudformation/csye6225-cf-networking.json \
+  --template-body file://csye6225-cf-networking.json \
   --capabilities CAPABILITY_IAM \
   --parameters ParameterKey=Name,ParameterValue=$VPC_NAME \
                ParameterKey=VPCCIDR,ParameterValue=$VPC_CIDR \
