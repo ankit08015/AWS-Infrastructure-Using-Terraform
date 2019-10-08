@@ -3,6 +3,12 @@
 STACK_NAME=$1
 AWS_REGION=$2
 
+if test "$#" -ne 2; then
+    echo "Illegal number of parameters. Please provide all required parameters as follows:"
+    echo "csye6225-aws-cf-terminate-stack.sh STACK_NAME REGION_NAME"
+    exit 1
+fi
+
 if [ -z "$1" ]
   then
     echo "No STACK_NAME argument supplied"
