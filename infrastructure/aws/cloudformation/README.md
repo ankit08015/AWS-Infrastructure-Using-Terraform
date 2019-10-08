@@ -8,7 +8,7 @@
 
 ##### Eg:- 
 
-`sh csye6225-aws-cf-create-stack.sh TestNew us-east-1 NewAgain 10.0.0.0/16 10.0.1.0/24 10.0.5.0/24 10.0.9.0/24`
+`sh csye6225-aws-cf-create-stack.sh CsyeStack us-east-1 MyVPC 10.0.0.0/16 10.0.1.0/24 10.0.5.0/24 10.0.9.0/24`
 
 ## Delete stack using following commands
 
@@ -16,4 +16,4 @@
 
 ##### Eg:- 
 
-`sh csye6225-aws-cf-terminate-stack.sh Test555 us-east-1`
+`sh csye6225-aws-cf-terminate-stack.sh CsyeStack us-east-1`
