@@ -21,3 +21,10 @@
 - ` terraform apply -var = ` - to apply variables to a file at runtime
 
 - ` terraform destroy ` - to destroy or get rid of something
+
+- For giving the variables give values in ` /terraform/Networking/csye6225.tfvars file `.
+- To run the variable file : ` terraform apply -var-file="csye6225.tfvars" `
+
+NOTE : DO CHECK THE AWS CONFIGURE AND THE REGION THAT YOU ARE TRAVERSING
+- dev --> us-east-1
+- prod --> us-east-2
