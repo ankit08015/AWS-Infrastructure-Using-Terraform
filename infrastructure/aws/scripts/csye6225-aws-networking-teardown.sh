@@ -4,9 +4,9 @@
 
 STACK_NAME="$1"
 
-if test "$#" -ne 1; then
+if test "$#" -ne 2; then
     echo "Illegal number of parameters. Please provide all required parameters as follows:"
-    echo "sh csye6225-aws-networking-teardown.sh <AWS_REGION>"
+    echo "sh csye6225-aws-networking-teardown.sh <STACK_NAME> <AWS_REGION>"
     exit 1
 fi
 
@@ -15,6 +15,19 @@ fi
 # 	echo "No parameters were given"
 # 	exit 0
 # fi
+
+AWS_REGION=$2
+
+if [ $AWS_REGION = "us-east-1" ]
+  then
+    export AWS_PROFILE=dev
+elif [ $AWS_REGION = "us-east-2" ]
+  then
+    export AWS_PROFILE=prod
+else
+    echo "Wrong region name"
+    exit 1
+fi
 
 
 

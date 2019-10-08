@@ -29,6 +29,19 @@ VPC_CIDR=$3
 #INTERNET_GATEWAY_NAME="MY INTERNET GATEWAY"
 #ROUTE_TABLE_NAME="RT-CLI"
 
+if [ $AWS_REGION = "us-east-1" ]
+  then
+    export AWS_PROFILE=dev
+elif [ $AWS_REGION = "us-east-2" ]
+  then
+    export AWS_PROFILE=prod
+else
+    echo "Wrong region name"
+    exit 1
+fi
+
+
+
 echo "==================================================================="
 echo "Creating VPC in preferred region..."
 VPC_ID=$(aws ec2 create-vpc \
