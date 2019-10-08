@@ -5,6 +5,26 @@
 
 ### Run following commands:
 
+##### Install Terraform
+
+- Install unzip
+
+     ` sudo apt-get install unzip `
+- Install Terraform 
+ ` wget https://releases.hashicorp.com/terraform/0.12.7/terraform_0.12.9_linux_amd64.zip `
+
+- Extract the downloaded file archive
+
+  `unzip terraform_0.12.9_linux_amd64.zip `
+
+- Move the executable into a directory searched for executables
+
+  ` sudo mv terraform /usr/local/bin/ `
+
+- Run it to check version
+
+` terraform --version ` 
+
 - open Terminal
 ` ls -a ` 
 
