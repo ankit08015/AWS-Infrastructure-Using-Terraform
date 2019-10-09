@@ -338,8 +338,27 @@ router.put('/recipie/:id', (req, res) => {
                     "message": "Email doesn't exist"
                 }); // return wrong email
             }
+
             let user_authorized = false;
             const author_id = data[0].id;
+
+            db.recipe.findAll({
+                where: {
+                    id: req.params.id,
+                    author_id: author_id
+
+                }
+            })
+            .then(data => {
+                console.log(data);
+                if(data.length<=0){
+                    return res.status(401).json({
+                        "message": "Unauthorized user for given recipe id"
+                    }); // return wrong email
+                }});
+
+
+            
             if (data[0] != undefined) {
 
                 const db_password = data[0].password;
@@ -447,9 +466,10 @@ router.put('/recipie/:id', (req, res) => {
 
                                     })
                             })
-                            .catch(err => res.status(404).json({
-                                message: "Wrong user Id or Recipe Id"
-                            }));
+                            .catch(err => 
+                                res.status(401).json({
+                                message: "Error " + err.message})
+                            );
 
 
                     } else {
