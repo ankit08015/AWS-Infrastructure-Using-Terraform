@@ -1,6 +1,8 @@
 provider "aws" {
     region = var.region
+    profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
 }
+
 #terraform apply -var="region=us-east-2" -var="subnet_cidr_block=10.0.0.0/24
 #terraform apply -var="cidr_block=10.0.0.0/16" -var="subnet_cidr_block=10.0.0.0/24"
 variable "cidr_block" {
@@ -30,10 +32,6 @@ variable "subnet_cidr_block3" {
 
 resource "aws_vpc" "vpc" {
     cidr_block                          =   var.cidr_block
-    enable_dns_hostnames                =   true
-    enable_dns_support                  =   true
-    enable_classiclink_dns_support      =   true
-    assign_generated_ipv6_cidr_block    =   false
     tags    =   {
         Name    =   "csye6225-vpc"
     }
@@ -42,7 +40,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "subnet" {
     cidr_block                          =   var.subnet_cidr_block
     vpc_id                              =   aws_vpc.vpc.id
-    availability_zone                   =   "us-east-1a"
+    availability_zone                   =   format("%s%s",var.region,"a")
     map_public_ip_on_launch             =   true
     tags        =   {
         Name                            =   "csye6225-subnet"   
@@ -52,7 +50,7 @@ resource "aws_subnet" "subnet" {
 resource "aws_subnet" "subnet2" {
     cidr_block                          =   var.subnet_cidr_block2
     vpc_id                              =   aws_vpc.vpc.id
-    availability_zone                   =   "us-east-1b"
+    availability_zone                   =   format("%s%s",var.region,"b")
     map_public_ip_on_launch             =   true
     tags        =   {
         Name                            =   "csye6225-subnet2"   
@@ -62,7 +60,7 @@ resource "aws_subnet" "subnet2" {
 resource "aws_subnet" "subnet3" {
     cidr_block                          =   var.subnet_cidr_block3
     vpc_id                              =   aws_vpc.vpc.id
-    availability_zone                   =   "us-east-1c"
+    availability_zone                   =   format("%s%s",var.region,"c")
     map_public_ip_on_launch             =   true
     tags        =   {
         Name                            =   "csye6225-subnet3"   
