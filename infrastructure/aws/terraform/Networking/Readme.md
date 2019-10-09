@@ -31,9 +31,9 @@
 
 - open Terminal and go to `/ccwebapp/infrastructure/aws/terraform/Networking` folder
 
-- ` terraform init ` - to initialize terraform
+- ` terraform init ` - to initialize terraform. Need to run only once
 
-- ` terraform plan ` - to get the setup for terraform apply
+- ` terraform plan ` - to get the setup for terraform apply. Need to run only once.
 
 - Give the variables values in `csye6225.tfvars` file.
 
