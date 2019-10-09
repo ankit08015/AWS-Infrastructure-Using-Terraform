@@ -1,17 +1,19 @@
 
 # Infrastructure as Code
 
-## 2. Infrastructure as Code with Terraform
+## 3. Infrastructure as Code with Terraform
 
 ### Run following commands:
 
-##### Install Terraform
+#### A- Install Terraform
 
 - Install unzip
 
      ` sudo apt-get install unzip `
 - Install Terraform 
  ` wget https://releases.hashicorp.com/terraform/0.12.10/terraform_0.12.10_linux_amd64.zip `
+
+ Note- If you get error in this step change the version to current one
 
 - Extract the downloaded file archive
 
@@ -23,27 +25,29 @@
 
 - Run it to check version
 
-` terraform --version ` 
+     `terraform --version ` 
 
-- open Terminal
-` ls -a ` 
+#### B- Create infrastructure using terraform
 
-- ` terraform init ` - to initialize terraform in the ` /ccwebapp/infrastructure/aws/terraform/Networking` folder
+- open Terminal and go to `/ccwebapp/infrastructure/aws/terraform/Networking` folder
 
-- ` aws configure ` - to get the Access Key ID and Secret Access Key
+- ` terraform init ` - to initialize terraform
 
 - ` terraform plan ` - to get the setup for terraform apply
 
-- ` terraform apply `- to generate the plan and create whatever is to be created
+- Give the variables values in `csye6225.tfvars` file.
+
+- To run the variable file : ` terraform apply -var-file="csye6225.tfvars" `
+
+- ` terraform destroy ` - to destroy the infrastructure created
+
+#### Additional terraform commands
+
+- ` terraform apply `- to generate the plan and create infrastructure with default values
 
 - ` terraform apply -var-file ` - to apply a varaibles file
 
 - ` terraform apply -var = ` - to apply variables to a file at runtime
-
-- ` terraform destroy ` - to destroy or get rid of something
-
-- For giving the variables give values in ` /terraform/Networking/csye6225.tfvars file `.
-- To run the variable file : ` terraform apply -var-file="csye6225.tfvars" `
 
 NOTE : DO CHECK THE AWS CONFIGURE AND THE REGION THAT YOU ARE TRAVERSING
 - dev --> us-east-1
