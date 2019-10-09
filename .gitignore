@@ -535,3 +535,7 @@ typings/
 .next
 
 __MACOSX
+
+.terraform
+*.tfstate
+*.tfstate.backup
