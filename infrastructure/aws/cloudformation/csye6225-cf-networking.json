@@ -1,0 +1,226 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+
+    "Description": "AWS CloudFormation Template to create VPS, 3 subnet in different region, 1 route table, 1 route and an internet gateway.",
+
+    "Parameters": {
+        "VPCCIDR": {
+
+            "Type": "String",
+            "Description": "IP Address range for the VPN connected VPC",
+            "MinLength": "9",
+            "MaxLength": "18",
+            "Default": "10.0.0.0/16",
+            "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+            "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+        },
+        "Name": {
+            "Type": "String",
+            "Default": "myVPC"
+        },
+        "SubnetCIDR1": {
+            "Type": "String",
+            "Description": "IP Address range for the VPN connected VPC",
+            "MinLength": "9",
+            "MaxLength": "18",
+            "Default": "10.0.1.0/24"
+        },
+        "SubnetCIDR2": {
+            "Type": "String",
+            "Description": "IP Address range for the VPN connected VPC",
+            "MinLength": "9",
+            "MaxLength": "18",
+            "Default": "10.0.2.0/24"
+        },
+        "SubnetCIDR3": {
+            "Type": "String",
+            "Description": "IP Address range for the VPN connected VPC",
+            "MinLength": "9",
+            "MaxLength": "18",
+            "Default": "10.0.3.0/24"
+        }
+    },
+
+    "Mappings": {
+        "VPCSubnetCIDR": {
+            "us-east-1": {
+                "subnet1": "10.0.1.0/24",
+                "subnet2": "10.0.2.0/24",
+                "subnet3": "10.0.3.0/24"
+            },
+            "us-east-2": {
+                "subnet1": "10.0.1.0/24",
+                "subnet2": "10.0.2.0/24",
+                "subnet3": "10.0.3.0/24"
+            }
+        },
+        "VPCSubnetZones": {
+            "us-east-1": {
+                "subnet1": "us-east-1a",
+                "subnet2": "us-east-1b",
+                "subnet3": "us-east-1c"
+            },
+            "us-east-2": {
+                "subnet1": "us-east-2a",
+                "subnet2": "us-east-2b",
+                "subnet3": "us-east-2c"
+            }
+        }
+    },
+
+    "Resources": {
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "EnableDnsSupport": "true",
+                "EnableDnsHostnames": "true",
+                "CidrBlock": {
+                    "Ref": "VPCCIDR"
+                },
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": {
+                        "Ref": "Name"
+                    }
+                }]
+            }
+        },
+        "PublicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "MyPublicRouteTable"
+                }]
+            }
+        },
+        "PublicRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable"
+                },
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0"
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "InternetGateway"
+                }]
+            }
+        },
+        "VPCGatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                },
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "Subnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "SubnetCIDR1"
+                },
+                "AvailabilityZone": {
+                    "Fn::FindInMap": ["VPCSubnetZones", {
+                        "Ref": "AWS::Region"
+                    }, "subnet1"]
+                },
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "Subnet1"
+                }]
+            }
+        },
+        "Subnet1RouteTableAttachment": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet1"
+                },
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable"
+                }
+            }
+        },
+        "Subnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "SubnetCIDR2"
+                },
+                "AvailabilityZone": {
+                    "Fn::FindInMap": ["VPCSubnetZones", {
+                        "Ref": "AWS::Region"
+                    }, "subnet2"]
+                },
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "Subnet2"
+                }]
+            }
+        },
+        "Subnet2RouteTableAttachment": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet2"
+                },
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable"
+                }
+            }
+        },
+        "Subnet3": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "SubnetCIDR3"
+                },
+                "AvailabilityZone": {
+                    "Fn::FindInMap": ["VPCSubnetZones", {
+                        "Ref": "AWS::Region"
+                    }, "subnet3"]
+                },
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "Subnet3"
+                }]
+            }
+        },
+        "Subnet3RouteTableAttachment": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet3"
+                },
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable"
+                }
+            }
+        }
+    }
+}
