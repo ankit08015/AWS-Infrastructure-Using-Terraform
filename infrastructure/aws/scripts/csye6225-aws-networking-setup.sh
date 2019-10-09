@@ -1,17 +1,23 @@
 #!/bin/sh
-handle_error()
-{
-    if [ -z "$1" ] 
-     then exit 
-    fi
-}
+# handle_error()
+# {
+#     if [ -z "$1" ] 
+#      then exit 
+#     fi
+# }
 
-handle_creation_error()
-{
-    if [ $1 -ne "0" ] 
-     then exit 
-    fi
-}
+# handle_creation_error()
+# {
+#     if [ $1 -ne "0" ] 
+#      then exit 
+#     fi
+# }
+
+if test "$#" -ne 6; then
+    echo "Illegal number of parameters. Please provide all required parameters as follows:"
+    echo "sh csye6225-aws-networking-setup.sh <AWS_REGION> <VPC_NAME> <VPC_CIDR_BLOCK> <SUBNET1_CIDR_BLOCK> <SUBNET2_CIDR_BLOCK> <SUBNET3_CIDR_BLOCK>"
+    exit 1
+fi
 
 
 AWS_REGION=$1
@@ -22,6 +28,19 @@ VPC_CIDR=$3
 #us-east-1 aj 10.0.0.0/16
 #INTERNET_GATEWAY_NAME="MY INTERNET GATEWAY"
 #ROUTE_TABLE_NAME="RT-CLI"
+
+if [ $AWS_REGION = "us-east-1" ]
+  then
+    export AWS_PROFILE=dev
+elif [ $AWS_REGION = "us-east-2" ]
+  then
+    export AWS_PROFILE=prod
+else
+    echo "Wrong region name"
+    exit 1
+fi
+
+
 
 echo "==================================================================="
 echo "Creating VPC in preferred region..."
@@ -45,7 +64,8 @@ echo "  VPC ID '$VPC_ID' NAMED as '$VPC_NAME-csye6225-vpc'."
 echo "==================================================================="
 
 
-SUBNET_PUBLIC_CIDR="10.0.1.0/24"
+SUBNET_PUBLIC_CIDR=$4
+#"10.0.1.0/24"
 SUBNET_PUBLIC_AZ="${AWS_REGION}a"
 ## SUBNET_PUBLIC_NAME="10.0.1.0 - us-east-1a"
 
@@ -76,7 +96,8 @@ echo "  Subnet ID 1 '$SUBNET_PUBLIC_ID' NAMED as" \
   "'$VPC_NAME-csye6225-subnet1'."
 echo "==================================================================="
 
-SUBNET_PUBLIC_CIDR2="10.0.2.0/24"
+SUBNET_PUBLIC_CIDR2=$5
+"10.0.2.0/24"
 SUBNET_PUBLIC_AZ="${AWS_REGION}b"
 ##SUBNET_PUBLIC_NAME2="10.0.2.0 - us-east-1b"
 
@@ -108,7 +129,8 @@ echo "  Subnet ID '$SUBNET_PUBLIC_ID2' NAMED as" \
   "'$VPC_NAME-csye6225-subnet2'."
 echo "==================================================================="
 
-SUBNET_PUBLIC_CIDR3="10.0.3.0/24"
+SUBNET_PUBLIC_CIDR3=$6
+#"10.0.3.0/24"
 SUBNET_PUBLIC_AZ="${AWS_REGION}c"
 SUBNET_PUBLIC_NAME3="10.0.3.0 - us-east-1c"
 

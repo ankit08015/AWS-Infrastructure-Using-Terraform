@@ -42,7 +42,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "subnet" {
     cidr_block                          =   var.subnet_cidr_block
     vpc_id                              =   aws_vpc.vpc.id
-    availability_zone                   =   "us-east-2a"
+    availability_zone                   =   "us-east-1a"
     map_public_ip_on_launch             =   true
     tags        =   {
         Name                            =   "csye6225-subnet"   
@@ -52,7 +52,7 @@ resource "aws_subnet" "subnet" {
 resource "aws_subnet" "subnet2" {
     cidr_block                          =   var.subnet_cidr_block2
     vpc_id                              =   aws_vpc.vpc.id
-    availability_zone                   =   "us-east-2b"
+    availability_zone                   =   "us-east-1b"
     map_public_ip_on_launch             =   true
     tags        =   {
         Name                            =   "csye6225-subnet2"   
@@ -62,7 +62,7 @@ resource "aws_subnet" "subnet2" {
 resource "aws_subnet" "subnet3" {
     cidr_block                          =   var.subnet_cidr_block3
     vpc_id                              =   aws_vpc.vpc.id
-    availability_zone                   =   "us-east-2c"
+    availability_zone                   =   "us-east-1c"
     map_public_ip_on_launch             =   true
     tags        =   {
         Name                            =   "csye6225-subnet3"   
