@@ -15,6 +15,11 @@ variable "region"{
     default = "us-east-1"
 }
 
+variable "vpc_name"{
+    type = string
+    default = "csye6225"
+}
+
 variable "subnet_cidr_block" {
   type = string
   default = "10.0.1.0/24"
@@ -33,7 +38,7 @@ variable "subnet_cidr_block3" {
 resource "aws_vpc" "vpc" {
     cidr_block                          =   var.cidr_block
     tags    =   {
-        Name    =   "csye6225-vpc"
+        Name    =   format("%s-%s",var.vpc_name,"vpc")
     }
 }
 
@@ -43,7 +48,7 @@ resource "aws_subnet" "subnet" {
     availability_zone                   =   format("%s%s",var.region,"a")
     map_public_ip_on_launch             =   true
     tags        =   {
-        Name                            =   "csye6225-subnet"   
+        Name                            =   format("%s-%s",var.vpc_name,"subnet1")   
     }   
 }
 
@@ -53,7 +58,7 @@ resource "aws_subnet" "subnet2" {
     availability_zone                   =   format("%s%s",var.region,"b")
     map_public_ip_on_launch             =   true
     tags        =   {
-        Name                            =   "csye6225-subnet2"   
+        Name                            =   format("%s-%s",var.vpc_name,"subnet2")   
     }   
 }
 
@@ -63,14 +68,14 @@ resource "aws_subnet" "subnet3" {
     availability_zone                   =   format("%s%s",var.region,"c")
     map_public_ip_on_launch             =   true
     tags        =   {
-        Name                            =   "csye6225-subnet3"   
+        Name                            =   format("%s-%s",var.vpc_name,"subnet3")   
     }   
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags   = {
-    Name = "csye6225-IGW"
+    Name = format("%s-%s",var.vpc_name,"IGW")
   }
 }
 
@@ -83,7 +88,7 @@ resource "aws_route_table" "rt" {
   }
 
   tags   = {
-    Name = "csye6225-RT"
+    Name = format("%s-%s",var.vpc_name,"RT")
   }
 }
 

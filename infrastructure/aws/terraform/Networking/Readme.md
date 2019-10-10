@@ -41,6 +41,8 @@
 
 - ` terraform destroy ` - to destroy the infrastructure created
 
+  ` terraform destroy -var-file="csye6225.tfvars" ` - to delete with the var file that you is created
+
 #### Additional terraform commands
 
 - ` terraform apply `- to generate the plan and create infrastructure with default values
