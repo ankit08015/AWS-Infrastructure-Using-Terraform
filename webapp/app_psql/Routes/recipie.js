@@ -104,7 +104,7 @@ router.post('/recipie', (req, res) => {
 
                                             res.status(200).send(JSON.stringify({
                                                 "image": {
-                                                    "id": image_inserted.id,
+                                                    "id": image_inserted.image_id,
                                                     "url": image_inserted.url
                                                 },
                                                 "id": data.id,
@@ -242,8 +242,8 @@ router.delete('/recipie/:id', (req, res) => {
                                             }
                                         )
                                 } else {
-                                    res.status(400).json({
-                                        Message: "Bad Request"
+                                    res.status(404).json({
+                                        Message: "Not Found"
                                     })
                                 }
 
@@ -308,7 +308,7 @@ router.get('/recipie/:id', (req, res) => {
 
                                     {
                                         "image": {
-                                            "id": imageInformation[0].id,
+                                            "id": imageInformation[0].image_id,
                                             "url": imageInformation[0].url
                                         },
                                         "id": data[0].id,
@@ -480,12 +480,11 @@ router.put('/recipie/:id', (req, res) => {
                                                             recipe_id: data.id
                                                         }
                                                     })
-                                                    .then(function ([rowsUpdated], [imageInformation1]) {
+                                                    .then(function ([rowsUpdated, [imageInformation1]]) {
                                                         res.header("Content-Type", 'application/json');
-
                                                         res.status(200).send(JSON.stringify({
                                                             "image": {
-                                                                "id": imageInformation.id,
+                                                                "id": imageInformation.image_id,
                                                                 "url": imageInformation.url
                                                             },
                                                             "id": data.id,
