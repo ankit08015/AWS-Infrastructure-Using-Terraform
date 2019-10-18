@@ -484,8 +484,8 @@ router.put('/recipie/:id', (req, res) => {
                                                         res.header("Content-Type", 'application/json');
                                                         res.status(200).send(JSON.stringify({
                                                             "image": {
-                                                                "id": imageInformation.image_id,
-                                                                "url": imageInformation.url
+                                                                "id": imageInformation1.image_id,
+                                                                "url": imageInformation1.url
                                                             },
                                                             "id": data.id,
                                                             "created_ts": data.created_date,
@@ -584,6 +584,16 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                         });
                     } else if (result) {
 
+                        if(){
+                            // recipe invalid
+                        }
+                        if() {
+                            // image mapping not present
+                        }
+                        else {
+                            //delete
+                        }
+
                         db.image.destroy({
                                 where: {
                                     recipe_id: req.params.id
@@ -595,14 +605,16 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                         deletedRecipe
                                     })
                                 } else {
-                                    res.status(400).json({
-                                        Message: "Bad Request"
+                                    res.status(404).json({
+                                        Message: "Not Found"
                                     })
                                 }
                             })
                             .catch(err => res.status(406).json({
                                 message: err.message
                             }));
+
+
                     } else {
                         res.status(401).json({
                             message: 'Unauthorized Access Denied'
