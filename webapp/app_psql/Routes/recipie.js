@@ -302,68 +302,67 @@ router.get('/recipie/:id', (req, res) => {
                                 }
                             })
                             .then(imageInformation => {
-                                if(imageInformation.length>0){
+                                if (imageInformation.length > 0) {
                                     res.header("Content-Type", 'application/json');
 
-                                res.status(200).send(JSON.stringify(
+                                    res.status(200).send(JSON.stringify(
 
-                                    {
-                                        "image": {
-                                            "id": imageInformation[0].image_id,
-                                            "url": imageInformation[0].url
-                                        },
-                                        "id": data[0].id,
-                                        "created_ts": data[0].created_date,
-                                        "updated_ts": data[0].updated_date,
-                                        "author_id": data[0].author_id,
-                                        "cook_time_in_min": data[0].cook_time_in_min,
-                                        "prep_time_in_min": data[0].prep_time_in_min,
-                                        "total_time_in_min": data[0].total_time_in_min,
-                                        "title": data[0].title,
-                                        "cusine": data[0].cusine,
-                                        "servings": data[0].servings,
-                                        "ingredients": data[0].ingredients,
-                                        "steps": data[0].steps,
-                                        "nutrition_information": {
-                                            "calories": nutrition_information[0].calories,
-                                            "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
-                                            "sodium_in_mg": nutrition_information[0].sodium_in_mg,
-                                            "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
-                                            "protein_in_grams": nutrition_information[0].protein_in_grams
+                                        {
+                                            "image": {
+                                                "id": imageInformation[0].image_id,
+                                                "url": imageInformation[0].url
+                                            },
+                                            "id": data[0].id,
+                                            "created_ts": data[0].created_date,
+                                            "updated_ts": data[0].updated_date,
+                                            "author_id": data[0].author_id,
+                                            "cook_time_in_min": data[0].cook_time_in_min,
+                                            "prep_time_in_min": data[0].prep_time_in_min,
+                                            "total_time_in_min": data[0].total_time_in_min,
+                                            "title": data[0].title,
+                                            "cusine": data[0].cusine,
+                                            "servings": data[0].servings,
+                                            "ingredients": data[0].ingredients,
+                                            "steps": data[0].steps,
+                                            "nutrition_information": {
+                                                "calories": nutrition_information[0].calories,
+                                                "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
+                                                "sodium_in_mg": nutrition_information[0].sodium_in_mg,
+                                                "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
+                                                "protein_in_grams": nutrition_information[0].protein_in_grams
+                                            }
                                         }
-                                    }
-                                ));
-                                }
-                                else {
+                                    ));
+                                } else {
                                     res.header("Content-Type", 'application/json');
 
-                                res.status(200).send(JSON.stringify(
+                                    res.status(200).send(JSON.stringify(
 
-                                    {
-                                        "image":"NO IMAGE PRESENT",
-                                        "id": data[0].id,
-                                        "created_ts": data[0].created_date,
-                                        "updated_ts": data[0].updated_date,
-                                        "author_id": data[0].author_id,
-                                        "cook_time_in_min": data[0].cook_time_in_min,
-                                        "prep_time_in_min": data[0].prep_time_in_min,
-                                        "total_time_in_min": data[0].total_time_in_min,
-                                        "title": data[0].title,
-                                        "cusine": data[0].cusine,
-                                        "servings": data[0].servings,
-                                        "ingredients": data[0].ingredients,
-                                        "steps": data[0].steps,
-                                        "nutrition_information": {
-                                            "calories": nutrition_information[0].calories,
-                                            "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
-                                            "sodium_in_mg": nutrition_information[0].sodium_in_mg,
-                                            "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
-                                            "protein_in_grams": nutrition_information[0].protein_in_grams
+                                        {
+                                            "image": "NO IMAGE PRESENT",
+                                            "id": data[0].id,
+                                            "created_ts": data[0].created_date,
+                                            "updated_ts": data[0].updated_date,
+                                            "author_id": data[0].author_id,
+                                            "cook_time_in_min": data[0].cook_time_in_min,
+                                            "prep_time_in_min": data[0].prep_time_in_min,
+                                            "total_time_in_min": data[0].total_time_in_min,
+                                            "title": data[0].title,
+                                            "cusine": data[0].cusine,
+                                            "servings": data[0].servings,
+                                            "ingredients": data[0].ingredients,
+                                            "steps": data[0].steps,
+                                            "nutrition_information": {
+                                                "calories": nutrition_information[0].calories,
+                                                "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
+                                                "sodium_in_mg": nutrition_information[0].sodium_in_mg,
+                                                "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
+                                                "protein_in_grams": nutrition_information[0].protein_in_grams
+                                            }
                                         }
-                                    }
-                                ));
+                                    ));
                                 }
-                                
+
                             })
                     })
             }
@@ -617,50 +616,48 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                     } else if (result) {
 
                         db.image.findAll({
-                            where: {
-                                recipe_id: req.params.id
-                            }
-                        })
-                        .then(image_data => {
-                            if(image_data.length>0){
-
-                            if(image_data[0].image_id!=req.params.imageId){
-                                res.status(404).json({
-                                    message:"No Image Id Found"
-                                })
-                            }
-                            else {
-                                db.image.destroy({
                                 where: {
                                     recipe_id: req.params.id
                                 }
                             })
-                            .then(deletedImage => {
-                                if (deletedImage > 0) {
-                                    res.status(200).json({
-                                        deletedImage
-                                    })
+                            .then(image_data => {
+                                if (image_data.length > 0) {
+
+                                    if (image_data[0].image_id != req.params.imageId) {
+                                        res.status(404).json({
+                                            message: "No Image Id Found"
+                                        })
+                                    } else {
+                                        db.image.destroy({
+                                                where: {
+                                                    recipe_id: req.params.id
+                                                }
+                                            })
+                                            .then(deletedImage => {
+                                                if (deletedImage > 0) {
+                                                    res.status(200).json({
+                                                        deletedImage
+                                                    })
+                                                } else {
+                                                    res.status(404).json({
+                                                        Message: "Not Found"
+                                                    })
+                                                }
+                                            })
+                                    }
                                 } else {
+                                    //if(image_data[0].recipe_id!=req.params.id){
                                     res.status(404).json({
-                                        Message: "Not Found"
+                                        message: "No Recipe ID found"
                                     })
+                                    //}
+
                                 }
                             })
-                            }
-                        }
-                        else {
-                            //if(image_data[0].recipe_id!=req.params.id){
-                                res.status(404).json({
-                                    message:"No Recipe ID found"
-                                })
-                            //}
-                            
-                        }
-                        })
-                        .catch(err => res.status(406).json({
-                            message: err.message,
-                            //message: "No recipe ID found"
-                        }));
+                            .catch(err => res.status(406).json({
+                                message: err.message,
+                                //message: "No recipe ID found"
+                            }));
 
                     } else {
                         res.status(401).json({
@@ -776,44 +773,38 @@ router.post('/recipie/:id/image', (req, res) => {
 
 router.get('/recipie/:id/image/:imageId', (req, res) => {
     db.image.findAll({
-            where: {
-                id: req.params.id
-            }
-        })
-        .then(data => {
+        where: {
+            recipe_id: req.params.id
+        }
+    })
+    .then(image_data => {
+        if(image_data.length>0){
 
-            if (data.length < 1) {
-                return res.status(404).json({
-                    message: 'Invalid Recipe Id'
-                });
-
-            } else if (data.id != req.params.imageId) {
-                return res.status(404).json({
-                    message: 'Recipe Id mapping with image Id not present'
-                });
-            } else {
-                console.log(data.length);
-                db.image.findAll({
-                        where: {
-                            recipe_id: req.params.id
-                        }
-                    })
-                    .then(image_information => {
-                        res.header("Content-Type", 'application/json');
-
-                        res.status(200).send(JSON.stringify({
-                            "id": image_information.id,
-                            "url": image_information.url
-                        }));
-                    })
-                    .catch(err => res.status(406).json({
-                        message: err.message
-                    }));
-            }
-        })
-
-        .catch(err => res.status(406).json({
-            message: err.message
-        }));
+        if(image_data[0].image_id!=req.params.imageId){
+            res.status(404).json({
+                message:"No Image Id Found"
+            })
+        }
+        else {
+            res.header("Content-Type", 'application/json');
+                res.status(200).send(JSON.stringify({
+                    "id": image_data[0].image_id,
+                    "url": image_data[0].recipe_id
+                }));
+            
+        }
+    }
+    else {
+        //if(image_data[0].recipe_id!=req.params.id){
+            res.status(404).json({
+                message:"No Recipe ID found"
+            })
+        //}
+        
+    }
+    })
+    .catch(err => res.status(406).json({
+        message: err.message,
+    }));
 
 });
