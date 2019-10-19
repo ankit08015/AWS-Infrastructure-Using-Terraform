@@ -1134,7 +1134,7 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
 router.get('/recipies', (req, res) => {
     //db.recipe.max('created_date')
       //db.recipe.query(,{type:})
-      db.recipe.findAll({ limit: 10, order: [['updated_date', 'DESC']]})
+      db.recipe.findAll({ limit: 10, order: [['created_date', 'DESC']]})
         .then(data => {
             if (data.length < 1) {
                 return res.status(404).json({
