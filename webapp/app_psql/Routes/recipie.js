@@ -808,3 +808,100 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
     }));
 
 });
+
+//// Get by latest recipe ID
+
+router.get('/recipies', (req, res) => {
+    db.recipe.max('created_date')
+        .then(data => {
+            if (data.length < 1) {
+                return res.status(404).json({
+                    message: 'No data present'
+                });
+
+            } else {
+                console.log(data.length);
+                db.nutInfo.findAll({
+                        where: {
+                            recipe_id: req.params.id
+                        }
+                    })
+                    .then(nutrition_information => {
+                        db.image.findAll({
+
+                                where: {
+                                    recipe_id: req.params.id
+                                }
+                            })
+                            .then(imageInformation => {
+                                if (imageInformation.length > 0) {
+                                    res.header("Content-Type", 'application/json');
+
+                                    res.status(200).send(JSON.stringify(
+
+                                        {
+                                            "image": {
+                                                "id": imageInformation[0].image_id,
+                                                "url": imageInformation[0].url
+                                            },
+                                            "id": data[0].id,
+                                            "created_ts": data[0].created_date,
+                                            "updated_ts": data[0].updated_date,
+                                            "author_id": data[0].author_id,
+                                            "cook_time_in_min": data[0].cook_time_in_min,
+                                            "prep_time_in_min": data[0].prep_time_in_min,
+                                            "total_time_in_min": data[0].total_time_in_min,
+                                            "title": data[0].title,
+                                            "cusine": data[0].cusine,
+                                            "servings": data[0].servings,
+                                            "ingredients": data[0].ingredients,
+                                            "steps": data[0].steps,
+                                            "nutrition_information": {
+                                                "calories": nutrition_information[0].calories,
+                                                "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
+                                                "sodium_in_mg": nutrition_information[0].sodium_in_mg,
+                                                "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
+                                                "protein_in_grams": nutrition_information[0].protein_in_grams
+                                            }
+                                        }
+                                    ));
+                                } else {
+                                    res.header("Content-Type", 'application/json');
+
+                                    res.status(200).send(JSON.stringify(
+
+                                        {
+                                            "image": "NO IMAGE PRESENT",
+                                            "id": data[0].id,
+                                            "created_ts": data[0].created_date,
+                                            "updated_ts": data[0].updated_date,
+                                            "author_id": data[0].author_id,
+                                            "cook_time_in_min": data[0].cook_time_in_min,
+                                            "prep_time_in_min": data[0].prep_time_in_min,
+                                            "total_time_in_min": data[0].total_time_in_min,
+                                            "title": data[0].title,
+                                            "cusine": data[0].cusine,
+                                            "servings": data[0].servings,
+                                            "ingredients": data[0].ingredients,
+                                            "steps": data[0].steps,
+                                            "nutrition_information": {
+                                                "calories": nutrition_information[0].calories,
+                                                "cholesterol_in_mg": nutrition_information[0].cholesterol_in_mg,
+                                                "sodium_in_mg": nutrition_information[0].sodium_in_mg,
+                                                "carbohydrates_in_grams": nutrition_information[0].carbohydrates_in_grams,
+                                                "protein_in_grams": nutrition_information[0].protein_in_grams
+                                            }
+                                        }
+                                    ));
+                                }
+
+                            })
+                    })
+            }
+        })
+
+        .catch(err => res.status(406).json({
+            message: err.message
+        }));
+
+});
