@@ -71,13 +71,13 @@ resource "aws_security_group" "allow_tls" {
   }
 }
 
-resource "aws_security_group" "allow_tls" {
+// DATABASE SECURITY GROUP
+resource "aws_security_group" "allow_tls2" {
   name        = "database"
   description = "Allow application traffic"
-
   // ALLOW PORT 5432
   ingress {
-    from_port   = 5432
+    from_port   = 80
     to_port     = 5432
     protocol    = "tcp"
     description = "PORT 5432"
