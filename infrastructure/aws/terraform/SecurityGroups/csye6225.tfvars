@@ -1,0 +1,7 @@
+region = "us-east-1"
+cidr_block_22="0.0.0.0/0"
+cidr_block_80="0.0.0.0/0"
+cidr_block_443="0.0.0.0/0"
+cidr_block_3000="0.0.0.0/0"
+cidr_block_5432="0.0.0.0/0"
+dynamo_table_name="csye"
