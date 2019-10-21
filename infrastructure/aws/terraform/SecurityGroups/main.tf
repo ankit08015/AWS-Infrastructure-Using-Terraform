@@ -115,41 +115,53 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 
 data "aws_availability_zones" "available" {}
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.10.0.0/16"
-  // tags {
-  //   Name = "AJ2-vpc"
+// resource "aws_vpc" "main" {
+//   //cidr_block = "10.10.0.0/16"
+//    tags {
+//      Name = "AJ2-vpc"
+//    }
+// }
+data "aws_vpc" "selected" {
+  tags {
+    Name = "AJ2-vpc" 
+    //"${var.vpc}"
+  }
+}
+data "aws_subnet_ids" "subnets" {
+  vpc_id = "${data.aws_vpc.selected.id}"
+  // ta {
+  //   Tier = "Private"
   // }
 }
 
-resource "aws_subnet" "main" {
-  count             = "2"
-  cidr_block        = "${cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)}"
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
-  vpc_id            = "${aws_vpc.main.id}"
-}
+// resource "aws_subnet" "main" {
+//   count             = "2"
+//   cidr_block        = "${cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)}"
+//   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+//   vpc_id            = "${aws_vpc.main.id}"
+// }
 
-resource "aws_db_subnet_group" "main" {
-  name       = "main"
-  //"tf-db-main-${terraform.env}"
-  subnet_ids = ["10.0.1.0/24"]
+// resource "aws_db_subnet_group" "main" {
+//   name       = "main"
+//   //"tf-db-main-${terraform.env}"
+//   subnet_ids = ["10.0.1.0/24"]
 
-  tags = {
-    Name = "AJ2-subnet1"
-  }
-}
+//   tags = {
+//     Name = "AJ2-subnet1"
+//   }
+// }
 
-resource "aws_db_instance" "main" {
-  identifier = "demodb-postgres"
-  allocated_storage    = 5
-  storage_type         = "gp2"
-  engine               = "postgres"
-  engine_version       = "11.5"
-  instance_class       = "db.t2.micro"
-  name                 = "csye6225-fall2019"
-  username             = "dbuser"
-  password             = "Ajaygoel@123"
-  multi_az             = false
-  publicly_accessible  = true
-  db_subnet_group_name = "${aws_db_subnet_group.main.name}"
-}
+// resource "aws_db_instance" "main" {
+//   identifier = "demodb-postgres"
+//   allocated_storage    = 5
+//   storage_type         = "gp2"
+//   engine               = "postgres"
+//   engine_version       = "11.5"
+//   instance_class       = "db.t2.micro"
+//   name                 = "csye6225-fall2019"
+//   username             = "dbuser"
+//   password             = "Ajaygoel@123"
+//   multi_az             = false
+//   publicly_accessible  = true
+//   db_subnet_group_name = "${aws_db_subnet_group.main.name}"
+// }
