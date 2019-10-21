@@ -31,6 +31,11 @@ variable "region"{
     default = "us-east-1"
 }
 
+variable "dynamo_table_name"{
+    type = string
+    default = "csye6225"
+}
+
 resource "aws_security_group" "allow_tls" {
   name        = "application"
   description = "Allow TLS inbound traffic"
@@ -87,7 +92,7 @@ resource "aws_security_group" "allow_tls2" {
 
 
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
-  name           = "csye6225"
+  name           = var.dynamo_table_name
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "id"
@@ -103,7 +108,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   }
 
   tags = {
-    Name        = "csye6225"
+    Name        = var.dynamo_table_name
     Environment = "development"
   }
 }
