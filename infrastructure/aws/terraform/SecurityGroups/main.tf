@@ -84,3 +84,26 @@ resource "aws_security_group" "allow_tls2" {
     cidr_blocks = [var.cidr_block_5432]
   }
 }
+
+
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = "csye6225"
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "id"
+  
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  tags = {
+    Name        = "csye6225"
+    Environment = "development"
+  }
+}
