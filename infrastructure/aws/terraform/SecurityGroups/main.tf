@@ -91,27 +91,27 @@ resource "aws_security_group" "allow_tls2" {
 }
 
 
-// resource "aws_dynamodb_table" "basic-dynamodb-table" {
-//   name           = var.dynamo_table_name
-//   read_capacity  = 5
-//   write_capacity = 5
-//   hash_key       = "id"
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = var.dynamo_table_name
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "id"
   
-//   attribute {
-//     name = "id"
-//     type = "S"
-//   }
+  attribute {
+    name = "id"
+    type = "S"
+  }
 
-//   ttl {
-//     attribute_name = "TimeToExist"
-//     enabled        = false
-//   }
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
 
-//   tags = {
-//     Name        = var.dynamo_table_name
-//     Environment = "development"
-//   }
-// }
+  tags = {
+    Name        = var.dynamo_table_name
+    Environment = "development"
+  }
+}
 
 data "aws_availability_zones" "available" {}
 
