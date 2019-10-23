@@ -40,7 +40,7 @@ variable "dynamo_table_name" {
 
 resource "aws_security_group" "allow_tls" {
   name        = "application"
-   vpc_id = "${data.aws_vpc.selected.id}"
+  vpc_id = "${data.aws_vpc.selected.id}"
   description = "Allow TLS inbound traffic"
 
   // ALLOW PORT 80
@@ -90,6 +90,7 @@ resource "aws_security_group" "allow_tls2" {
     to_port     = 5432
     protocol    = "tcp"
     description = "PORT 5432"
+    security_groups = ["${aws_security_group.allow_tls.id}"]
     cidr_blocks = [var.cidr_block_5432]
   }
 }
