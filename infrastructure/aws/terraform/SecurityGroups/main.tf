@@ -38,11 +38,7 @@ variable "dynamo_table_name" {
 
 variable "vpc" {
   type = string
-<<<<<<< HEAD
   default = ""
-=======
-  default = "AJ2-vpc"
->>>>>>> ff5c084d2ccafd39a2f9881d19c03eaee741c35b
 }
 
 variable "password" {
@@ -170,4 +166,18 @@ resource "aws_db_instance" "main" {
    publicly_accessible  = true
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
+}
+
+resource "aws_instance" "instance" {
+  ami           = "ami-07a74940563d95d28" # us-west-2
+  instance_type = "t2.micro"
+  disable_api_termination = false
+
+  root_block_device {
+      volume_size           = 20
+      volume_type           = "gp2"
+  }
+  tags = {
+    Name = "csye-instance"
+  }
 }
