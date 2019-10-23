@@ -1,6 +1,7 @@
 
 provider "aws" {
     region = var.region
+    #profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
 }
 variable "cidr_block_22" {
   type = string
@@ -35,14 +36,11 @@ variable "dynamo_table_name" {
     default = "csye6225"
 }
 
-variable "vpc_id" {
-    type = string
-    default = "vpc-0122d0d6dc018d259"
-}
-
+# Application Security Group
 
 resource "aws_security_group" "allow_tls" {
   name        = "application"
+   vpc_id = "${data.aws_vpc.selected.id}"
   description = "Allow TLS inbound traffic"
 
   // ALLOW PORT 80
@@ -84,7 +82,7 @@ resource "aws_security_group" "allow_tls" {
 // DATABASE SECURITY GROUP
 resource "aws_security_group" "allow_tls2" {
   name        = "database"
-  vpc_id = "${var.vpc_id}"
+  vpc_id = "${data.aws_vpc.selected.id}"
   description = "Allow application traffic"
   // ALLOW PORT 5432
   ingress {
@@ -121,35 +119,36 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 
 data "aws_availability_zones" "available" {}
 
-// resource "aws_vpc" "main" {
-//   //cidr_block = "10.10.0.0/16"
-//    tags {
-//      Name = "AJ2-vpc"
-//    }
-// }
 
+variable "vpc" {
+  type = string
+  default = "MyVPC"
+}
 
 data "aws_vpc" "selected" {
-  id = "${var.vpc_id}"
+  tags = {
+    Name = "${var.vpc}"
+  }
 }
 
-data "aws_subnet_ids" "subnets" {
-  vpc_id = "${var.vpc_id}"
+
+
+data "aws_subnet_ids" "example" {
+  vpc_id = "${data.aws_vpc.selected.id}"
 }
 
-data "aws_subnet" "subnet" {
-  count = "${length(data.aws_subnet_ids.subnets.ids)}"
-  id    = "${tolist(data.aws_subnet_ids.subnets.ids)[count.index]}"
+data "aws_subnet" "example" {
+  count = "${length(data.aws_subnet_ids.example.ids)}"
+  id    = "${tolist(data.aws_subnet_ids.example.ids)[count.index]}"
 }
-
 
 resource "aws_db_subnet_group" "main" {
   name       = "main"
-   subnet_ids = ["${data.aws_subnet.subnet[0].id}", "${data.aws_subnet.subnet[1].id}", "${data.aws_subnet.subnet[2].id}"]
+   subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
 }
 
 resource "aws_db_instance" "main" {
-   identifier = "demodb-postgres"
+   identifier = "csye6225-fall2019"
    allocated_storage    = 5
    storage_type         = "gp2"
    engine               = "postgres"
@@ -161,6 +160,5 @@ resource "aws_db_instance" "main" {
    multi_az             = false
    publicly_accessible  = true
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
-   vpc_security_group_ids = ["${aws_security_group.allow_tls2.id}"]
-  
+   vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
 }
