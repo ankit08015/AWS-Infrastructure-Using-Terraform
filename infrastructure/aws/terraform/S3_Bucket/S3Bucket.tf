@@ -2,8 +2,15 @@ provider "aws" {
   region = "us-east-1"
 }
 
+
+variable "bucket_name" {
+  type = string
+  default = "webapp.dev.ajaygoel.me"
+}
+
+
 resource "aws_s3_bucket" "bucket" {
-  bucket = "webapp.dev.ajaygoel.me"
+  bucket = "[var.bucket_name]"
   force_destroy = true
   acl = "private"
   server_side_encryption_configuration {
@@ -31,11 +38,15 @@ resource "aws_s3_bucket" "bucket" {
   }
 }
 
+data "aws_iam_user" "selected" {
+  user_name = "Administrator"
+}
+
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = "${aws_s3_bucket.bucket.id}"
-  name = "${aws_s3_bucket.name}"
+  //name = "${aws_s3_bucket.name}"
   policy = <<POLICY
-  {
+{
     "Version": "2012-10-17",
     "Id": "Policy1488494182833",
     "Statement": [
@@ -43,7 +54,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
             "Sid": "Stmt1488493308547",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::737362253087:user/Administrator"
+                "AWS": "${data.aws_iam_user.selected.arn}"
             },
             "Action": [
                 "s3:ListBucket",
@@ -52,7 +63,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
                 "s3:Get*",
                 "s3:Put*"
             ],
-            "Resource": "arn:aws:s3:::${aws_s3_bucket.name}"
+            "Resource": "[var.bucket_name]"
         }
     ]
 }
