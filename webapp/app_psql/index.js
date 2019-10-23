@@ -11,7 +11,7 @@ const busboyBodyParser = require('busboy-body-parser');
 const db = require('./config/database');
 
 // Test DB
-// check_db.authenticate()
+// db.authenticate()
 //   .then(() => console.log('Database connected.'))
 //   .catch(err => console.log('Error: ' + err))
 
