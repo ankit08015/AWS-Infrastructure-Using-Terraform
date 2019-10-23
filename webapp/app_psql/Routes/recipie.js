@@ -961,7 +961,24 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                 }
                                             })
                                             .then(deletedImage => {
+
+//                                                console.log(deletedRecipe[0])
                                                 if (deletedImage > 0) {
+                                                    // let s3bucket = new AWS.S3({
+                                                    //     accessKeyId: IAM_USER_KEY,
+                                                    //     secretAccessKey: IAM_USER_SECRET,
+                                                    //     Bucket: BUCKET_NAME
+                                                    // });
+                                                    // s3bucket.deleteObject({
+                                                    //     Bucket: BUCKET_NAME,
+                                                    //     //Location: deletedImage.url //.name//,
+                                                    //     Key: deletedImage[0].S3Key//file.data
+                                                    // }, function (err, data) {
+                                                    //     if (err) {
+                                                    //         console.log(err);
+                                                    //     }
+                                                    //     console.log(data);
+                                                    // })
                                                     res.status(200).json({
                                                         deletedImage
                                                     })
@@ -1025,9 +1042,14 @@ function uploadToS3(file) {
             console.log('success' + '--------------->>>>>');
             console.log(data);
             image_s3_url = data.Location;
-            console.log(image_s3_url+'--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
+            console.log(image_s3_url + '--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
         });
     });
+}
+
+function function2() {
+    // all the stuff you want to happen after that pause
+    console.log('Blah blah blah blah extra-blah');
 }
 
 ////POST
@@ -1095,48 +1117,62 @@ router.post('/recipie/:id/image', (req, res) => {
                                         console.log(file);
 
                                         // Begins the upload to the AWS S3
-                                        uploadToS3(file);
-
-                                        // let s3bucket = new AWS.S3({
-                                        //     accessKeyId: IAM_USER_KEY,
-                                        //     secretAccessKey: IAM_USER_SECRET,
-                                        //     Bucket: BUCKET_NAME
-                                        // });
-                                        // s3bucket.createBucket(function () {
-                                        //     var params = {
-                                        //         Bucket: BUCKET_NAME,
-                                        //         Key: file.name,
-                                        //         Body: file.data
-                                        //     };
-                                        //     s3bucket.upload(params, function (err, data) {
-                                        //         if (err) {
-                                        //             console.log('error in callback');
-                                        //             console.log(err);
-                                        //         }
-                                        //         console.log('success' + '--------------->>>>>');
-                                        //         console.log(data);
-                                        //         image_s3_url = data.Location;
-                                        //         console.log(image_s3_url+'--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
-                                        //     });
-                                        //});
+                                        //uploadToS3(file);
+                                        //setTimeout(function2, 5000000);
+                                        let s3bucket = new AWS.S3({
+                                            accessKeyId: IAM_USER_KEY,
+                                            secretAccessKey: IAM_USER_SECRET,
+                                            Bucket: BUCKET_NAME
+                                        });
+                                        s3bucket.createBucket(function () {
+                                            var params = {
+                                                Bucket: BUCKET_NAME,
+                                                Key: file.name,
+                                                Body: file.data
+                                            };
+                                            s3bucket.upload(params, function (err, data) {
+                                                if (err) {
+                                                    console.log('error in callback');
+                                                    console.log(err);
+                                                }
+                                                console.log('success' + '--------------->>>>>');
+                                                console.log(data);
+                                                image_s3_url = data.Location;
+                                                console.log(image_s3_url + '--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
+                                                db.image.create({
+                                                        "recipe_id": req.params.id,
+                                                        "url": image_s3_url,
+                                                        "S3Key":data.Key,
+                                                        "recipeId": req.params.id
+                                                    })
+                                                    .then(imageData => {
+                                                        res.header("Content-Type", 'application/json');
+                                                        res.status(201).send(JSON.stringify({
+                                                            "id": imageData.image_id,
+                                                            "url": imageData.url
+                                                        }))
+                                                    })
+                                                res.status(201);
+                                            });
+                                        });
                                     });
 
                                     req.pipe(busboy);
 
-                                    console.log(image_s3_url+"==================")
-                                    db.image.create({
-                                            "recipe_id": req.params.id,
-                                            "url":image_s3_url,
-                                            "recipeId": req.params.id
-                                        })
-                                        .then(imageData => {
-                                            res.header("Content-Type", 'application/json');
-                                            res.status(201).send(JSON.stringify({
-                                                "id": imageData.image_id,
-                                                "url": imageData.url
-                                            }))
-                                        })
-                                    res.status(201);
+                                    console.log(image_s3_url + "==================")
+                                    // db.image.create({
+                                    //         "recipe_id": req.params.id,
+                                    //         "url":image_s3_url,
+                                    //         "recipeId": req.params.id
+                                    //     })
+                                    //     .then(imageData => {
+                                    //         res.header("Content-Type", 'application/json');
+                                    //         res.status(201).send(JSON.stringify({
+                                    //             "id": imageData.image_id,
+                                    //             "url": imageData.url
+                                    //         }))
+                                    //     })
+                                    // res.status(201);
 
                                 } else {
                                     res.status(400).send(JSON.stringify({
@@ -1184,7 +1220,7 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
                     res.header("Content-Type", 'application/json');
                     res.status(200).send(JSON.stringify({
                         "id": image_data[0].image_id,
-                        "url": image_data[0].recipe_id
+                        "url": image_data[0].url
                     }));
 
                 }
@@ -1306,9 +1342,7 @@ router.get('/recipies', (req, res) => {
                     })
             }
         })
-
         .catch(err => res.status(406).json({
             message: err.message
         }));
-
 });
