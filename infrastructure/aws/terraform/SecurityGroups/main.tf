@@ -38,12 +38,12 @@ variable "dynamo_table_name" {
 
 variable "vpc" {
   type = string
-  default = "AJ2-vpc"
+  default = ""
 }
 
 variable "password" {
   type = string
-  default = ""
+  default = "AjayGoel"
 }
 
 # Application Security Group
@@ -132,7 +132,7 @@ data "aws_availability_zones" "available" {}
 
 data "aws_vpc" "selected" {
   tags = {
-    Name = "${var.vpc}"
+    Name = var.vpc
   }
 }
 
@@ -161,9 +161,23 @@ resource "aws_db_instance" "main" {
    instance_class       = "db.t2.medium"
    name                 = "csye6225"
    username             = "dbuser"
-   password             = "${var.password}"
+   password             = var.password
    multi_az             = false
    publicly_accessible  = true
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
+}
+
+resource "aws_instance" "instance" {
+  ami           = "ami-07a74940563d95d28" # us-west-2
+  instance_type = "t2.micro"
+  disable_api_termination = false
+
+  root_block_device {
+      volume_size           = 20
+      volume_type           = "gp2"
+  }
+  tags = {
+    Name = "csye-instance"
+  }
 }
