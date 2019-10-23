@@ -46,6 +46,11 @@ variable "ami" {
   default = ""
 }
 
+variable "key_name" {
+  type = string
+  default = ""
+}
+
 variable "password" {
   type = string
   default = "AjayGoel"
@@ -180,6 +185,8 @@ resource "aws_instance" "instance" {
   disable_api_termination = false
   vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
   subnet_id = "${data.aws_subnet.example[0].id}"
+  associate_public_ip_address = true
+  key_name = var.key_name
   #  root_block_device {
   #     volume_size           = 20
   #     volume_type           = "gp2"
