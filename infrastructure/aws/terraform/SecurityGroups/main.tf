@@ -38,7 +38,7 @@ variable "dynamo_table_name" {
 
 variable "vpc" {
   type = string
-  default = "MyVPC"
+  default = "AJ2-vpc"
 }
 
 variable "password" {
