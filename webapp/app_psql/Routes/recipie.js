@@ -5,9 +5,8 @@ const bcrypt = require("bcrypt");
 const AWS = require('aws-sdk');
 const Busboy = require('busboy');
 
-const BUCKET_NAME = 'webapp.dev.akshaymahajanshetti.me';
-const IAM_USER_KEY = 'AKIA6O77IJUB742D73MU';
-const IAM_USER_SECRET = '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';
+const BUCKET_NAME = 'webapp.dev.ajaygoel.me';
+
 
 ////POST
 
@@ -1082,14 +1081,11 @@ function uploadToS3(file) {
     });
 }
 
-function function2() {
-    // all the stuff you want to happen after that pause
-    console.log('Blah blah blah blah extra-blah');
-}
+
+var count =0;
 
 ////POST
 router.post('/recipie/:id/image', (req, res) => {
-    console.log("==========================================")
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         return res.status(401).json({
@@ -1130,7 +1126,18 @@ router.post('/recipie/:id/image', (req, res) => {
                         // const {
                         //     url
                         // } = req.body;
+                        const file2 = req.files.element2; 
+                        console.log(file2.name+"--=-=-=-=-=-=-=-=-=-=-=-");
 
+                        var words = file2.name.split('.');
+                        console.log(words[1]+"--=-=-=-=-=-=-=-=-=-=-=-");
+                        if(words[1]!='jpg' && words[1]!='jpeg' && words[1]!='png' ){
+                            res.header("Content-Type", 'application/json');
+                            res.status(406).send(JSON.stringify({
+                                "Message": "File type should be image"
+                            }))
+                        }
+                        else {
                         db.image.findAll({
                                 where: {
                                     recipe_id: req.params.id
@@ -1218,6 +1225,7 @@ router.post('/recipie/:id/image', (req, res) => {
                             .catch(err => res.status(406).json({
                                 message: err.message
                             }));
+                        }
                     } else {
                         res.status(401).json({
                             message: 'Unauthorized Access Denied'
