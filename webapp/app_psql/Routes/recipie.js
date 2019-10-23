@@ -955,39 +955,74 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                             message: "No Image Id Found"
                                         })
                                     } else {
-                                        db.image.destroy({
+                                        var k = '';
+
+                                        db.image.findAll({
                                                 where: {
                                                     recipe_id: req.params.id
                                                 }
                                             })
-                                            .then(deletedImage => {
+                                            .then(image_data => {
+                                                //if (image_data.length > 0) {
+                                                //k=image_data[0].S3Key;
+                                                //res.status(200).json({
+                                                //console.log(image_data[0]);
+                                                //console.log('here');
+                                                //k = 
+                                                console.log(image_data[0].S3Key)
+                                                let s3bucket = new AWS.S3({
+                                                    accessKeyId: IAM_USER_KEY,
+                                                    secretAccessKey: IAM_USER_SECRET,
+                                                    Bucket: BUCKET_NAME
+                                                });
+                                                s3bucket.deleteObject({
+                                                    Bucket: BUCKET_NAME,
+                                                    Key: image_data[0].S3Key
+                                                }, function (err, data) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                    console.log(data);
+                                                    db.image.destroy({
+                                                            where: {
+                                                                recipe_id: req.params.id
+                                                            }
+                                                        })
+                                                        .then(deletedImage => {
 
-//                                                console.log(deletedRecipe[0])
-                                                if (deletedImage > 0) {
-                                                    // let s3bucket = new AWS.S3({
-                                                    //     accessKeyId: IAM_USER_KEY,
-                                                    //     secretAccessKey: IAM_USER_SECRET,
-                                                    //     Bucket: BUCKET_NAME
-                                                    // });
-                                                    // s3bucket.deleteObject({
-                                                    //     Bucket: BUCKET_NAME,
-                                                    //     //Location: deletedImage.url //.name//,
-                                                    //     Key: deletedImage[0].S3Key//file.data
-                                                    // }, function (err, data) {
-                                                    //     if (err) {
-                                                    //         console.log(err);
-                                                    //     }
-                                                    //     console.log(data);
-                                                    // })
-                                                    res.status(200).json({
-                                                        deletedImage
-                                                    })
-                                                } else {
-                                                    res.status(404).json({
-                                                        Message: "Not Found"
-                                                    })
-                                                }
+                                                            //                                                console.log(deletedRecipe[0])
+                                                            if (deletedImage > 0) {
+                                                                // let s3bucket = new AWS.S3({
+                                                                //     accessKeyId: IAM_USER_KEY,
+                                                                //     secretAccessKey: IAM_USER_SECRET,
+                                                                //     Bucket: BUCKET_NAME
+                                                                // });
+                                                                // s3bucket.deleteObject({
+                                                                //     Bucket: BUCKET_NAME,
+                                                                //     //Location: deletedImage.url //.name//,
+                                                                //     Key: deletedImage[0].S3Key//file.data
+                                                                // }, function (err, data) {
+                                                                //     if (err) {
+                                                                //         console.log(err);
+                                                                //     }
+                                                                //     console.log(data);
+                                                                // })
+                                                                res.status(200).json({
+                                                                    deletedImage
+                                                                })
+                                                            } else {
+                                                                res.status(404).json({
+                                                                    Message: "Not Found"
+                                                                })
+                                                            }
+                                                        })
+                                                })
+
+                                                //})
+                                                //    }
                                             })
+                                        console.log("----->>>>" + k)
+
                                     }
                                 } else {
                                     //if(image_data[0].recipe_id!=req.params.id){
@@ -1053,7 +1088,6 @@ function function2() {
 }
 
 ////POST
-
 router.post('/recipie/:id/image', (req, res) => {
     console.log("==========================================")
     // check for basic auth header
@@ -1127,9 +1161,10 @@ router.post('/recipie/:id/image', (req, res) => {
                                         s3bucket.createBucket(function () {
                                             var params = {
                                                 Bucket: BUCKET_NAME,
-                                                Key: file.name,
+                                                Key: new Date() + file.name, //file.name,
                                                 Body: file.data
                                             };
+                                            count++;
                                             s3bucket.upload(params, function (err, data) {
                                                 if (err) {
                                                     console.log('error in callback');
@@ -1142,7 +1177,7 @@ router.post('/recipie/:id/image', (req, res) => {
                                                 db.image.create({
                                                         "recipe_id": req.params.id,
                                                         "url": image_s3_url,
-                                                        "S3Key":data.Key,
+                                                        "S3Key": data.Key,
                                                         "recipeId": req.params.id
                                                     })
                                                     .then(imageData => {
