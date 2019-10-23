@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Id": "Policy1488494182833",
+    "Statement": [
+        {
+            "Sid": "Stmt1488493308547",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::737362253087:user/Administrator"
+            },
+            "Action": [
+                "s3:ListBucket",
+                "s3:ListBucketVersions",
+                "s3:GetBucketLocation",
+                "s3:Get*",
+                "s3:Put*"
+            ],
+            "Resource": "arn:aws:s3:::webapp.dev.ajaygoel.me"
+        }
+    ]
+}
