@@ -1,8 +1,12 @@
 'use strict'
 const Sequelize = require('sequelize');
+const dotenv = require('dotenv');
+dotenv.config();
+
 //const recipe = require('../Model/recipe');
-const sequelize = new Sequelize('api', 'me', 'Ajaygoel@123', {
-  host: 'localhost',
+const USER = process.env.USER;
+const sequelize = new Sequelize('api','me', 'Ajaygoel@123', {
+  host: process.env.HOST,
   dialect: 'postgres',
   operatorsAliases: false,
   dialectOptions: {
