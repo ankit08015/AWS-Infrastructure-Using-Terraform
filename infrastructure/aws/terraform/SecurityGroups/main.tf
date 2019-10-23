@@ -41,6 +41,16 @@ variable "vpc" {
   default = ""
 }
 
+variable "ami" {
+  type = string
+  default = ""
+}
+
+variable "key_name" {
+  type = string
+  default = ""
+}
+
 variable "password" {
   type = string
   default = "AjayGoel"
@@ -166,16 +176,28 @@ resource "aws_db_instance" "main" {
    publicly_accessible  = true
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
+   skip_final_snapshot = true
 }
 
 resource "aws_instance" "instance" {
-  ami           = "ami-07a74940563d95d28" # us-west-2
+  ami           =  var.ami
   instance_type = "t2.micro"
   disable_api_termination = false
+  vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
+  subnet_id = "${data.aws_subnet.example[0].id}"
+  associate_public_ip_address = true
+  key_name = var.key_name
+  #  root_block_device {
+  #     volume_size           = 20
+  #     volume_type           = "gp2"
+  # }
 
-  root_block_device {
+  ebs_block_device {
+      device_name = "/dev/sdf"
+      delete_on_termination = true
       volume_size           = 20
       volume_type           = "gp2"
+      
   }
   tags = {
     Name = "csye-instance"
