@@ -38,12 +38,12 @@ variable "dynamo_table_name" {
 
 variable "vpc" {
   type = string
-  default = "MyVPC"
+  default = ""
 }
 
 variable "password" {
   type = string
-  default = ""
+  default = "AjayGoel"
 }
 
 # Application Security Group
@@ -132,7 +132,7 @@ data "aws_availability_zones" "available" {}
 
 data "aws_vpc" "selected" {
   tags = {
-    Name = "${var.vpc}"
+    Name = var.vpc
   }
 }
 
@@ -161,7 +161,7 @@ resource "aws_db_instance" "main" {
    instance_class       = "db.t2.medium"
    name                 = "csye6225"
    username             = "dbuser"
-   password             = "${var.password}"
+   password             = var.password
    multi_az             = false
    publicly_accessible  = true
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
