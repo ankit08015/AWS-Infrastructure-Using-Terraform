@@ -1,7 +1,7 @@
 
 # Infrastructure as Code
 
-## 3. Infrastructure as Code with Terraform
+## Infrastructure as Code with Terraform
 
 ### Run following commands:
 
