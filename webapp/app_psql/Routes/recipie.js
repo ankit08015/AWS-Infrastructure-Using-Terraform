@@ -6,7 +6,8 @@ const AWS = require('aws-sdk');
 const Busboy = require('busboy');
 
 const BUCKET_NAME = 'webapp.dev.ajaygoel.me';
-
+const IAM_USER_KEY = 'AKIA2XLRXCUPYQ4KMUHG';
+const IAM_USER_SECRET = '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';
 
 ////POST
 
@@ -1082,7 +1083,7 @@ function uploadToS3(file) {
 }
 
 
-var count =0;
+var count = 0;
 
 ////POST
 router.post('/recipie/:id/image', (req, res) => {
@@ -1123,109 +1124,117 @@ router.post('/recipie/:id/image', (req, res) => {
                             message: 'Bad Request'
                         });
                     } else if (result) {
-                        // const {
-                        //     url
-                        // } = req.body;
-                        const file2 = req.files.element2; 
-                        console.log(file2.name+"--=-=-=-=-=-=-=-=-=-=-=-");
+                        if(req.files==undefined){
+                            res.header("Content-Type", 'application/json');
+                            res.status(406).send(JSON.stringify({
+                                "Message": "Please upload an image in form data"
+                            }))
+                        }
+                        else {
+
+                        
+                        const file2 = req.files.element2;
+                        console.log(file2.name + "--=-=-=-=-=-=-=-=-=-=-=-");
 
                         var words = file2.name.split('.');
-                        console.log(words[1]+"--=-=-=-=-=-=-=-=-=-=-=-");
-                        if(words[1]!='jpg' && words[1]!='jpeg' && words[1]!='png' ){
+                        console.log(words[1] + "--=-=-=-=-=-=-=-=-=-=-=-");
+                        if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
                             res.header("Content-Type", 'application/json');
                             res.status(406).send(JSON.stringify({
                                 "Message": "File type should be image"
                             }))
-                        }
-                        else {
-                        db.image.findAll({
-                                where: {
-                                    recipe_id: req.params.id
-                                }
-                            })
-                            .then(data => {
-                                if (data[0] == undefined) {
+                        } else {
+                            db.image.findAll({
+                                    where: {
+                                        recipe_id: req.params.id
+                                    }
+                                })
+                                .then(data => {
+                                    if (data[0] == undefined) {
 
 
-                                    var busboy = new Busboy({
-                                        headers: req.headers
-                                    });
-                                    console.log("here");
-                                    // The file upload has completed
-                                    busboy.on('finish', function () {
-                                        console.log('Upload finished');
-                                        const file = req.files.element2;
-                                        console.log(file);
-
-                                        // Begins the upload to the AWS S3
-                                        //uploadToS3(file);
-                                        //setTimeout(function2, 5000000);
-                                        let s3bucket = new AWS.S3({
-                                            accessKeyId: IAM_USER_KEY,
-                                            secretAccessKey: IAM_USER_SECRET,
-                                            Bucket: BUCKET_NAME
+                                        var busboy = new Busboy({
+                                            headers: req.headers
                                         });
-                                        s3bucket.createBucket(function () {
-                                            var params = {
-                                                Bucket: BUCKET_NAME,
-                                                Key: new Date() + file.name, //file.name,
-                                                Body: file.data
-                                            };
-                                            count++;
-                                            s3bucket.upload(params, function (err, data) {
-                                                if (err) {
-                                                    console.log('error in callback');
-                                                    console.log(err);
-                                                }
-                                                console.log('success' + '--------------->>>>>');
-                                                console.log(data);
-                                                image_s3_url = data.Location;
-                                                console.log(image_s3_url + '--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
-                                                db.image.create({
-                                                        "recipe_id": req.params.id,
-                                                        "url": image_s3_url,
-                                                        "S3Key": data.Key,
-                                                        "recipeId": req.params.id
-                                                    })
-                                                    .then(imageData => {
-                                                        res.header("Content-Type", 'application/json');
-                                                        res.status(201).send(JSON.stringify({
-                                                            "id": imageData.image_id,
-                                                            "url": imageData.url
-                                                        }))
-                                                    })
-                                                res.status(201);
+                                        console.log("here");
+                                        // The file upload has completed
+                                        busboy.on('finish', function () {
+                                            console.log('Upload finished');
+                                            const file = req.files.element2;
+                                            console.log(file);
+
+                                            // Begins the upload to the AWS S3
+                                            //uploadToS3(file);
+                                            //setTimeout(function2, 5000000);
+                                            let s3bucket = new AWS.S3({
+                                                accessKeyId: IAM_USER_KEY,
+                                                secretAccessKey: IAM_USER_SECRET,
+                                                Bucket: BUCKET_NAME
+                                            });
+                                            s3bucket.createBucket(function () {
+                                                var params = {
+                                                    Bucket: BUCKET_NAME,
+                                                    Key: new Date() + file.name, //file.name,
+                                                    Body: file.data
+                                                };
+                                                count++;
+                                                s3bucket.upload(params, function (err, data) {
+                                                    if (err) {
+                                                        console.log('error in callback');
+                                                        console.log(err);
+                                                    }
+                                                    console.log('success' + '--------------->>>>>');
+                                                    console.log(data);
+                                                    image_s3_url = data.Location;
+                                                    console.log(image_s3_url + '--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
+                                                    db.image.create({
+                                                            "recipe_id": req.params.id,
+                                                            "url": image_s3_url,
+                                                            "S3Key": data.Key,
+                                                            "recipeId": req.params.id
+                                                        })
+                                                        .then(imageData => {
+                                                            res.header("Content-Type", 'application/json');
+                                                            res.status(201).send(JSON.stringify({
+                                                                "id": imageData.image_id,
+                                                                "url": imageData.url
+                                                            }))
+                                                        })
+                                                    res.status(201);
+                                                });
                                             });
                                         });
-                                    });
 
-                                    req.pipe(busboy);
+                                        req.pipe(busboy);
 
-                                    console.log(image_s3_url + "==================")
-                                    // db.image.create({
-                                    //         "recipe_id": req.params.id,
-                                    //         "url":image_s3_url,
-                                    //         "recipeId": req.params.id
-                                    //     })
-                                    //     .then(imageData => {
-                                    //         res.header("Content-Type", 'application/json');
-                                    //         res.status(201).send(JSON.stringify({
-                                    //             "id": imageData.image_id,
-                                    //             "url": imageData.url
-                                    //         }))
-                                    //     })
-                                    // res.status(201);
+                                        console.log(image_s3_url + "==================")
+                                        // db.image.create({
+                                        //         "recipe_id": req.params.id,
+                                        //         "url":image_s3_url,
+                                        //         "recipeId": req.params.id
+                                        //     })
+                                        //     .then(imageData => {
+                                        //         res.header("Content-Type", 'application/json');
+                                        //         res.status(201).send(JSON.stringify({
+                                        //             "id": imageData.image_id,
+                                        //             "url": imageData.url
+                                        //         }))
+                                        //     })
+                                        // res.status(201);
 
-                                } else {
-                                    res.status(400).send(JSON.stringify({
-                                        "Result": "Delete the Image first before posting a new image."
-                                    }));
-                                }
-                            })
-                            .catch(err => res.status(406).json({
-                                message: err.message
-                            }));
+                                    } else {
+                                        res.header("Content-Type", 'application/json');
+                                        res.status(400).send(JSON.stringify({
+                                            "Result": "Delete the Image first before posting a new image."
+                                        }));
+                                    }
+                                })
+                                .catch(err => res.status(406).json({
+                                    message: err.message
+                                }));
+
                         }
+                    }
                     } else {
                         res.status(401).json({
                             message: 'Unauthorized Access Denied'
