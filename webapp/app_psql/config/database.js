@@ -1,8 +1,8 @@
 'use strict'
 const Sequelize = require('sequelize');
 //const recipe = require('../Model/recipe');
-const sequelize = new Sequelize('csye6225', 'dbuser', 'AjayGoel123', {
-  host: 'csye6225-fall2019.c69v5rzxndyz.us-east-1.rds.amazonaws.com',
+const sequelize = new Sequelize('api', 'me', 'Ajaygoel@123', {
+  host: 'localhost',
   dialect: 'postgres',
   operatorsAliases: false,
   dialectOptions: {

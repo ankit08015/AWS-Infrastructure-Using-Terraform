@@ -21,6 +21,9 @@ const imageInfo = sequelize.define('images', {
     S3Key: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    metadata :{
+        type : DataTypes.JSON(DataTypes.STRING)
     }
 })
 
