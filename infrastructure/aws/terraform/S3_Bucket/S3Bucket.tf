@@ -3,14 +3,14 @@ provider "aws" {
 }
 
 
-variable "bucket_name" {
+variable "bucketname" {
   type = string
-  default = "webapp.dev.ajaygoel.me"
+  default = "webapp.dev.akshaymahajanshetti.me"
 }
 
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "[var.bucket_name]"
+  bucket = "${var.bucketname}"
   force_destroy = true
   acl = "private"
   server_side_encryption_configuration {
@@ -45,6 +45,9 @@ data "aws_iam_user" "selected" {
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = "${aws_s3_bucket.bucket.id}"
   //name = "${aws_s3_bucket.name}"
+  # policy = "${data.template_file.policy.rendered}"
+//}
+
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -61,9 +64,10 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
                 "s3:ListBucketVersions",
                 "s3:GetBucketLocation",
                 "s3:Get*",
-                "s3:Put*"
+                "s3:Put*",
+                "s3:Delete*"
             ],
-            "Resource": "[var.bucket_name]"
+            "Resource": "arn:aws:s3:::${var.bucketname}"
         }
     ]
 }

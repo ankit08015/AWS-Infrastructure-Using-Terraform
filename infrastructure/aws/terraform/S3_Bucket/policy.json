@@ -15,7 +15,7 @@
                 "s3:Get*",
                 "s3:Put*"
             ],
-            "Resource": "arn:aws:s3:::webapp.dev.ajaygoel.me"
+            "Resource": "arn:aws:s3:::webapp.dev.akshaymahajanshetti.me"
         }
     ]
 }
