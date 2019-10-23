@@ -6,8 +6,7 @@ const AWS = require('aws-sdk');
 const Busboy = require('busboy');
 
 const BUCKET_NAME = 'webapp.dev.ajaygoel.me';
-const IAM_USER_KEY = 'AKIA2XLRXCUPYQ4KMUHG';
-const IAM_USER_SECRET = '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';
+
 
 ////POST
 
