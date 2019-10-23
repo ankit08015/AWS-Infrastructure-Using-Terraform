@@ -2,7 +2,12 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const bcrypt = require("bcrypt");
+const AWS = require('aws-sdk');
+const Busboy = require('busboy');
 
+const BUCKET_NAME = 'webapp.dev.akshaymahajanshetti.me';
+const IAM_USER_KEY = 'AKIA6O77IJUB742D73MU';
+const IAM_USER_SECRET = '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';
 
 ////POST
 
@@ -28,7 +33,7 @@ router.post('/recipie', (req, res) => {
         })
         .then(data => {
             console.log(data);
-            if(data.length<=0){
+            if (data.length <= 0) {
                 return res.status(400).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
@@ -733,7 +738,7 @@ router.put('/recipie/:id', (req, res) => {
         })
         .then(data => {
             console.log(data);
-            if(data.length<=0){
+            if (data.length <= 0) {
                 return res.status(400).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
@@ -743,22 +748,23 @@ router.put('/recipie/:id', (req, res) => {
             const author_id = data[0].id;
 
             db.recipe.findAll({
-                where: {
-                    id: req.params.id,
-                    author_id: author_id
+                    where: {
+                        id: req.params.id,
+                        author_id: author_id
 
-                }
-            })
-            .then(data => {
-                console.log(data);
-                if(data.length<=0){
-                    return res.status(401).json({
-                        "message": "Unauthorized user for given recipe id"
-                    }); // return wrong email
-                }});
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    if (data.length <= 0) {
+                        return res.status(401).json({
+                            "message": "Unauthorized user for given recipe id"
+                        }); // return wrong email
+                    }
+                });
 
 
-            
+
             if (data[0] != undefined) {
 
                 const db_password = data[0].password;
@@ -866,9 +872,10 @@ router.put('/recipie/:id', (req, res) => {
 
                                     })
                             })
-                            .catch(err => 
+                            .catch(err =>
                                 res.status(401).json({
-                                message: "Error " + err.message})
+                                    message: "Error " + err.message
+                                })
                             );
 
 
@@ -954,7 +961,24 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                 }
                                             })
                                             .then(deletedImage => {
+
+//                                                console.log(deletedRecipe[0])
                                                 if (deletedImage > 0) {
+                                                    // let s3bucket = new AWS.S3({
+                                                    //     accessKeyId: IAM_USER_KEY,
+                                                    //     secretAccessKey: IAM_USER_SECRET,
+                                                    //     Bucket: BUCKET_NAME
+                                                    // });
+                                                    // s3bucket.deleteObject({
+                                                    //     Bucket: BUCKET_NAME,
+                                                    //     //Location: deletedImage.url //.name//,
+                                                    //     Key: deletedImage[0].S3Key//file.data
+                                                    // }, function (err, data) {
+                                                    //     if (err) {
+                                                    //         console.log(err);
+                                                    //     }
+                                                    //     console.log(data);
+                                                    // })
                                                     res.status(200).json({
                                                         deletedImage
                                                     })
@@ -996,12 +1020,42 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
         );
 });
 
+var image_s3_url = "HIIIII";
 
+function uploadToS3(file) {
+    let s3bucket = new AWS.S3({
+        accessKeyId: IAM_USER_KEY,
+        secretAccessKey: IAM_USER_SECRET,
+        Bucket: BUCKET_NAME
+    });
+    s3bucket.createBucket(function () {
+        var params = {
+            Bucket: BUCKET_NAME,
+            Key: file.name,
+            Body: file.data
+        };
+        s3bucket.upload(params, function (err, data) {
+            if (err) {
+                console.log('error in callback');
+                console.log(err);
+            }
+            console.log('success' + '--------------->>>>>');
+            console.log(data);
+            image_s3_url = data.Location;
+            console.log(image_s3_url + '--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
+        });
+    });
+}
+
+function function2() {
+    // all the stuff you want to happen after that pause
+    console.log('Blah blah blah blah extra-blah');
+}
 
 ////POST
 
 router.post('/recipie/:id/image', (req, res) => {
-
+    console.log("==========================================")
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         return res.status(401).json({
@@ -1039,9 +1093,9 @@ router.post('/recipie/:id/image', (req, res) => {
                             message: 'Bad Request'
                         });
                     } else if (result) {
-                        const {
-                            url
-                        } = req.body;
+                        // const {
+                        //     url
+                        // } = req.body;
 
                         db.image.findAll({
                                 where: {
@@ -1050,18 +1104,76 @@ router.post('/recipie/:id/image', (req, res) => {
                             })
                             .then(data => {
                                 if (data[0] == undefined) {
-                                    db.image.create({
-                                            "recipe_id": req.params.id,
-                                            url,
-                                            "recipeId": req.params.id
-                                        })
-                                        .then(imageData => {
-                                            res.header("Content-Type", 'application/json');
-                                            res.status(201).send(JSON.stringify({
-                                                "id": imageData.image_id,
-                                                "url": imageData.url
-                                            }))
-                                        })
+
+
+                                    var busboy = new Busboy({
+                                        headers: req.headers
+                                    });
+                                    console.log("here");
+                                    // The file upload has completed
+                                    busboy.on('finish', function () {
+                                        console.log('Upload finished');
+                                        const file = req.files.element2;
+                                        console.log(file);
+
+                                        // Begins the upload to the AWS S3
+                                        //uploadToS3(file);
+                                        //setTimeout(function2, 5000000);
+                                        let s3bucket = new AWS.S3({
+                                            accessKeyId: IAM_USER_KEY,
+                                            secretAccessKey: IAM_USER_SECRET,
+                                            Bucket: BUCKET_NAME
+                                        });
+                                        s3bucket.createBucket(function () {
+                                            var params = {
+                                                Bucket: BUCKET_NAME,
+                                                Key: file.name,
+                                                Body: file.data
+                                            };
+                                            s3bucket.upload(params, function (err, data) {
+                                                if (err) {
+                                                    console.log('error in callback');
+                                                    console.log(err);
+                                                }
+                                                console.log('success' + '--------------->>>>>');
+                                                console.log(data);
+                                                image_s3_url = data.Location;
+                                                console.log(image_s3_url + '--------------------------->>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<')
+                                                db.image.create({
+                                                        "recipe_id": req.params.id,
+                                                        "url": image_s3_url,
+                                                        "S3Key":data.Key,
+                                                        "recipeId": req.params.id
+                                                    })
+                                                    .then(imageData => {
+                                                        res.header("Content-Type", 'application/json');
+                                                        res.status(201).send(JSON.stringify({
+                                                            "id": imageData.image_id,
+                                                            "url": imageData.url
+                                                        }))
+                                                    })
+                                                res.status(201);
+                                            });
+                                        });
+                                    });
+
+                                    req.pipe(busboy);
+
+                                    console.log(image_s3_url + "==================")
+                                    // db.image.create({
+                                    //         "recipe_id": req.params.id,
+                                    //         "url":image_s3_url,
+                                    //         "recipeId": req.params.id
+                                    //     })
+                                    //     .then(imageData => {
+                                    //         res.header("Content-Type", 'application/json');
+                                    //         res.status(201).send(JSON.stringify({
+                                    //             "id": imageData.image_id,
+                                    //             "url": imageData.url
+                                    //         }))
+                                    //     })
+                                    // res.status(201);
+
                                 } else {
                                     res.status(400).send(JSON.stringify({
                                         "Result": "Delete the Image first before posting a new image."
@@ -1093,39 +1205,37 @@ router.post('/recipie/:id/image', (req, res) => {
 
 router.get('/recipie/:id/image/:imageId', (req, res) => {
     db.image.findAll({
-        where: {
-            recipe_id: req.params.id
-        }
-    })
-    .then(image_data => {
-        if(image_data.length>0){
+            where: {
+                recipe_id: req.params.id
+            }
+        })
+        .then(image_data => {
+            if (image_data.length > 0) {
 
-        if(image_data[0].image_id!=req.params.imageId){
-            res.status(404).json({
-                message:"No Image Id Found"
-            })
-        }
-        else {
-            res.header("Content-Type", 'application/json');
-                res.status(200).send(JSON.stringify({
-                    "id": image_data[0].image_id,
-                    "url": image_data[0].recipe_id
-                }));
-            
-        }
-    }
-    else {
-        //if(image_data[0].recipe_id!=req.params.id){
-            res.status(404).json({
-                message:"No Recipe ID found"
-            })
-        //}
-        
-    }
-    })
-    .catch(err => res.status(406).json({
-        message: err.message,
-    }));
+                if (image_data[0].image_id != req.params.imageId) {
+                    res.status(404).json({
+                        message: "No Image Id Found"
+                    })
+                } else {
+                    res.header("Content-Type", 'application/json');
+                    res.status(200).send(JSON.stringify({
+                        "id": image_data[0].image_id,
+                        "url": image_data[0].url
+                    }));
+
+                }
+            } else {
+                //if(image_data[0].recipe_id!=req.params.id){
+                res.status(404).json({
+                    message: "No Recipe ID found"
+                })
+                //}
+
+            }
+        })
+        .catch(err => res.status(406).json({
+            message: err.message,
+        }));
 
 });
 
@@ -1133,8 +1243,13 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
 
 router.get('/recipies', (req, res) => {
     //db.recipe.max('created_date')
-      //db.recipe.query(,{type:})
-      db.recipe.findAll({ limit: 10, order: [['created_date', 'DESC']]})
+    //db.recipe.query(,{type:})
+    db.recipe.findAll({
+            limit: 10,
+            order: [
+                ['created_date', 'DESC']
+            ]
+        })
         .then(data => {
             if (data.length < 1) {
                 return res.status(404).json({
@@ -1148,7 +1263,7 @@ router.get('/recipies', (req, res) => {
                 //         "message":data[0]
                 //     }
                 // ))
-                const recipeID= data[0].id;
+                const recipeID = data[0].id;
                 db.nutInfo.findAll({
                         where: {
                             recipe_id: recipeID
@@ -1224,12 +1339,10 @@ router.get('/recipies', (req, res) => {
                                 }
 
                             })
-                    })  
+                    })
             }
         })
-
         .catch(err => res.status(406).json({
             message: err.message
         }));
-
 });

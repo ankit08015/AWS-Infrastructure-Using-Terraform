@@ -3,6 +3,9 @@ const bodyParser = require('body-parser')
 morgan = require('morgan')
 const app = express()
 const PORT = 3000;
+
+const busboy = require('connect-busboy');
+const busboyBodyParser = require('busboy-body-parser');
 //const db = require('./Routes/queries')
 
 const db = require('./config/database');
@@ -21,6 +24,10 @@ app.use(
   })
 )
 
+//File upload related
+app.use(busboy());
+app.use(busboyBodyParser());
+
 app.get('/', (request, response) => {
   response.json({
     info: 'Node.js, Express, and Postgres API'
@@ -30,6 +37,7 @@ app.get('/', (request, response) => {
 //app.get('/v2',(req,res) => res.send('INDEX'));
 app.use('/v1',require('./Routes/queries'))
 app.use('/v1',require('./Routes/recipie'))
+app.use('/v1',require('./Routes/upload'))
 //app.get('/v1/user/self', require('./Routes/queries'))
 //app.post('/v1/user', db.createUser)
 //app.put('/v1/user/self', db.updateUser)

@@ -17,6 +17,10 @@ const imageInfo = sequelize.define('images', {
     url: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    S3Key: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 })
 
