@@ -1,7 +1,6 @@
 
 provider "aws" {
     region = var.region
-    #profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
 }
 variable "cidr_block_22" {
   type = string
@@ -26,15 +25,21 @@ variable "cidr_block_5432" {
   default = "0.0.0.0/0"
 }
 
-variable "region"{
+variable "region" {
     type = string
     default = "us-east-1"
 }
 
-variable "dynamo_table_name"{
+variable "dynamo_table_name" {
     type = string
     default = "csye6225"
 }
+
+variable "vpc_id" {
+    type = string
+    default = "vpc-0122d0d6dc018d259"
+}
+
 
 resource "aws_security_group" "allow_tls" {
   name        = "application"
@@ -79,6 +84,7 @@ resource "aws_security_group" "allow_tls" {
 // DATABASE SECURITY GROUP
 resource "aws_security_group" "allow_tls2" {
   name        = "database"
+  vpc_id = "${var.vpc_id}"
   description = "Allow application traffic"
   // ALLOW PORT 5432
   ingress {
@@ -104,7 +110,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 
   ttl {
     attribute_name = "TimeToExist"
-    enabled        = false
+    enabled        = true
   }
 
   tags = {
@@ -121,47 +127,40 @@ data "aws_availability_zones" "available" {}
 //      Name = "AJ2-vpc"
 //    }
 // }
+
+
 data "aws_vpc" "selected" {
-  tags {
-    Name = "AJ2-vpc" 
-    //"${var.vpc}"
-  }
+  id = "${var.vpc_id}"
 }
+
 data "aws_subnet_ids" "subnets" {
-  vpc_id = "${data.aws_vpc.selected.id}"
-  // ta {
-  //   Tier = "Private"
-  // }
+  vpc_id = "${var.vpc_id}"
 }
 
-// resource "aws_subnet" "main" {
-//   count             = "2"
-//   cidr_block        = "${cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)}"
-//   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
-//   vpc_id            = "${aws_vpc.main.id}"
-// }
+data "aws_subnet" "subnet" {
+  count = "${length(data.aws_subnet_ids.subnets.ids)}"
+  id    = "${tolist(data.aws_subnet_ids.subnets.ids)[count.index]}"
+}
 
-// resource "aws_db_subnet_group" "main" {
-//   name       = "main"
-//   //"tf-db-main-${terraform.env}"
-//   subnet_ids = ["10.0.1.0/24"]
 
-//   tags = {
-//     Name = "AJ2-subnet1"
-//   }
-// }
+resource "aws_db_subnet_group" "main" {
+  name       = "main"
+   subnet_ids = ["${data.aws_subnet.subnet[0].id}", "${data.aws_subnet.subnet[1].id}", "${data.aws_subnet.subnet[2].id}"]
+}
 
-// resource "aws_db_instance" "main" {
-//   identifier = "demodb-postgres"
-//   allocated_storage    = 5
-//   storage_type         = "gp2"
-//   engine               = "postgres"
-//   engine_version       = "11.5"
-//   instance_class       = "db.t2.micro"
-//   name                 = "csye6225-fall2019"
-//   username             = "dbuser"
-//   password             = "Ajaygoel@123"
-//   multi_az             = false
-//   publicly_accessible  = true
-//   db_subnet_group_name = "${aws_db_subnet_group.main.name}"
-// }
+resource "aws_db_instance" "main" {
+   identifier = "demodb-postgres"
+   allocated_storage    = 5
+   storage_type         = "gp2"
+   engine               = "postgres"
+   engine_version       = "11.5"
+   instance_class       = "db.t2.medium"
+   name                 = "csye6225"
+   username             = "dbuser"
+   password             = "AjayGoel123"
+   multi_az             = false
+   publicly_accessible  = true
+   db_subnet_group_name = "${aws_db_subnet_group.main.name}"
+   vpc_security_group_ids = ["${aws_security_group.allow_tls2.id}"]
+  
+}
