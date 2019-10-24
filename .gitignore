@@ -206,10 +206,6 @@ venv.bak/
 
 .mypy_cache/
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-
 # Logs
 
 logs
@@ -335,10 +331,9 @@ typings/
 # next.js build output
 
 .next
-=======
-=======
->>>>>>> bd999bf2ae2d3eff99b50a7c3f16804097267f83
+
 # Logs
+
 logs
 *.log
 npm-debug.log*
@@ -401,11 +396,6 @@ typings/
 
 # next.js build output
 .next
-
-<<<<<<< HEAD
->>>>>>> 8e08598173dfaf3eb0a01efcec7a9a1999760061
-=======
-=======
 
 
 # Logs
@@ -539,3 +529,4 @@ __MACOSX
 .terraform
 *.tfstate
 *.tfstate.backup
+*.terraform.*
