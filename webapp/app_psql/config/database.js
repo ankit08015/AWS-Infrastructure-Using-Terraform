@@ -5,8 +5,9 @@ dotenv.config();
 
 //const recipe = require('../Model/recipe');
 const USER = process.env.USER;
-const sequelize = new Sequelize(process.env.DATABASE, process.env.USER_DATA , process.env.DATABASE_PASSWORD , {
-  host: process.env.HOST,
+//const sequelize = new Sequelize(process.env.DATABASE, process.env.USER_DATA , process.env.DATABASE_PASSWORD , {
+const sequelize = new Sequelize( process.env.DATABASE , process.env.USER_DATA , process.env.DATABASE_PASSWORD , {  
+  host: process.env.HOST, 
   dialect: 'postgres',
   operatorsAliases: false,
   dialectOptions: {

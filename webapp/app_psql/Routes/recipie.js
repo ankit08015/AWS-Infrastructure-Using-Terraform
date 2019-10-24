@@ -6,7 +6,8 @@ const AWS = require('aws-sdk');
 const Busboy = require('busboy');
 const dotenv = require('dotenv');
 dotenv.config();
-const BUCKET_NAME = 'webapp.dev.ajaygoel.me';
+const BUCKET_NAME = process.env.BUCKET_NAME
+//'webapp.dev.ajaygoel.me';
 // const IAM_USER_KEY = 'AKIA2XLRXCUPYQ4KMUHG';
 // const IAM_USER_SECRET = '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';
 const IAM_USER_KEY = process.env.DEV_ADMIN_IAM_USER_KEY;
@@ -945,6 +946,22 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                         });
                     } else if (result) {
 
+                        db.recipe.findAll({
+                                where: {
+                                    id: req.params.id,
+                                    author_id: author_id
+
+                                }
+                            })
+                            .then(data => {
+                                console.log(data);
+                                if (data.length <= 0) {
+                                    return res.status(401).json({
+                                        "message": "Unauthorized user for given recipe id"
+                                    }); // return wrong email
+                                }
+                            });
+
                         db.image.findAll({
                                 where: {
                                     recipe_id: req.params.id
@@ -1029,8 +1046,8 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                     }
                                 } else {
                                     //if(image_data[0].recipe_id!=req.params.id){
-                                    res.status(404).json({
-                                        message: "No Recipe ID found"
+                                    res.status(204).json({
+                                        message: "No Content for this recipe ID"
                                     })
                                     //}
 
@@ -1127,9 +1144,27 @@ router.post('/recipie/:id/image', (req, res) => {
                             message: 'Bad Request'
                         });
                     } else if (result) {
-                        if (req.files == undefined) {
+
+                        db.recipe.findAll({
+                                where: {
+                                    id: req.params.id,
+                                    author_id: author_id
+
+                                }
+                            })
+                            .then(data => {
+                                console.log(data);
+                                if (data.length <= 0) {
+                                    return res.status(401).json({
+                                        "message": "Unauthorized user for given recipe id"
+                                    }); // return wrong email
+                                }
+                            });
+
+
+                        if (req.files.element2 == undefined) {
                             res.header("Content-Type", 'application/json');
-                            res.status(406).send(JSON.stringify({
+                            res.status(400).send(JSON.stringify({
                                 "Message": "Please upload an image in form data"
                             }))
                         } else {
@@ -1197,19 +1232,19 @@ router.post('/recipie/:id/image', (req, res) => {
                                                             console.log("Key was", response.request.params.Key);
                                                             console.log(response.httpResponse.headers);
                                                             db.image.create({
-                                                                "recipe_id": req.params.id,
-                                                                "url": image_s3_url,
-                                                                "S3Key": data.Key,
-                                                                "recipeId": req.params.id,
-                                                                "metadata": response.httpResponse.headers
-                                                            })
-                                                            .then(imageData => {
-                                                                res.header("Content-Type", 'application/json');
-                                                                res.status(201).send(JSON.stringify({
-                                                                    "id": imageData.image_id,
-                                                                    "url": imageData.url
-                                                                }))
-                                                            })
+                                                                    "recipe_id": req.params.id,
+                                                                    "url": image_s3_url,
+                                                                    "S3Key": data.Key,
+                                                                    "recipeId": req.params.id,
+                                                                    "metadata": response.httpResponse.headers
+                                                                })
+                                                                .then(imageData => {
+                                                                    res.header("Content-Type", 'application/json');
+                                                                    res.status(201).send(JSON.stringify({
+                                                                        "id": imageData.image_id,
+                                                                        "url": imageData.url
+                                                                    }))
+                                                                })
                                                         }).send();
 
                                                         // db.image.create({
