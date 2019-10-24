@@ -113,6 +113,13 @@ resource "aws_security_group" "allow_tls2" {
     security_groups = ["${aws_security_group.allow_tls.id}"]
     cidr_blocks = [var.cidr_block_5432]
   }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 
@@ -192,6 +199,10 @@ resource "aws_instance" "instance" {
   #     volume_type           = "gp2"
   # }
 
+  depends_on = [
+    aws_db_instance.main
+  ]
+
   ebs_block_device {
       device_name = "/dev/sdf"
       delete_on_termination = true
@@ -202,4 +213,73 @@ resource "aws_instance" "instance" {
   tags = {
     Name = "csye-instance"
   }
+}
+
+
+variable "bucketname" {
+  type = string
+  default = "webapp.dev.ajaygoel.me"
+}
+
+
+resource "aws_s3_bucket" "bucket" {
+  bucket = "${var.bucketname}"
+  force_destroy = true
+  acl = "private"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm     = "AES256"
+      }
+    }
+ }
+    cors_rule {
+    allowed_headers = ["Authorization"]
+    allowed_methods = ["GET", "POST", "DELETE"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+
+  lifecycle_rule {
+    enabled = true
+
+    transition {
+      days = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
+
+data "aws_iam_user" "selected" {
+  user_name = "Administrator"
+}
+
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = "${aws_s3_bucket.bucket.id}"
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Id": "Policy1488494182833",
+    "Statement": [
+        {
+            "Sid": "Stmt1488493308547",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "${data.aws_iam_user.selected.arn}"
+            },
+            "Action": [
+                "s3:ListBucket",
+                "s3:ListBucketVersions",
+                "s3:GetBucketLocation",
+                "s3:Get*",
+                "s3:Put*",
+                "s3:Delete*"
+            ],
+            "Resource": "arn:aws:s3:::${var.bucketname}"
+        }
+    ]
+}
+POLICY
 }
