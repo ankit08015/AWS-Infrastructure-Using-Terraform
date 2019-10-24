@@ -24,6 +24,59 @@
 
 ## Deploy Instructions
 
+### Build AMI instance using packer
+
+`packer build -var 'aws_region=us-east-1' centos-ami-template.json `
+
+
+`chmod 400 dev_pair.pem`
+`chmod 400 prod_key.pem`
+
+`ssh -i "dev_pair.pem" centos@ec2-54-208-96-141.compute-1.amazonaws.com`
+
+### CENTOS
+##### dev: ami-9887c6e7
+##### prod: ami-e0eac385 
+
+### Additional commands to manually setup database in EC2 instance
+
+`sudo systemctl start httpd`
+
+`sudo systemctl status httpd`
+
+`mkdir ccwebapp`
+
+`sudo chmod 777 ccwebapp`
+
+`sudo yum install unzip -y`
+`sudo yum install curl`
+`curl -O https://bootstrap.pypa.io/get-pip.py`
+`python get-pip.py --user`
+`sudo vi .bash_profile`
+- Write the command in bash_profile
+`export PATH=~/.local/bin:$PATH` 
+
+` source .bash_profile `
+
+`pip install awscli --upgrade --user`
+#### Configure aws profile of dev/prod
+- ` aws configure `
+ID/keys of dev/prod
+
+### Change IAM credentials in .env file present in ccwebapp
+
+- Path - `cd ccwebapp/ccwebapp/webapp/app_psql`
+`ls -a`- to show the hidden .env file
+
+- Change the IAM ID, Secret Key and bucket name
+
+### change the .tfvar file in terraform/SecurityGroup
+
+- Enter VPC_NAME
+- BUCKET_NAME
+- KEY_NAME
+- AMI_ID
+- REGION
 
 ## Running Tests
 1. Goto the folder that has the `webapp/Assignment2/app_psql/index.js` and run the command `node index.js`.

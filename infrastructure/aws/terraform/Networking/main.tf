@@ -1,6 +1,6 @@
 provider "aws" {
     region = var.region
-    profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
+    #profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
 }
 
 #terraform apply -var="region=us-east-2" -var="subnet_cidr_block=10.0.0.0/24

@@ -40,6 +40,16 @@ else
     exit 1
 fi
 
+vp_name="$VPC_NAME-csye6225-vpc" 
+vpc_id=$(aws ec2 describe-vpcs --query "Vpcs[?Tags[?Key=='Name']|[?Value=='$vp_name']].VpcId" --output text)
+
+if [ -z "$vpc_id" ];then
+  echo "VPC Name is unique"
+else
+	echo "VPC with the same name already exists, please use another name in your command"
+	exit 1
+fi
+# if VPC_NAME
 
 
 echo "==================================================================="
