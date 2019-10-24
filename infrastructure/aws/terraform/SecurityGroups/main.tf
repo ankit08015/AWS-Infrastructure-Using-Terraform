@@ -97,6 +97,12 @@ resource "aws_security_group" "allow_tls" {
     description = "PORT 3000"
     cidr_blocks = [var.cidr_block_3000]
   }
+    egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 // DATABASE SECURITY GROUP
@@ -112,6 +118,13 @@ resource "aws_security_group" "allow_tls2" {
     description = "PORT 5432"
     security_groups = ["${aws_security_group.allow_tls.id}"]
     cidr_blocks = [var.cidr_block_5432]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -211,7 +224,7 @@ resource "aws_instance" "instance" {
 
 variable "bucketname" {
   type = string
-  default = "webapp.dev.akshaymahajanshetti.me"
+  default = "webapp.dev.ajaygoel.me"
 }
 
 
