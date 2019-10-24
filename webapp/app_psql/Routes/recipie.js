@@ -1029,8 +1029,8 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                     }
                                 } else {
                                     //if(image_data[0].recipe_id!=req.params.id){
-                                    res.status(404).json({
-                                        message: "No Recipe ID found"
+                                    res.status(204).json({
+                                        message: "No Content for this recipe ID"
                                     })
                                     //}
 
@@ -1127,9 +1127,9 @@ router.post('/recipie/:id/image', (req, res) => {
                             message: 'Bad Request'
                         });
                     } else if (result) {
-                        if (req.files == undefined) {
+                        if (req.files.element2 == undefined) {
                             res.header("Content-Type", 'application/json');
-                            res.status(406).send(JSON.stringify({
+                            res.status(400).send(JSON.stringify({
                                 "Message": "Please upload an image in form data"
                             }))
                         } else {

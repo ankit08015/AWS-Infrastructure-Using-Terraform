@@ -5,7 +5,7 @@ provider "aws" {
 
 variable "bucketname" {
   type = string
-  default = "webapp.dev.akshaymahajanshetti.me"
+  default = "webapp.dev.ajaygoel.me"
 }
 
 
