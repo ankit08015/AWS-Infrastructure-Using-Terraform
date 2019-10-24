@@ -6,7 +6,8 @@ const AWS = require('aws-sdk');
 const Busboy = require('busboy');
 const dotenv = require('dotenv');
 dotenv.config();
-const BUCKET_NAME = 'webapp.dev.ajaygoel.me';
+const BUCKET_NAME = process.env.BUCKET_NAME
+//'webapp.dev.ajaygoel.me';
 // const IAM_USER_KEY = 'AKIA2XLRXCUPYQ4KMUHG';
 // const IAM_USER_SECRET = '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';
 const IAM_USER_KEY = process.env.DEV_ADMIN_IAM_USER_KEY;
