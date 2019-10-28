@@ -289,3 +289,202 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
 }
 POLICY
 }
+
+# resource "aws_iam_user" "user" {
+#   name = "circleci"
+# }
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_user" "select" {
+  user_name = "circleci"
+}
+
+resource "aws_iam_policy" "policy" {
+  name = "CircleCI-Upload-To-S3"
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.bucket.arn}"
+            ]
+        }
+    ]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "upload-to-s3-attach" {
+  user       = "${data.aws_iam_user.select.user_name}"
+  policy_arn = "${aws_iam_policy.policy.arn}"
+}
+
+resource "aws_iam_policy" "policy-code-deploy" {
+  name = "CircleCI-Code-Deploy"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:RegisterApplicationRevision",
+        "codedeploy:GetApplicationRevision"
+      ],
+      "Resource": [
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:application:Dummy"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:CreateDeployment",
+        "codedeploy:GetDeployment"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.bucket.arn}"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:GetDeploymentConfig"
+      ],
+      "Resource": [
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.OneAtATime",
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.HalfAtATime",
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.AllAtOnce"
+      ]
+    }
+  ]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "code-Deploy-attach" {
+  user       = "${data.aws_iam_user.select.user_name}"
+  policy_arn = "${aws_iam_policy.policy-code-deploy.arn}"
+}
+
+resource "aws_iam_policy" "policy-circleci-ec2-ami" {
+  name = "circleci-ec2-ami"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+      "Effect": "Allow",
+      "Action" : [
+        "ec2:AttachVolume",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CopyImage",
+        "ec2:CreateImage",
+        "ec2:CreateKeypair",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSnapshot",
+        "ec2:CreateTags",
+        "ec2:CreateVolume",
+        "ec2:DeleteKeyPair",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSnapshot",
+        "ec2:DeleteVolume",
+        "ec2:DeregisterImage",
+        "ec2:DescribeImageAttribute",
+        "ec2:DescribeImages",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeRegions",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeTags",
+        "ec2:DescribeVolumes",
+        "ec2:DetachVolume",
+        "ec2:GetPasswordData",
+        "ec2:ModifyImageAttribute",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:ModifySnapshotAttribute",
+        "ec2:RegisterImage",
+        "ec2:RunInstances",
+        "ec2:StopInstances",
+        "ec2:TerminateInstances"
+      ],
+      "Resource" : "${aws_s3_bucket.bucket.arn}"
+  }]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "circleci-ec2-ami-attach" {
+  user       = "${data.aws_iam_user.select.user_name}"
+  policy_arn = "${aws_iam_policy.policy-circleci-ec2-ami.arn}"
+}
+
+
+
+
+# Code until line 426 working fine. Trying role now.
+
+resource "aws_iam_role" "Role1" {
+  name = "CodeDeployEC2ServiceRole"    
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = {
+      tag-key = "CodeDeployRole"
+  }
+}
+
+
+resource "aws_iam_instance_profile" "EC2_instance_profile" {
+  name = "EC2_instance_profile"
+  role = "${aws_iam_role.Role1.name}"
+}
+
+
+resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
+  name = "CodeDeploy-EC2-S3"
+  role = "${aws_iam_role.Role1.id}"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "s3:Get*",
+                "s3:List*"
+            ],
+            "Effect": "Allow",
+            "Resource": "${aws_s3_bucket.bucket.arn}"
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_instance" "role-test" {
+  ami = "${var.ami}"
+  instance_type = "t2.micro"
+  iam_instance_profile = "${aws_iam_instance_profile.EC2_instance_profile.name}"
+  key_name = "${var.key_name}"
+}
