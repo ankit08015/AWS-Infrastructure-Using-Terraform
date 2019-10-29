@@ -290,6 +290,43 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
 POLICY
 }
 
+
+
+variable "codeDeploybucket" {
+  type = string
+  default = "codedeploy.dev.ajaygoel.me"
+}
+
+
+resource "aws_s3_bucket" "bucket2" {
+  bucket = "${var.codeDeploybucket}"
+  force_destroy = true
+  acl = "private"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm     = "AES256"
+      }
+    }
+ }
+    cors_rule {
+    allowed_headers = ["Authorization"]
+    allowed_methods = ["GET", "POST", "DELETE"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+
+  lifecycle_rule {
+    enabled = true
+
+    transition {
+      days = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
+
 # resource "aws_iam_user" "user" {
 #   name = "circleci"
 # }
@@ -423,68 +460,4 @@ POLICY
 resource "aws_iam_user_policy_attachment" "circleci-ec2-ami-attach" {
   user       = "${data.aws_iam_user.select.user_name}"
   policy_arn = "${aws_iam_policy.policy-circleci-ec2-ami.arn}"
-}
-
-
-
-
-# Code until line 426 working fine. Trying role now.
-
-resource "aws_iam_role" "Role1" {
-  name = "CodeDeployEC2ServiceRole"    
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-
-  tags = {
-      tag-key = "CodeDeployRole"
-  }
-}
-
-
-resource "aws_iam_instance_profile" "EC2_instance_profile" {
-  name = "EC2_instance_profile"
-  role = "${aws_iam_role.Role1.name}"
-}
-
-
-resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
-  name = "CodeDeploy-EC2-S3"
-  role = "${aws_iam_role.Role1.id}"
-
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "s3:Get*",
-                "s3:List*"
-            ],
-            "Effect": "Allow",
-            "Resource": "${aws_s3_bucket.bucket.arn}"
-        }
-    ]
-}
-EOF
-}
-
-resource "aws_instance" "role-test" {
-  ami = "${var.ami}"
-  instance_type = "t2.micro"
-  iam_instance_profile = "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  key_name = "${var.key_name}"
 }
