@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 
 files:             
-  - source: ./webapp/build/libs/ROOT.war
+  - source: ./webapp
     destination: /ccwebapp
 
 hooks:
