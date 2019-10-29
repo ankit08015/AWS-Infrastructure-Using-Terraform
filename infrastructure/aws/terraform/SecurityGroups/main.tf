@@ -217,6 +217,7 @@ resource "aws_instance" "instance" {
       volume_type           = "gp2"
       
   }
+  user_data = "${file(".env")}"
   tags = {
     Name = "csye-instance"
   }
