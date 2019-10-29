@@ -170,31 +170,32 @@ data "aws_subnet" "example" {
   id    = "${tolist(data.aws_subnet_ids.example.ids)[count.index]}"
 }
 
-resource "aws_db_subnet_group" "main" {
-  name       = "main"
-   subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
-}
+# resource "aws_db_subnet_group" "main" {
+#   name       = "main"
+#    subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+# }
 
-resource "aws_db_instance" "main" {
-   identifier = "csye6225-fall2019"
-   allocated_storage    = 5
-   storage_type         = "gp2"
-   engine               = "postgres"
-   engine_version       = "11.5"
-   instance_class       = "db.t2.medium"
-   name                 = "csye6225"
-   username             = "dbuser"
-   password             = var.password
-   multi_az             = false
-   publicly_accessible  = true
-   db_subnet_group_name = "${aws_db_subnet_group.main.name}"
-   vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
-   skip_final_snapshot = true
-}
+# resource "aws_db_instance" "main" {
+#    identifier = "csye6225-fall2019"
+#    allocated_storage    = 5
+#    storage_type         = "gp2"
+#    engine               = "postgres"
+#    engine_version       = "11.5"
+#    instance_class       = "db.t2.medium"
+#    name                 = "csye6225"
+#    username             = "dbuser"
+#    password             = var.password
+#    multi_az             = false
+#    publicly_accessible  = true
+#    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
+#    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
+#    skip_final_snapshot = true
+# }
 
 resource "aws_instance" "instance" {
   ami           =  var.ami
   instance_type = "t2.micro"
+  iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
   disable_api_termination = false
   vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
   subnet_id = "${data.aws_subnet.example[0].id}"
@@ -205,9 +206,9 @@ resource "aws_instance" "instance" {
   #     volume_type           = "gp2"
   # }
 
-  depends_on = [
-    aws_db_instance.main
-  ]
+  # depends_on = [
+  #   aws_db_instance.main
+  # ]
 
   ebs_block_device {
       device_name = "/dev/sdf"
@@ -482,9 +483,43 @@ resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
 EOF
 }
 
-resource "aws_instance" "role-test" {
-  ami = "${var.ami}"
-  instance_type = "t2.micro"
-  iam_instance_profile = "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  key_name = "${var.key_name}"
+data "aws_iam_policy" "ReadOnlyAccess" {
+  arn = "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
 }
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach" {
+  role       = "${aws_iam_role.Role1.name}"
+  policy_arn = "${data.aws_iam_policy.ReadOnlyAccess.arn}"
+}
+
+
+## CodeDeployServiceRole
+
+resource "aws_iam_role" "Role2" {
+  name = "CodeDeployServiceRole"    
+
+assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codedeploy.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+  resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+  role       = "${aws_iam_role.Role2.name}"
+
+}
+resource "aws_iam_instance_profile" "EC2_instance_profile2" {
+  name = "EC2_instance_profile2"
+  role = "${aws_iam_role.Role2.name}"
+}
+
