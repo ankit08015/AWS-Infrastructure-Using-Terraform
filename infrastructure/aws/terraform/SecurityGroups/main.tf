@@ -551,13 +551,52 @@ assume_role_policy = <<EOF
 }
 EOF
 }
+
   resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
   role       = "${aws_iam_role.Role2.name}"
 
 }
-resource "aws_iam_instance_profile" "EC2_instance_profile2" {
-  name = "EC2_instance_profile2"
+
+resource "aws_iam_instance_profile" "Deploy_instance_profile" {
+  name = "Deploy_instance_profile"
   role = "${aws_iam_role.Role2.name}"
 }
 
+resource "aws_codedeploy_app" "csye6225-webapp1" {
+  compute_platform = "Server"
+  name             = "csye6225-webapp"
+}
+
+
+data "aws_iam_role" "getRole" {
+  name = "${aws_iam_role.Role2.name}"
+}
+
+
+
+resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
+  app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
+  deployment_config_name = "CodeDeployDefault.OneAtATime"
+  deployment_group_name = "csye6225-webapp-deployment"
+  service_role_arn      = "${data.aws_iam_role.getRole.arn}"
+
+
+  ec2_tag_set {
+    ec2_tag_filter {
+      key   = "Name"
+      type  = "KEY_AND_VALUE"
+      value = "csye-instance"
+    }
+  }
+
+  auto_rollback_configuration {
+    enabled = false
+    events  = ["DEPLOYMENT_FAILURE"]
+  }
+
+  alarm_configuration {
+    alarms  = ["my-alarm-name"]
+    enabled = false
+  }
+}
