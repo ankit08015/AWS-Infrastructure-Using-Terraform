@@ -577,7 +577,7 @@ data "aws_iam_role" "getRole" {
 
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
-  deployment_config_name = "CodeDeployDefault.OneAtATime"
+  deployment_config_name = "CodeDeployDefault.AllAtOnce"
   deployment_group_name = "csye6225-webapp-deployment"
   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
 
