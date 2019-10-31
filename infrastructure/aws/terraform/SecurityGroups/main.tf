@@ -543,7 +543,7 @@ assume_role_policy = <<EOF
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "codedeploy.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
     }
