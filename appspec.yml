@@ -3,7 +3,7 @@ os: linux
 
 files:             
   - source: /
-    destination: ~/ccwebapp
+    destination: /home/centos/ccwebapp
 
 hooks:
   AfterInstall:
