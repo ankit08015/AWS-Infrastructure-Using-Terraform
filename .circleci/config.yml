@@ -2,13 +2,9 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/node:4.8.2
     steps:
       - checkout
-      - run:
-          name: Install packages
-          command: |
-            sudo yum update
       - run:
           name: Build Deployment Artifcat
           command : |
