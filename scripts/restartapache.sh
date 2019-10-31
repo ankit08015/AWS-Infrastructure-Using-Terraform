@@ -1,2 +1,2 @@
 #!/bin/bash
-ls
+service httpd restart > /var/log/restartapache.out 2>&1
