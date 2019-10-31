@@ -453,7 +453,7 @@ resource "aws_iam_policy" "policy-circleci-ec2-ami" {
         "ec2:StopInstances",
         "ec2:TerminateInstances"
       ],
-      "Resource" : "${aws_s3_bucket.bucket.arn}"
+      "Resource": "${aws_s3_bucket.bucket.arn}"
   }]
 }
 POLICY              
