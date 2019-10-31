@@ -24,6 +24,3 @@ jobs:
       - run:
           name: Copy Artifactto S3
           command: aws s3 sync ./codedeploy-artifact s3://codedeploy.dev.ajaygoel.me
-
-
-      
