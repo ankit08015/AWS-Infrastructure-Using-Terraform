@@ -1,5 +1,5 @@
 version: 0.0
-os: centos
+os: linux
 files:
    - source: /
      destination: /var/www/html
