@@ -37,7 +37,6 @@ jobs:
               --application-name ${CODEDEPLOY_APPLICATION_NAME} \
               --deployment-config-name CodeDeployDefault.AllAtOnce \
               --deployment-group-name ${CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME} \
-              --description "CSYE6255 - CodeDeploy" \
               --s3-location bucket=codedeploy.dev.ajaygoel.me,bundletype=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip \
               --region us-east-1 \
               --output json
