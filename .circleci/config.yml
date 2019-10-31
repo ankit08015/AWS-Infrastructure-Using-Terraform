@@ -6,6 +6,12 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install packages for CLI
+          command : |
+            sudo apt-get update
+            sudo apt-get install -y python-pip
+            sudo pip install awscli
+      - run:
           name: Build Deployment Artifcat
           command : |
             mkdir codedeploy-artifact
