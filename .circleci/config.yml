@@ -38,6 +38,6 @@ jobs:
               --deployment-config-name CodeDeployDefault.AllAtOnce \
               --deployment-group-name ${CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME} \
               --description "CSYE6255 - CodeDeploy" \
-              --s3-location bucket=s3://${S3_CODEDEPLOY_BUCKET},bundletype=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip \
+              --s3-location bucket=${S3_CODEDEPLOY_BUCKET},bundleType=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip \
               --region us-east-1 \
               --output json
