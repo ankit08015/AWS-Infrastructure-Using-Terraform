@@ -522,7 +522,7 @@ EOF
 }
 
 data "aws_iam_policy" "ReadOnlyAccess" {
-  arn = "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
+  arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach" {
   role       = "${aws_iam_role.Role1.name}"
