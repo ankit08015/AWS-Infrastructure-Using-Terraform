@@ -170,31 +170,32 @@ data "aws_subnet" "example" {
   id    = "${tolist(data.aws_subnet_ids.example.ids)[count.index]}"
 }
 
-resource "aws_db_subnet_group" "main" {
-  name       = "main"
-   subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
-}
+# resource "aws_db_subnet_group" "main" {
+#   name       = "main"
+#    subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+# }
 
-resource "aws_db_instance" "main" {
-   identifier = "csye6225-fall2019"
-   allocated_storage    = 5
-   storage_type         = "gp2"
-   engine               = "postgres"
-   engine_version       = "11.5"
-   instance_class       = "db.t2.medium"
-   name                 = "csye6225"
-   username             = "dbuser"
-   password             = var.password
-   multi_az             = false
-   publicly_accessible  = true
-   db_subnet_group_name = "${aws_db_subnet_group.main.name}"
-   vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
-   skip_final_snapshot = true
-}
+# resource "aws_db_instance" "main" {
+#    identifier = "csye6225-fall2019"
+#    allocated_storage    = 5
+#    storage_type         = "gp2"
+#    engine               = "postgres"
+#    engine_version       = "11.5"
+#    instance_class       = "db.t2.medium"
+#    name                 = "csye6225"
+#    username             = "dbuser"
+#    password             = var.password
+#    multi_az             = false
+#    publicly_accessible  = true
+#    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
+#    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
+#    skip_final_snapshot = true
+# }
 
 resource "aws_instance" "instance" {
   ami           =  var.ami
   instance_type = "t2.micro"
+  iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
   disable_api_termination = false
   vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
   subnet_id = "${data.aws_subnet.example[0].id}"
@@ -205,9 +206,9 @@ resource "aws_instance" "instance" {
   #     volume_type           = "gp2"
   # }
 
-  depends_on = [
-    aws_db_instance.main
-  ]
+  # depends_on = [
+  #   aws_db_instance.main
+  # ]
 
   ebs_block_device {
       device_name = "/dev/sdf"
@@ -216,6 +217,7 @@ resource "aws_instance" "instance" {
       volume_type           = "gp2"
       
   }
+  user_data = "${file(".env")}"
   tags = {
     Name = "csye-instance"
   }
@@ -288,4 +290,313 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
     ]
 }
 POLICY
+}
+
+
+
+variable "codeDeploybucket" {
+  type = string
+  default = "codedeploy.dev.ajaygoel.me"
+}
+
+
+resource "aws_s3_bucket" "bucket2" {
+  bucket = "${var.codeDeploybucket}"
+  force_destroy = true
+  acl = "private"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm     = "AES256"
+      }
+    }
+ }
+    cors_rule {
+    allowed_headers = ["Authorization"]
+    allowed_methods = ["GET", "POST", "DELETE"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+
+  lifecycle_rule {
+    enabled = true
+
+    transition {
+      days = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
+
+# resource "aws_iam_user" "user" {
+#   name = "circleci"
+# }
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_user" "select" {
+  user_name = "circleci"
+}
+
+resource "aws_iam_policy" "policy" {
+  name = "CircleCI-Upload-To-S3"
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.bucket.arn}"
+            ]
+        }
+    ]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "upload-to-s3-attach" {
+  user       = "${data.aws_iam_user.select.user_name}"
+  policy_arn = "${aws_iam_policy.policy.arn}"
+}
+
+resource "aws_iam_policy" "policy-code-deploy" {
+  name = "CircleCI-Code-Deploy"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:RegisterApplicationRevision",
+        "codedeploy:GetApplicationRevision"
+      ],
+      "Resource": [
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:application:Dummy"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:CreateDeployment",
+        "codedeploy:GetDeployment"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.bucket.arn}"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:GetDeploymentConfig"
+      ],
+      "Resource": [
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.OneAtATime",
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.HalfAtATime",
+        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.AllAtOnce"
+      ]
+    }
+  ]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "code-Deploy-attach" {
+  user       = "${data.aws_iam_user.select.user_name}"
+  policy_arn = "${aws_iam_policy.policy-code-deploy.arn}"
+}
+
+resource "aws_iam_policy" "policy-circleci-ec2-ami" {
+  name = "circleci-ec2-ami"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+      "Effect": "Allow",
+      "Action" : [
+        "ec2:AttachVolume",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CopyImage",
+        "ec2:CreateImage",
+        "ec2:CreateKeypair",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSnapshot",
+        "ec2:CreateTags",
+        "ec2:CreateVolume",
+        "ec2:DeleteKeyPair",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSnapshot",
+        "ec2:DeleteVolume",
+        "ec2:DeregisterImage",
+        "ec2:DescribeImageAttribute",
+        "ec2:DescribeImages",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeRegions",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeTags",
+        "ec2:DescribeVolumes",
+        "ec2:DetachVolume",
+        "ec2:GetPasswordData",
+        "ec2:ModifyImageAttribute",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:ModifySnapshotAttribute",
+        "ec2:RegisterImage",
+        "ec2:RunInstances",
+        "ec2:StopInstances",
+        "ec2:TerminateInstances"
+      ],
+      "Resource" : "${aws_s3_bucket.bucket.arn}"
+  }]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "circleci-ec2-ami-attach" {
+  user       = "${data.aws_iam_user.select.user_name}"
+  policy_arn = "${aws_iam_policy.policy-circleci-ec2-ami.arn}"
+}
+
+
+
+
+# Code until line 426 working fine. Trying role now.
+
+resource "aws_iam_role" "Role1" {
+  name = "CodeDeployEC2ServiceRole"    
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = {
+      tag-key = "CodeDeployRole"
+  }
+}
+
+
+resource "aws_iam_instance_profile" "EC2_instance_profile" {
+  name = "EC2_instance_profile"
+  role = "${aws_iam_role.Role1.name}"
+}
+
+
+resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
+  name = "CodeDeploy-EC2-S3"
+  role = "${aws_iam_role.Role1.id}"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "s3:Get*",
+                "s3:List*"
+            ],
+            "Effect": "Allow",
+            "Resource": "${aws_s3_bucket.bucket.arn}"
+        }
+    ]
+}
+EOF
+}
+
+data "aws_iam_policy" "ReadOnlyAccess" {
+  arn = "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach" {
+  role       = "${aws_iam_role.Role1.name}"
+  policy_arn = "${data.aws_iam_policy.ReadOnlyAccess.arn}"
+}
+
+
+## CodeDeployServiceRole
+
+resource "aws_iam_role" "Role2" {
+  name = "CodeDeployServiceRole"    
+
+assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codedeploy.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+  resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+  role       = "${aws_iam_role.Role2.name}"
+
+}
+
+resource "aws_iam_instance_profile" "Deploy_instance_profile" {
+  name = "Deploy_instance_profile"
+  role = "${aws_iam_role.Role2.name}"
+}
+
+resource "aws_codedeploy_app" "csye6225-webapp1" {
+  compute_platform = "Server"
+  name             = "csye6225-webapp"
+}
+
+
+data "aws_iam_role" "getRole" {
+  name = "${aws_iam_role.Role2.name}"
+}
+
+
+
+resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
+  app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
+  deployment_config_name = "CodeDeployDefault.AllAtOnce"
+  deployment_group_name = "csye6225-webapp-deployment"
+  service_role_arn      = "${data.aws_iam_role.getRole.arn}"
+
+
+  ec2_tag_set {
+    ec2_tag_filter {
+      key   = "Name"
+      type  = "KEY_AND_VALUE"
+      value = "csye-instance"
+    }
+  }
+
+  auto_rollback_configuration {
+    enabled = false
+    events  = ["DEPLOYMENT_FAILURE"]
+  }
+
+  alarm_configuration {
+    alarms  = ["my-alarm-name"]
+    enabled = false
+  }
 }
