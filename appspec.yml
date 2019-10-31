@@ -1,20 +1,22 @@
 version: 0.0
-os: linux
-
-files:             
-  - source: ./webapp
-    destination: /ccwebapp
-
+os: centos
+files:
+   - source: /
+     destination: /var/www/html
+permissions:
+   - object: /var/www/html
+     pattern: "**"
+     owner: apache
+     group: apache
+     mode: 755
+     type:
+       - file
 hooks:
-  AfterInstall:
-   - location: ./codedeploy/afterInstall.sh
-     timeout: 180
-     runas: centos
-  ApplicationStart:
-   - location: ./codedeploy/applicationStart.sh
-     timeout: 180
-     runas: centos
-  BeforeInstall:
-   - location: ./codedeploy/beforeInstall.sh
-     timeout: 180
-     runas: centos
+   BeforeInstall:
+    - location: scripts/installapache.sh
+      runas: root
+    - location: scripts/startapache.sh
+      runas: root
+   AfterInstall:
+    - location: scripts/restartapache.sh
+      runas: root
