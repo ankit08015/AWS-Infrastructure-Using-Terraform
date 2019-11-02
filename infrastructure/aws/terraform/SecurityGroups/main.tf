@@ -453,7 +453,7 @@ resource "aws_iam_policy" "policy-circleci-ec2-ami" {
         "ec2:StopInstances",
         "ec2:TerminateInstances"
       ],
-      "Resource" : "${aws_s3_bucket.bucket.arn}"
+      "Resource": "${aws_s3_bucket.bucket.arn}"
   }]
 }
 POLICY              
@@ -514,7 +514,11 @@ resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
                 "s3:List*"
             ],
             "Effect": "Allow",
-            "Resource": "${aws_s3_bucket.bucket.arn}"
+            "Resource": [
+              "${aws_s3_bucket.bucket2.arn}/*",
+              "${aws_s3_bucket.bucket2.arn}",
+              "${aws_s3_bucket.bucket.arn}"
+              ]
         }
     ]
 }

@@ -2,19 +2,19 @@ version: 0.0
 os: linux
 
 files:             
-  - source: ./webapp
-    destination: /ccwebapp
+  - source: /
+    destination: /home/centos/ccwebapp
 
 hooks:
   AfterInstall:
    - location: ./codedeploy/afterInstall.sh
      timeout: 180
-     runas: centos
+     runas: root
   ApplicationStart:
    - location: ./codedeploy/applicationStart.sh
      timeout: 180
-     runas: centos
+     runas: root
   BeforeInstall:
    - location: ./codedeploy/beforeInstall.sh
      timeout: 180
-     runas: centos
+     runas: root
