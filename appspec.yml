@@ -4,13 +4,6 @@ os: linux
 files:             
   - source: /
     destination: /home/centos/ccwebapp
-permissions:
-  - object: /home/centos/
-    pattern: "confAws.sh"
-    owner: ec2-user
-    mode: 777
-    type:
-      - file
 hooks:
   AfterInstall:
    - location: ./codedeploy/afterInstall.sh
