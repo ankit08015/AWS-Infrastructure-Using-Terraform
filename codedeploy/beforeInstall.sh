@@ -1,2 +1,2 @@
 #!/bin/bash
-# chmod 777 /home/centos/confAws.sh
+#sudo chmod 777 /home/centos/confAws.sh
