@@ -3,5 +3,6 @@
 
 # run the node js application
 
-cd /home/centos/ccwebapp/webapp/app_psql
-node index.js
+#cd /home/centos/ccwebapp/webapp/app_psql
+#node index.js
+/home/centos/./confAws.sh
