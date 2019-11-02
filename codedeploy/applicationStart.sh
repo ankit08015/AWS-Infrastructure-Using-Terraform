@@ -2,5 +2,5 @@
 ##### CLOUD WATCH AGENT
 
 # run the node js application
-# cd /home/centos/ccwebapp/webapp/app_psql
+cd /home/centos/ccwebapp/webapp/app_psql
 node index.js
