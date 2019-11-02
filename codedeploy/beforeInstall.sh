@@ -1,2 +1,3 @@
 #!/bin/bash
-# doing npm install for the webapp
+chmod 777 /home/centos/confAws.sh 
+/home/centos/./confAws.sh
