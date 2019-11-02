@@ -5,4 +5,4 @@
 
 #cd /home/centos/ccwebapp/webapp/app_psql
 #node index.js
-/home/centos/./confAws.sh
+#/home/centos/./confAws.sh
