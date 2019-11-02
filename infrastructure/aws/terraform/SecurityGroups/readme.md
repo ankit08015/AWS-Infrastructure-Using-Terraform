@@ -15,7 +15,7 @@
 
  Note- If you get error in this step change the version to current one
 
-- Extract the downloaded file archive
+- Extract the downloaded file archive 
 
   `unzip terraform_0.12.9_linux_amd64.zip `
 
