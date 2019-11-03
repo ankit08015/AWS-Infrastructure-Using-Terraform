@@ -170,27 +170,27 @@ data "aws_subnet" "example" {
   id    = "${tolist(data.aws_subnet_ids.example.ids)[count.index]}"
 }
 
-// resource "aws_db_subnet_group" "main" {
-//   name       = "main"
-//    subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
-// }
+resource "aws_db_subnet_group" "main" {
+  name       = "main"
+   subnet_ids = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+}
 
-// resource "aws_db_instance" "main" {
-//    identifier = "csye6225-fall2019"
-//    allocated_storage    = 5
-//    storage_type         = "gp2"
-//    engine               = "postgres"
-//    engine_version       = "11.5"
-//    instance_class       = "db.t2.medium"
-//    name                 = "csye6225"
-//    username             = "dbuser"
-//    password             = var.password
-//    multi_az             = false
-//    publicly_accessible  = true
-//    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
-//    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
-//    skip_final_snapshot = true
-// }
+resource "aws_db_instance" "main" {
+   identifier = "csye6225-fall2019"
+   allocated_storage    = 5
+   storage_type         = "gp2"
+   engine               = "postgres"
+   engine_version       = "11.5"
+   instance_class       = "db.t2.medium"
+   name                 = "csye6225"
+   username             = "dbuser"
+   password             = var.password
+   multi_az             = false
+   publicly_accessible  = true
+   db_subnet_group_name = "${aws_db_subnet_group.main.name}"
+   vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
+   skip_final_snapshot = true
+}
 
 resource "aws_instance" "instance" {
   ami           =  var.ami
@@ -206,9 +206,9 @@ resource "aws_instance" "instance" {
   #     volume_type           = "gp2"
   # }
 
-  // depends_on = [
-  //   aws_db_instance.main
-  // ]
+  depends_on = [
+    aws_db_instance.main
+  ]
 
   ebs_block_device {
       device_name = "/dev/sdf"
