@@ -9,3 +9,4 @@ sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-c
 
 cd /home/centos/ccwebapp/webapp/app_psql
 npm install
+sudo npm install forever -g
