@@ -3,8 +3,6 @@
 #./confAws.sh
 # Further steps: like to stop the application later on but no step as of now.
 #/home/centos/./confAws.sh
-
-mv /home/centos/.env /home/centos/ccwebapp/webapp/app_psql
 cd /home/centos/ccwebapp/webapp/app_psql
 npm install
 sudo npm install forever -g
