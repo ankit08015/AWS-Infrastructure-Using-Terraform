@@ -9,5 +9,3 @@ sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-c
 
 cd /home/centos/ccwebapp/webapp/app_psql
 npm install
-cd /home/centos/ccwebapp/webapp/app_psql
-node index.js
