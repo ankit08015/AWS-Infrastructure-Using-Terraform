@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "mocha": "^6.2.1",
+    "sequelize-mock": "^0.10.2",
     "should": "^13.2.3",
     "supertest": "^4.0.2"
   }
