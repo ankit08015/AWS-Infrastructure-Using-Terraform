@@ -15,6 +15,9 @@ var validator = require("email-validator");
 var passwordValidator = require('password-validator');
 var schema = new passwordValidator();
 
+var SDC = require('statsd-client'),
+sdc = new SDC({host: 'csye6225-fall2019.c0qumucrgpvp.us-east-1.rds.amazonaws.com', port: 8125});
+
 var options = {
     infoFile: {
       level: 'info',
@@ -93,7 +96,7 @@ schema
 
 //POST
 router.post('/user', (req, res) => {
-
+  sdc.increment('post.counter');
   ////
   db.user.findAll({
       where: {
