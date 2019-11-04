@@ -4,7 +4,6 @@ os: linux
 files:             
   - source: /
     destination: /home/centos/ccwebapp
-
 hooks:
   AfterInstall:
    - location: ./codedeploy/afterInstall.sh

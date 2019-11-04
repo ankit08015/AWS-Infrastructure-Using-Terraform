@@ -15,7 +15,7 @@ jobs:
           name: Build Deployment Artifcat
           command : |
             mkdir codedeploy-artifact
-            zip -r csye6225-webapp-${CIRCLE_BUILD_NUM}.zip codedeploy/*.sh appspec.yml index.html scripts/*.sh
+            zip -r csye6225-webapp-${CIRCLE_BUILD_NUM}.zip webapp codedeploy/*.sh appspec.yml index.html scripts/*.sh
             pwd
             ls -al
             mv csye6225-webapp-${CIRCLE_BUILD_NUM}.zip codedeploy-artifact/

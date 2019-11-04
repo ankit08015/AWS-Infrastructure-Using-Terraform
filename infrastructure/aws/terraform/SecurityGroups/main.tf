@@ -525,12 +525,46 @@ EOF
 }
 
 data "aws_iam_policy" "ReadOnlyAccess" {
-  arn = "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
+  arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach" {
   role       = "${aws_iam_role.Role1.name}"
   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess.arn}"
 }
+
+data "aws_iam_policy" "ReadOnlyAccess2" {
+  arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach2" {
+  role       = "${aws_iam_role.Role1.name}"
+  policy_arn = "${data.aws_iam_policy.ReadOnlyAccess2.arn}"
+}
+
+resource "aws_iam_role_policy" "CloudWatchLogsPolicy" {
+  name = "CloudWatchLogsPolicy"
+  role = "${aws_iam_role.Role1.id}"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogStreams"
+            ],
+            "Resource": [
+                "arn:aws:logs:*:*:*"
+            ]
+        }
+    ]
+}
+EOF
+}
+
 
 
 ## CodeDeployServiceRole
@@ -602,4 +636,13 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     alarms  = ["my-alarm-name"]
     enabled = false
   }
+}
+
+resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
+  name = "csye-6225"
+}
+
+resource "aws_cloudwatch_log_stream" "webapp" {
+  name           = "webapp"
+  log_group_name = "${aws_cloudwatch_log_group.csye6225_fall2019.name}"
 }
