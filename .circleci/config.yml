@@ -22,7 +22,7 @@ jobs:
             ls -al
             pwd
             cd test-suit
-            cd webapp/app_psql
+            cd test-suit/webapp/app_psql
             npm install
             ls
             npm run test
