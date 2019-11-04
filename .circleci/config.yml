@@ -25,7 +25,7 @@ jobs:
             ls -al
             unzip csye6225-webapp-${CIRCLE_BUILD_NUM}.zip
             ls -al
-            cd csye6225-webapp-${CIRCLE_BUILD_NUM}
+            pwd
             cd /webapp/app_psql
             npm install
             ls
