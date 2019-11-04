@@ -23,6 +23,8 @@ jobs:
             cd test-suit
             pwd
             ls -al
+            unzip csye6225-webapp-${CIRCLE_BUILD_NUM}.zip
+            cd csye6225-webapp-${CIRCLE_BUILD_NUM}.zip
             cd /webapp/app_psql
             npm install
             ls
