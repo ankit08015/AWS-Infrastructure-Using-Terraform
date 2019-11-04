@@ -57,11 +57,12 @@ jobs:
       - run:
           name: CodeDeploy API call
           command: |
-            aws deploy create-deployment \
+            DEPLOYMENT_ID=`aws deploy create-deployment \
               --application-name ${CODEDEPLOY_APPLICATION_NAME} \
               --deployment-config-name CodeDeployDefault.AllAtOnce \
               --deployment-group-name ${CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME} \
               --description "CSYE6255 - CodeDeploy" \
               --s3-location bucket=${S3_CODEDEPLOY_BUCKET},bundleType=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip \
               --region us-east-1 \
-              --output json
+              --output text`
+            aws deploy get-deployment --deployment-id $DEPLOYMENT_ID --query 'deploymentInfo.status' --output text
