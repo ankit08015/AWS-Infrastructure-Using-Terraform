@@ -173,7 +173,6 @@ describe("Unit test to validate input file", () => {
             "password": "Test@123"
         }
         var words = path.basename('./data/download.jpeg').split('.');
-        console.log(words[1] + "--=-=-=-=-=-=-=-=-=-=-=-");
         var req = true;
         if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
             req = false;
@@ -182,6 +181,27 @@ describe("Unit test to validate input file", () => {
         auth.email.should.not.equal('Anthony3@gmail.com');
         auth.password.should.equal('Test@123');
         req.should.equal(true)
+
+    })
+});
+
+describe("Unit test to validate input file", () => {
+
+    it("should return false if invalid", () => {
+
+        let auth = {
+            "email": "Anthony@gmail.com",
+            "password": "Test@123"
+        }
+        var words = path.basename('./Model/user.js').split('.');
+        var req = true;
+        if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
+            req = false;
+        }
+
+        auth.email.should.not.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
+        req.should.equal(false);
 
     })
 });
