@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive --exit",
+    "test": "jest --config ./jest.config.js --forceExit --coverage",
     "test2": "mocha --recursive --exit"
   },
   "author": "",
@@ -33,6 +33,7 @@
     "sequelize-cli": "2.4.0"
   },
   "devDependencies": {
+    "jest": "^24.9.0",
     "mocha": "^6.2.1",
     "sequelize-mock": "^0.10.2",
     "should": "^13.2.3",
