@@ -24,17 +24,6 @@ describe('Sample Test', () => {
     })
 })
 
-// jest.mock('./Model/user', () => () => {
-//     const SequelizeMock  = require("sequelize-mock");
-//     const dbMock = new SequelizeMock();
-//     return dbMock.define('user',  {
-//         "first_name": "Anthony",
-//         "last_name": "Lawrence",
-//         "email": "Anthony3@gmail.com",
-//         "password": "Test@123"
-//     })
-//   });
-
 describe("Unit test for email and password validator", () => {
 
     it("should return true if valid", () => {
@@ -177,22 +166,22 @@ describe("Unit test to add recipe", () => {
 
 describe("Unit test to validate input file", () => {
 
-            it("should return false if invalid", () => {
+    it("should return false if invalid", () => {
 
-                    let auth = {
-                        "email": "Anthony@gmail.com",
-                        "password": "Test@123"
-                    }
-                    var words = path.basename('./data/download.jpeg').split('.');
-                    console.log(words[1] + "--=-=-=-=-=-=-=-=-=-=-=-");
-                    var req=true;
-                    if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
-                        req=false;
-                       }
+        let auth = {
+            "email": "Anthony@gmail.com",
+            "password": "Test@123"
+        }
+        var words = path.basename('./data/download.jpeg').split('.');
+        console.log(words[1] + "--=-=-=-=-=-=-=-=-=-=-=-");
+        var req = true;
+        if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
+            req = false;
+        }
 
-                        auth.email.should.not.equal('Anthony3@gmail.com');
-                        auth.password.should.equal('Test@123');
-                        req.should.equal(true)
+        auth.email.should.not.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
+        req.should.equal(true)
 
-                    })
-            });
+    })
+});
