@@ -65,5 +65,4 @@ jobs:
               --s3-location bucket=${S3_CODEDEPLOY_BUCKET},bundleType=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip \
               --region us-east-1 \
               --output text`
-            $DEPLOYMENT_ID
-            aws deploy get-deployment --deployment-id $DEPLOYMENT_ID --query 'deploymentInfo.status' --output text
+            aws deploy get-deployment --deployment-id $DEPLOYMENT_ID --query 'deploymentInfo.status' --region us-east-1 --output text
