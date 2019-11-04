@@ -12,6 +12,26 @@ jobs:
             sudo apt-get install -y python-pip
             sudo pip install awscli
       - run:
+          name: Run Test Cases
+          command : |
+            mkdir test-suit
+            zip -r csye6225-webapp-${CIRCLE_BUILD_NUM}.zip webapp codedeploy/*.sh appspec.yml
+            pwd
+            ls -al
+            cp csye6225-webapp-${CIRCLE_BUILD_NUM}.zip test-suit/
+            ls -al
+            pwd
+            cd test-suit
+            cd webapp/app_psql
+            npm install
+            ls
+            npm run test
+            pwd
+            ls -al
+            cd ~
+            pwd
+            ls -al
+      - run:
           name: Build Deployment Artifcat
           command : |
             mkdir codedeploy-artifact
