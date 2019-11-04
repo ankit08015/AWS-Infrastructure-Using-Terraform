@@ -316,6 +316,7 @@ router.put('/user/self', function (req, res, next) {
 
                     db.user.update({
                           first_name: req.body.first_name,
+                          last_name: req.body.last_name,
                           password: hash
                         },
                         //{email: req.body.email},
