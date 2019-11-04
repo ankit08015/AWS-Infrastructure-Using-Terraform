@@ -19,10 +19,11 @@ jobs:
             pwd
             ls -al
             cp csye6225-webapp-${CIRCLE_BUILD_NUM}.zip test-suit/
-            ls -al
             pwd
             cd test-suit
-            cd test-suit/webapp/app_psql
+            pwd
+            ls -al
+            cd /webapp/app_psql
             npm install
             ls
             npm run test
