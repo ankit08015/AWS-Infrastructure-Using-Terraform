@@ -28,7 +28,6 @@ var SDC = require('statsd-client'),
     host: "localhost",
     port: 8125
   });
-var timer = new Date();
 
 var options = {
   infoFile: {
@@ -111,10 +110,8 @@ schema
 router.post('/user', (req, res) => {
   sdc.increment('userPost.counter');
   sdc.gauge('some.gauge', 10); // Set gauge to 10
-  sdc.timing('userPostTimer'); // Calculates time diff
-  sdc.timing('userPostDBTimer'); // Calculates time diff
-
-  userPostTimer.start();
+  var timer = new Date();
+//  sdc.timing('userPostDBTimer',timer); // Calculates time diff
   sdc.histogram('some.histogram', 10, {
     foo: 'bar'
   }) // Histogram with tags
@@ -148,7 +145,7 @@ router.post('/user', (req, res) => {
             } else {
               hash = String(hash);
               password = hash;
-              userPostDBTimer.start();
+              var DBtimer = new Date();
               db.user.create({
                   first_name,
                   last_name,
@@ -165,7 +162,7 @@ router.post('/user', (req, res) => {
                     "account_updated": gig.updated_date,
                   }),
                   logger.info("Created user Successfully and returns status code 201"),
-                  userPostDBTimer.stop()
+                  sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
                 )
                 .catch(err => {
                   console.log(err),
@@ -190,7 +187,7 @@ router.post('/user', (req, res) => {
           logger.error("User email already exists");
       }
     });
-    userPostTimer.stop();
+    sdc.timing('userPost.timer',timer); // Calculates time diff
 });
 
 
