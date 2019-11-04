@@ -24,7 +24,8 @@ var passwordValidator = require('password-validator');
 var schema = new passwordValidator();
 
 var SDC = require('statsd-client'),
-  sdc = new SDC({ host: "localhost",
+  sdc = new SDC({
+    host: "localhost",
     port: 8125
   });
 var timer = new Date();
@@ -108,11 +109,12 @@ schema
 
 //POST
 router.post('/user', (req, res) => {
-  sdc.increment('post.counter');
-
-  sdc.increment('some.counter'); // Increment by one.
+  sdc.increment('userPost.counter');
   sdc.gauge('some.gauge', 10); // Set gauge to 10
-  sdc.timing('some.timer', timer); // Calculates time diff
+  sdc.timing('userPostTimer'); // Calculates time diff
+  sdc.timing('userPostDBTimer'); // Calculates time diff
+
+  userPostTimer.start();
   sdc.histogram('some.histogram', 10, {
     foo: 'bar'
   }) // Histogram with tags
@@ -146,6 +148,7 @@ router.post('/user', (req, res) => {
             } else {
               hash = String(hash);
               password = hash;
+              userPostDBTimer.start();
               db.user.create({
                   first_name,
                   last_name,
@@ -161,7 +164,9 @@ router.post('/user', (req, res) => {
                     "account_created": gig.created_date,
                     "account_updated": gig.updated_date,
                   }),
-                  logger.info("Created user Successfully and returns status code 201"))
+                  logger.info("Created user Successfully and returns status code 201"),
+                  userPostDBTimer.stop()
+                )
                 .catch(err => {
                   console.log(err),
                     logger.error(err)
@@ -185,6 +190,7 @@ router.post('/user', (req, res) => {
           logger.error("User email already exists");
       }
     });
+    userPostTimer.stop();
 });
 
 
