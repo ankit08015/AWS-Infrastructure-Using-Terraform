@@ -24,8 +24,7 @@ var passwordValidator = require('password-validator');
 var schema = new passwordValidator();
 
 var SDC = require('statsd-client'),
-  sdc = new SDC({
-    host: 'csye6225-fall2019.c0qumucrgpvp.us-east-1.rds.amazonaws.com',
+  sdc = new SDC({ host: "localhost",
     port: 8125
   });
 var timer = new Date();
