@@ -638,3 +638,12 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     enabled = false
   }
 }
+
+resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
+  name = "csye-6225"
+}
+
+resource "aws_cloudwatch_log_stream" "webapp" {
+  name           = "webapp"
+  log_group_name = "${aws_cloudwatch_log_group.csye6225_fall2019.name}"
+}
