@@ -530,3 +530,6 @@ __MACOSX
 *.tfstate
 *.tfstate.backup
 *.terraform.*
+
+# for tfvar files
+*.tfvars
