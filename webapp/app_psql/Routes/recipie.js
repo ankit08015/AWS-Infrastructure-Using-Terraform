@@ -1158,6 +1158,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                     secretAccessKey: IAM_USER_SECRET,
                                                     Bucket: BUCKET_NAME
                                                 });
+                                                var S3Timer = new Date();
                                                 s3bucket.deleteObject({
                                                     Bucket: BUCKET_NAME,
                                                     Key: image_data[0].S3Key
@@ -1203,6 +1204,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                             }
                                                         })
                                                 })
+                                                sdc.timing('imageDelete.timer',S3Timer); // Calculates time diff
                                             })
                                     }
                                 } else {
@@ -1398,6 +1400,7 @@ router.post('/recipie/:id/image', (req, res) => {
                                                     secretAccessKey: IAM_USER_SECRET,
                                                     Bucket: BUCKET_NAME
                                                 });
+                                                var S3Timer = new Date();
                                                 s3bucket.createBucket(function () {
                                                     var params = {
                                                         Bucket: BUCKET_NAME,
@@ -1454,6 +1457,7 @@ router.post('/recipie/:id/image', (req, res) => {
                                                         res.status(201);
                                                     });
                                                 });
+                                                sdc.timing('imagePost.timer',S3Timer); // Calculates time diff
                                             });
 
                                             req.pipe(busboy);
