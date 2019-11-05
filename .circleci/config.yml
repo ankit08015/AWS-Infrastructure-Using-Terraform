@@ -66,4 +66,5 @@ jobs:
               --region us-east-1 \
               --output text`
             echo $DEPLOYMENT_ID
-            aws deploy get-deployment --deployment-id $DEPLOYMENT_ID --query 'deploymentInfo.status' --region us-east-1 --output text
+            aws deploy get-deployment --deployment-id $DEPLOYMENT_ID --query 'deploymentInfo.status' --region us-east-1 --output json
+            aws deploy get-deployment --deployment-id "d-STVGPVPQ0" --query 'deploymentInfo.status' --output text
