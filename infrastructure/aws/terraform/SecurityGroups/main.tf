@@ -76,6 +76,11 @@ variable "dev_secret_access_key" {
   default = ""
 }
 
+variable "bucketname" {
+  type = string
+  default = ""
+}
+
 # Application Security Group
 
 resource "aws_security_group" "allow_tls" {
@@ -210,6 +215,15 @@ resource "aws_db_instance" "main" {
    skip_final_snapshot = true
 }
 
+# variable "endpoint" {
+#   type=string
+#   value = split(":", "${aws_db_instance.main.endpoint}")[0]
+# }
+
+# output "sum" {
+#   value = "${var.endpoint}"
+# }
+
 resource "aws_instance" "instance" {
   ami           =  var.ami
   instance_type = "t2.micro"
@@ -245,14 +259,6 @@ resource "aws_instance" "instance" {
 #!/bin/bash
 sudo systemctl start httpd
 
-#python /home/centos/get-pip.py --user
-
-#/root/.local/bin/pip install awscli --upgrade --user
-
-#yum -y install epel-release
-
-#yum -y install jq
-
 mkdir /home/centos/.aws
 
 sudo touch /home/centos/.aws/config
@@ -261,58 +267,24 @@ sudo touch /home/centos/.aws/credentials
 
 sudo touch /home/centos/.env
 
-#echo "[default]" > /home/centos/.aws/config
-#echo "region = us-east-1" >> /home/centos/.aws/config
-#echo "output_format = json" >> /home/centos/.aws/config
-
-#echo "[default]" > /home/centos/.aws/credentials
-#echo "aws_access_key_id =${var.aws_access_key_id}" >> /home/centos/.aws/credentials
-#echo "aws_secret_access_key =${var.aws_secret_access_key}" >> /home/centos/.aws/credentials
-
-#echo "/home/centos/.local/bin/aws configure set aws_access_key_id '${var.aws_access_key_id}'" > /home/centos/confAws.sh
-
-#echo "/home/centos/.local/bin/aws configure set aws_secret_access_key '${var.aws_secret_access_key}'" >> /home/centos/confAws.sh
-
-#echo "/home/centos/.local/bin/aws configure set default.region 'us-east-1'" >> /home/centos/confAws.sh
-
-#echo "/home/centos/.local/bin/aws configure set default.output_format 'json'" >> /home/centos/confAws.sh
-
-#echo "DEV_ADMIN_IAM_USER_KEY=${var.dev_access_key_id}" > /home/centos/.env
-
-#echo "DEV_ADMIN_IAM_USER_SECRET=${var.dev_secret_access_key}" >> /home/centos/.env
-
 echo "DATABASE = csye6225" >>  /home/centos/.env
 
 echo "USER_DATA = dbuser" >>  /home/centos/.env
 
 echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
 
-echo "BUCKET_NAME = webapp.dev.ankit-yadav.me" >>  /home/centos/.env
+echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
 
-#/home/centos/.local/bin/aws rds describe-db-instances --db-instance-identifier csye6225-fall2019 --region us-east-1 --query 'DBInstances[*].[Endpoint.Address]' >> /home/centos/data.json
-
-#endpoint=$(cat /home/centos/data.json  | jq -r '.[][]')
-
-#echo "HOST = $endpoint" >> /home/centos/.env
-
-echo "HOST = ${aws_db_instance.main.endpoint}" >> /home/centos/.env
+echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
 
 sudo mkdir -p /usr/share/collectd/
 
 sudo touch /usr/share/collectd/types.db
 
-
-  ###### END OF USER DATA
+  ##### END OF USER DATA
 
   EOF
 }
-
-
-variable "bucketname" {
-  type = string
-  default = "webapp.dev.ajaygoel.me"
-}
-
 
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucketname}"
