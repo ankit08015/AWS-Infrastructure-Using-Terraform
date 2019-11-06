@@ -378,9 +378,8 @@ resource "aws_s3_bucket" "bucket2" {
   lifecycle_rule {
     enabled = true
 
-    transition {
-      days = 30
-      storage_class = "STANDARD_IA"
+    expiration {
+      days = 60
     }
   }
 }
