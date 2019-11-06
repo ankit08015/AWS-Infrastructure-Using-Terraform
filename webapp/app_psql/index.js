@@ -6,6 +6,9 @@ const PORT = 3000;
 
 const busboy = require('connect-busboy');
 const busboyBodyParser = require('busboy-body-parser');
+
+var winston = require('./config/winston');
+
 //const db = require('./Routes/queries')
 
 const db = require('./config/database');
@@ -15,7 +18,7 @@ const db = require('./config/database');
 //   .then(() => console.log('Database connected.'))
 //   .catch(err => console.log('Error: ' + err))
 
-app.use(morgan('combined'));
+app.use(morgan('combined', { stream: winston.stream }));
 
 app.use(bodyParser.json())
 app.use(

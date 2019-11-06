@@ -1,5 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const winston = require('winston');
+
+const {
+    format,
+    transports,
+    config
+} = require('winston');
+const {
+    combine,
+    timestamp,
+    json
+} = format;
+
+const appRoot = require('app-root-path');
 const db = require('../config/database');
 const bcrypt = require("bcrypt");
 const AWS = require('aws-sdk');
@@ -10,18 +24,90 @@ const BUCKET_NAME = process.env.BUCKET_NAME
 //'webapp.dev.ajaygoel.me';
 // const IAM_USER_KEY = 'AKIA2XLRXCUPYQ4KMUHG';
 // const IAM_USER_SECRET = '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';
+
+AWS.config.credentials = new AWS.EC2MetadataCredentials({
+    httpOptions: { timeout: 5000 }, // 5 second timeout
+    maxRetries: 10, // retry 10 times
+    retryDelayOptions: { base: 200 } // see AWS.Config for information
+  });
+
 const IAM_USER_KEY = process.env.DEV_ADMIN_IAM_USER_KEY;
 const IAM_USER_SECRET = process.env.DEV_ADMIN_IAM_USER_SECRET;
+
+var SDC = require('statsd-client'),
+  sdc = new SDC({
+    host: "localhost",
+    port: 8125
+  });
+
+var options = {
+    infoFile: {
+        level: 'info',
+        filename: `${appRoot}/logs/info.log`,
+        handleExceptions: true,
+        json: true,
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+        colorize: false,
+    },
+
+    errorFile: {
+        level: 'error',
+        filename: `${appRoot}/logs/info.log`,
+        handleExceptions: true,
+        json: true,
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+        colorize: false,
+    }
+};
+
+// instantiate a new Winston Logger with the settings defined above
+var logger = new winston.createLogger({
+
+    defaultMeta: {
+        service: 'recipe-api'
+    },
+
+    format: combine(
+        timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        json()
+    ),
+
+    transports: [
+        new winston.transports.File(options.infoFile),
+    ],
+    exitOnError: false, // do not exit on handled exceptions
+});
+
+// create a stream object with a 'write' function that will be used by `morgan`
+logger.stream = {
+    write: function (message, encoding) {
+        // use the 'info' log level so the output will be picked up by both transports (file and console)
+        //logger.info(message);
+    },
+};
 
 ////POST
 
 router.post('/recipie', (req, res) => {
 
+    sdc.increment('recipePost.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
+
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         return res.status(401).json({
-            message: 'Missing Authorization Header'
-        });
+                message: 'Missing Authorization Header'
+            }),
+            logger.error("Recepie Post method: Header authorization Error Status : 401");
     }
 
     // verify auth credentials
@@ -39,8 +125,9 @@ router.post('/recipie', (req, res) => {
             console.log(data);
             if (data.length <= 0) {
                 return res.status(400).json({
-                    "message": "Email doesn't exist"
-                }); // return wrong email
+                        "message": "Email doesn't exist"
+                    }),
+                    logger.error("Recepie Post method: Status code :400 - Email " + email + " doesn't exist");
             }
             let user_authorized = false;
             const author_id = data[0].id;
@@ -51,8 +138,9 @@ router.post('/recipie', (req, res) => {
                     //result= true;
                     if (err) {
                         res.status(400).json({
-                            message: 'Bad Request'
-                        });
+                                message: 'Bad Request'
+                            }),
+                            logger.error("Recepie Post method : Status code :400 - Bad request : " + err);
                     } else if (result) {
 
                         const {
@@ -75,7 +163,7 @@ router.post('/recipie', (req, res) => {
                         //console.log(nutritionInformation);
                         const total_time_in_min = cook_time_in_min + prep_time_in_min;
 
-
+                        var DBtimer = new Date();
                         db.recipe.create({
                                 author_id,
                                 title,
@@ -129,27 +217,35 @@ router.post('/recipie', (req, res) => {
                                                     "protein_in_grams": nutrition_information.protein_in_grams
                                                 }
                                             }
-                                        ));
+                                        )), 
+                                        logger.info("Recipe Post method : Posted the recipie " + data.title + " for the authorized user with email " + email + " successfully"),
+                                        sdc.timing('DBrecipePost.timer',DBtimer);// Calculates time diff
                                     }))
                             )
-                            .catch(err => res.status(406).json({
-                                message: err.message
-                            }));
+                            .catch(err => {
+                                res.status(406).json({
+                                        message: err.message
+                                    }),
+                                    logger.error("Recipe Post method : Error while posting the recipe error code - 406 " + err.message)
+                            });
 
 
                     } else {
                         res.status(401).json({
-                            message: 'Unauthorized Access Denied'
-                        });
+                                message: 'Unauthorized Access Denied'
+                            }),
+                            logger.error("Recipe Post method : Error while posting the recipe error code - 401, Unauthorized Access Denied")
                     }
                 })
             } else {
                 res.status(400).json({
-                    "message": "Email doesn't exist"
-                }); // return wrong email
+                        "message": "Email doesn't exist"
+                    }),
+                    logger.error("Recipe Post method : Error while posting the recipe error code - 400, Email " + email + " doesn't exist") // return wrong email
             }
         })
         .catch();
+        sdc.timing('recipePost.timer',timer);
 
 })
 // ////POST
@@ -310,11 +406,21 @@ router.post('/recipie', (req, res) => {
 
 router.delete('/recipie/:id', (req, res) => {
 
+    sdc.increment('deleteRecipe.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
+
+
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         return res.status(401).json({
-            message: 'Missing Authorization Header'
-        });
+                message: 'Missing Authorization Header'
+            }),
+            logger.error("Recepie Delete method: Header authorization Error Status : 401");
     }
 
     // verify auth credentials
@@ -333,8 +439,9 @@ router.delete('/recipie/:id', (req, res) => {
             console.log(data);
             if (data.length <= 0) {
                 return res.status(400).json({
-                    "message": "Email doesn't exist"
-                }); // return wrong email
+                        "message": "Email doesn't exist"
+                    }),
+                    logger.error("Recepie Delete method: Status code :400 - Email " + email + " doesn't exist"); // return wrong email
             }
             let user_authorized = false;
             const author_id = data[0].id;
@@ -345,14 +452,15 @@ router.delete('/recipie/:id', (req, res) => {
                     //result= true;
                     if (err) {
                         res.status(400).json({
-                            message: 'Bad Request'
-                        });
+                                message: 'Bad Request'
+                            }),
+                            logger.error("Recepie Post method : Status code :400 - Bad request : " + err);
                     } else if (result) {
 
                         const {
                             recipe_id
                         } = req.params.id;
-
+                        var DBtimer = new Date();
                         db.recipe.destroy({
                                 where: {
                                     id: req.params.id,
@@ -383,7 +491,8 @@ router.delete('/recipie/:id', (req, res) => {
                                                                 })
                                                                 .then(res.status(200).json({
                                                                     deletedRecipe
-                                                                }))
+                                                                }), logger.info("Recipe Delete method : Deleted the recipie " + req.params.title + " for the authorized user with email " + email + " successfully")),
+                                                                sdc.timing('DBdeleteRecipe.timer',DBtimer);// Calculates time diff
                                                         }
 
                                                     )
@@ -392,29 +501,41 @@ router.delete('/recipie/:id', (req, res) => {
                                         )
                                 } else {
                                     res.status(404).json({
-                                        Message: "Not Found"
-                                    })
+                                            Message: " Recipe ID Not Found"
+                                        }),
+                                        logger.error("Recipe Delete method : Recipe with the specified ID not found")
                                 }
 
                             })
-                            .catch(err => res.status(406).json({
-                                message: err.message
-                            }));
+                            .catch(err => {
+                                res.status(406).json({
+                                        message: err.message
+                                    }),
+                                    logger.error("Recipe Delete method : Error while deleting a recipe error code - 406 " + err.message)
+                            });
                     } else {
                         res.status(401).json({
-                            message: 'Unauthorized Access Denied'
-                        });
+                                message: 'Unauthorized Access Denied'
+                            }),
+                            logger.error("Recipe Delete method : Error while deleting the recipe error code - 401, Unauthorized Access Denied")
                     }
                 })
             } else {
                 res.status(404).json({
-                    "message": "Email doesn't exist"
-                }); // return wrong email
+                        "message": "Email doesn't exist"
+                    }),
+                    logger.error("Recipe Delete method : Error while deleting the recipe error code - 404, Email " + email + " doesn't exist")
             }
         })
-        .catch(
 
-        );
+        .catch(err => {
+            res.status(406).json({
+                    message: err.message
+                }),
+                logger.error("Recipe Delete method : Error while deleting the recipe error code - 406")
+        });
+    // logger.error("Recipe Delete method : Error while deleting the recipe error code - 406")});
+    sdc.timing('deleteRecipe.timer',timer);
 });
 
 
@@ -424,6 +545,13 @@ module.exports = router;
 //// Get by ID
 
 router.get('/recipie/:id', (req, res) => {
+    sdc.increment('recipeGet.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
     db.recipe.findAll({
             where: {
                 id: req.params.id
@@ -432,12 +560,14 @@ router.get('/recipie/:id', (req, res) => {
         .then(data => {
 
             if (data.length < 1) {
+                logger.error("Recipe Get method : Error code : 404. Invalid Id");
                 return res.status(404).json({
                     message: 'Invalid Id'
                 });
 
             } else {
                 console.log(data.length);
+                var DBtimer = new Date();
                 db.nutInfo.findAll({
                         where: {
                             recipe_id: req.params.id
@@ -453,7 +583,7 @@ router.get('/recipie/:id', (req, res) => {
                             .then(imageInformation => {
                                 if (imageInformation.length > 0) {
                                     res.header("Content-Type", 'application/json');
-
+                                    logger.info("Recipe Get method : Getting recipe with Id: " + data[0].id + " and image details successfully");
                                     res.status(200).send(JSON.stringify(
 
                                         {
@@ -484,7 +614,7 @@ router.get('/recipie/:id', (req, res) => {
                                     ));
                                 } else {
                                     res.header("Content-Type", 'application/json');
-
+                                    logger.info("Recipe Get method : Getting recipe with Id: " + data[0].id + " successful");
                                     res.status(200).send(JSON.stringify(
 
                                         {
@@ -510,6 +640,7 @@ router.get('/recipie/:id', (req, res) => {
                                             }
                                         }
                                     ));
+                                    sdc.timing('DBrecipeGet.timer',DBtimer);// Calculates time diff
                                 }
 
                             })
@@ -517,9 +648,15 @@ router.get('/recipie/:id', (req, res) => {
             }
         })
 
-        .catch(err => res.status(406).json({
-            message: err.message
-        }));
+        .catch(err => {
+            res.status(406).json({
+                    message: err.message
+                }),
+                logger.error("Recipe Get method : Error with status code : 406. Error : " + err.message)
+        });
+
+
+        sdc.timing('recipeGet.timer',timer);
 
 });
 
@@ -553,7 +690,7 @@ router.get('/recipie/:id', (req, res) => {
 //                 return res.status(400).json({
 //                     "message": "Email doesn't exist"
 //                 }); // return wrong email
-//             }
+//             
 
 //             let user_authorized = false;
 //             const author_id = data[0].id;
@@ -722,8 +859,17 @@ router.get('/recipie/:id', (req, res) => {
 
 router.put('/recipie/:id', (req, res) => {
 
+    sdc.increment('recipePut.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
+
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+        logger.error("Recepie Put method: Missing Authorization Header Error Status : 401");
         return res.status(401).json({
             message: 'Missing Authorization Header'
         });
@@ -743,9 +889,10 @@ router.put('/recipie/:id', (req, res) => {
         .then(data => {
             console.log(data);
             if (data.length <= 0) {
+                logger.error("Recepie Put method: Email doesnt exist Error Status : 400");
                 return res.status(400).json({
                     "message": "Email doesn't exist"
-                }); // return wrong email
+                });
             }
 
             let user_authorized = false;
@@ -761,9 +908,10 @@ router.put('/recipie/:id', (req, res) => {
                 .then(data => {
                     console.log(data);
                     if (data.length <= 0) {
+                        logger.error("Recepie Put method: Unauthorized user for given recipe id Error Status : 401");
                         return res.status(401).json({
                             "message": "Unauthorized user for given recipe id"
-                        }); // return wrong email
+                        });
                     }
                 });
 
@@ -776,6 +924,7 @@ router.put('/recipie/:id', (req, res) => {
 
                     //result= true;
                     if (err) {
+                        logger.error("Recepie Put method: Bad Request Error Status : 400  Error : " + err);
                         res.status(400).json({
                             message: 'Bad Request'
                         });
@@ -800,6 +949,7 @@ router.put('/recipie/:id', (req, res) => {
 
                         //console.log(nutritionInformation);
                         const total_time_in_min = cook_time_in_min + prep_time_in_min;
+                        var DBtimer = new Date();
                         db.recipe.update({
                                 title: title,
                                 cook_time_in_min: cook_time_in_min,
@@ -875,15 +1025,19 @@ router.put('/recipie/:id', (req, res) => {
 
 
                                     })
+                                    
                             })
-                            .catch(err =>
+                            .catch(err => {
                                 res.status(401).json({
-                                    message: "Error " + err.message
-                                })
-                            );
+                                        message: "Error " + err.message
+                                    }),
+                                    logger.error("Recepie Put method: Error Status code: 400. Error : " + err.message);
+                            });
+                            sdc.timing('DBrecipePut.timer',DBtimer);// Calculates time diff
 
 
                     } else {
+                        logger.error("Recepie Put method: Unauthorized Access Denied. Error Status code: 401.");
                         res.status(401).json({
                             message: 'Unauthorized Access Denied'
                         });
@@ -891,12 +1045,15 @@ router.put('/recipie/:id', (req, res) => {
                 })
 
             } else {
+                logger.error("Recepie Put method: Email doesn't exist. Error Status code: 400.");
                 res.status(400).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
             }
         })
         .catch();
+
+        sdc.timing('recipePut.timer',timer);
 
 })
 
@@ -907,8 +1064,17 @@ module.exports = router;
 // DELETE IMAGE
 router.delete('/recipie/:id/image/:imageId', (req, res) => {
 
+    sdc.increment('imageDelete.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
+
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+        logger.error("Recepie Image-Delete method: Missing Authorization Header Error Status : 401");
         return res.status(401).json({
             message: 'Missing Authorization Header'
         });
@@ -929,6 +1095,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
         .then(data => {
             console.log(data);
             if (data.length <= 0) {
+                logger.error("Recepie Image-Delete method: Email Doesnt exist. Error Status : 400");
                 return res.status(400).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
@@ -941,6 +1108,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
 
                     //result= true;
                     if (err) {
+                        logger.error("Recepie Image-Delete method: Bad Request. Error Status : 400  Error :" + err);
                         res.status(400).json({
                             message: 'Bad Request'
                         });
@@ -956,6 +1124,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                             .then(data => {
                                 console.log(data);
                                 if (data.length <= 0) {
+                                    logger.error("Recepie Image-Delete method: Unauthorized user for given recipe id. Error Status : 401");
                                     return res.status(401).json({
                                         "message": "Unauthorized user for given recipe id"
                                     }); // return wrong email
@@ -971,6 +1140,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                 if (image_data.length > 0) {
 
                                     if (image_data[0].image_id != req.params.imageId) {
+                                        logger.error("Recepie Image-Delete method: No Image Id Found. Error Status : 404");
                                         res.status(404).json({
                                             message: "No Image Id Found"
                                         })
@@ -991,10 +1161,11 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                 //k = 
                                                 console.log(image_data[0].S3Key)
                                                 let s3bucket = new AWS.S3({
-                                                    accessKeyId: IAM_USER_KEY,
-                                                    secretAccessKey: IAM_USER_SECRET,
-                                                    Bucket: BUCKET_NAME
+                                                    // accessKeyId: IAM_USER_KEY,
+                                                    // secretAccessKey: IAM_USER_SECRET,
+                                                    // Bucket: BUCKET_NAME
                                                 });
+                                                var S3Timer = new Date();
                                                 s3bucket.deleteObject({
                                                     Bucket: BUCKET_NAME,
                                                     Key: image_data[0].S3Key
@@ -1003,6 +1174,7 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                         console.log(err);
                                                     }
                                                     console.log(data);
+                                                    var DBtimer = new Date();
                                                     db.image.destroy({
                                                             where: {
                                                                 recipe_id: req.params.id
@@ -1027,25 +1199,24 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                                 //     }
                                                                 //     console.log(data);
                                                                 // })
+                                                                logger.info("Recepie Image-Delete method: Deleted image successfully. Status : 200");
                                                                 res.status(200).json({
                                                                     deletedImage
                                                                 })
                                                             } else {
+                                                                logger.error("Recepie Image-Delete method: Image not found. Error Status : 404");
                                                                 res.status(404).json({
                                                                     Message: "Not Found"
                                                                 })
                                                             }
                                                         })
                                                 })
-
-                                                //})
-                                                //    }
+                                                sdc.timing('imageDelete.timer',S3Timer); // Calculates time diff
                                             })
-                                        console.log("----->>>>" + k)
-
                                     }
                                 } else {
                                     //if(image_data[0].recipe_id!=req.params.id){
+                                    logger.error("Recepie Image-Delete method: No Content for recipe ID " + req.params.id + " Error Status : 204");
                                     res.status(204).json({
                                         message: "No Content for this recipe ID"
                                     })
@@ -1053,18 +1224,28 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
 
                                 }
                             })
-                            .catch(err => res.status(406).json({
-                                message: err.message,
-                                //message: "No recipe ID found"
-                            }));
+                            .catch(err => {
+                                res.status(406).json({
+                                        message: err.message,
+                                        //message: "No recipe ID found"
+                                    }),
+                                    logger.error("Recepie Image-Delete method: Error : " + err.message + " Error Status : 406 ")
+                            });
+                            var DBtimer = new Date();
+
+                            sdc.timing('DBimageDelete.timer',DBtimer);// Calculates time diff
+                    
+
 
                     } else {
+                        logger.error("Recepie Image-Delete method: Unauthorized Access Denied. Error Status : 401");
                         res.status(401).json({
                             message: 'Unauthorized Access Denied'
                         });
                     }
                 })
             } else {
+                logger.error("Recepie Image-Delete method: Email doesn't exist. Error Status : 404");
                 res.status(404).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
@@ -1073,6 +1254,8 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
         .catch(
 
         );
+
+        sdc.timing('imageDelete.timer',timer);
 });
 
 var image_s3_url = "HIIIII";
@@ -1107,8 +1290,16 @@ var count = 0;
 
 ////POST
 router.post('/recipie/:id/image', (req, res) => {
+    sdc.increment('imagePost.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
     // check for basic auth header
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+        logger.error("Recepie Image-Post method: Missing Authorization Header Error Status : 401");
         return res.status(401).json({
             message: 'Missing Authorization Header'
         });
@@ -1128,6 +1319,7 @@ router.post('/recipie/:id/image', (req, res) => {
         .then(data => {
             console.log(data);
             if (data.length <= 0) {
+                logger.error("Recepie Image-Post method: Email doesn't exist. Error Status : 400");
                 return res.status(400).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
@@ -1140,6 +1332,7 @@ router.post('/recipie/:id/image', (req, res) => {
 
                     //result= true;
                     if (err) {
+                        logger.error("Recepie Image-Post method: Bad Request Error Status : 400  Error : " + err);
                         res.status(400).json({
                             message: 'Bad Request'
                         });
@@ -1155,6 +1348,7 @@ router.post('/recipie/:id/image', (req, res) => {
                             .then(data => {
                                 console.log(data);
                                 if (data.length <= 0) {
+                                    logger.error("Recepie Image-Post method: Unauthorized user for given recipe id Error Status : 401");
                                     return res.status(401).json({
                                         "message": "Unauthorized user for given recipe id"
                                     }); // return wrong email
@@ -1164,6 +1358,7 @@ router.post('/recipie/:id/image', (req, res) => {
 
                         if (req.files.element2 == undefined) {
                             res.header("Content-Type", 'application/json');
+                            logger.error("Recepie Image-Post method: Please upload an image in form data Error Status : 400");
                             res.status(400).send(JSON.stringify({
                                 "Message": "Please upload an image in form data"
                             }))
@@ -1177,10 +1372,12 @@ router.post('/recipie/:id/image', (req, res) => {
                             console.log(words[1] + "--=-=-=-=-=-=-=-=-=-=-=-");
                             if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
                                 res.header("Content-Type", 'application/json');
+                                logger.error("Recepie Image-Post method: File type should be image Error Status : 406");
                                 res.status(406).send(JSON.stringify({
                                     "Message": "File type should be image"
                                 }))
                             } else {
+                                var DBtimer = new Date();
                                 db.image.findAll({
                                         where: {
                                             recipe_id: req.params.id
@@ -1199,15 +1396,18 @@ router.post('/recipie/:id/image', (req, res) => {
                                                 console.log('Upload finished');
                                                 const file = req.files.element2;
                                                 console.log(file);
-
+                                                logger.info("Recepie Image-Post method: File upload finished");
                                                 // Begins the upload to the AWS S3
                                                 //uploadToS3(file);
                                                 //setTimeout(function2, 5000000);
+
+                                                logger.info("Recepie Image-Post method: File upload to S3-bucket in progress");
                                                 let s3bucket = new AWS.S3({
-                                                    accessKeyId: IAM_USER_KEY,
-                                                    secretAccessKey: IAM_USER_SECRET,
-                                                    Bucket: BUCKET_NAME
+                                                    // accessKeyId: IAM_USER_KEY,
+                                                    // secretAccessKey: IAM_USER_SECRET,
+                                                    // Bucket: BUCKET_NAME
                                                 });
+                                                var S3Timer = new Date();
                                                 s3bucket.createBucket(function () {
                                                     var params = {
                                                         Bucket: BUCKET_NAME,
@@ -1231,6 +1431,7 @@ router.post('/recipie/:id/image', (req, res) => {
                                                         }).on('success', function (response) {
                                                             console.log("Key was", response.request.params.Key);
                                                             console.log(response.httpResponse.headers);
+                                                            logger.info("Recepie Image-Post method: File upload to S3-bucket Completed Successfully");
                                                             db.image.create({
                                                                     "recipe_id": req.params.id,
                                                                     "url": image_s3_url,
@@ -1263,9 +1464,11 @@ router.post('/recipie/:id/image', (req, res) => {
                                                         res.status(201);
                                                     });
                                                 });
+                                                sdc.timing('imagePost.timer',S3Timer); // Calculates time diff
                                             });
 
                                             req.pipe(busboy);
+                                            sdc.timing('DBimagePost.timer',DBtimer);
 
                                             console.log(image_s3_url + "==================")
                                             // db.image.create({
@@ -1284,30 +1487,39 @@ router.post('/recipie/:id/image', (req, res) => {
 
                                         } else {
                                             res.header("Content-Type", 'application/json');
+                                            logger.error("Recepie Image-Post method: Delete the Image first before posting a new image. Error code : 400");
                                             res.status(400).send(JSON.stringify({
                                                 "Result": "Delete the Image first before posting a new image."
                                             }));
                                         }
                                     })
-                                    .catch(err => res.status(406).json({
-                                        message: err.message
-                                    }));
+                                    .catch(err => {
+                                        res.status(406).json({
+                                                message: err.message
+                                            }),
+                                            logger.error("Recepie Image-Post method: Error code : 406 Error : " + err.message)
+                                    })
+                                    
 
                             }
                         }
                     } else {
+                        logger.error("Recepie Image-Post method: Unauthorized Access Denied. Error code : 401 ");
                         res.status(401).json({
                             message: 'Unauthorized Access Denied'
                         });
                     }
                 })
             } else {
+                logger.error("Recepie Image-Post method: EmailId " + email + " doesn't exist. Error code : 400 ");
                 res.status(400).json({
                     "message": "Email doesn't exist"
                 }); // return wrong email
             }
         })
         .catch();
+
+        sdc.timing('imagePost.timer',timer);
 
 })
 
@@ -1316,6 +1528,16 @@ router.post('/recipie/:id/image', (req, res) => {
 //// Get IMAGE by recipe id and image id 
 
 router.get('/recipie/:id/image/:imageId', (req, res) => {
+    sdc.increment('recipeImage.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
+
+
+    var DBtimer = new Date();
     db.image.findAll({
             where: {
                 recipe_id: req.params.id
@@ -1325,11 +1547,13 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
             if (image_data.length > 0) {
 
                 if (image_data[0].image_id != req.params.imageId) {
+                    logger.error("Recepie Image-get method: No Image Id Found. Error code : 404 ");
                     res.status(404).json({
                         message: "No Image Id Found"
                     })
                 } else {
                     res.header("Content-Type", 'application/json');
+                    logger.info("Recepie Image-get method: Got image with Image Id " + image_data[0].image_id + ". Status code : 200 ");
                     res.status(200).send(JSON.stringify({
                         "id": image_data[0].image_id,
                         "url": image_data[0].url
@@ -1338,6 +1562,7 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
                 }
             } else {
                 //if(image_data[0].recipe_id!=req.params.id){
+                logger.error("Recepie Image-get method: No Recipe ID found. Error Status code : 404 ");
                 res.status(404).json({
                     message: "No Recipe ID found"
                 })
@@ -1345,9 +1570,16 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
 
             }
         })
-        .catch(err => res.status(406).json({
-            message: err.message,
-        }));
+        .catch(err => {
+            res.status(406).json({
+                    message: err.message,
+                }),
+                logger.error("Recepie Image-get method: Error code : 406. Error : " + err.message)
+        });
+        sdc.timing('DBrecipeImage.timer',DBtimer);// Calculates time diff
+
+        sdc.timing('recipeImage.timer',timer);
+
 
 });
 
@@ -1356,6 +1588,13 @@ router.get('/recipie/:id/image/:imageId', (req, res) => {
 router.get('/recipies', (req, res) => {
     //db.recipe.max('created_date')
     //db.recipe.query(,{type:})
+    sdc.increment('recipeGet.counter');
+    sdc.gauge('some.gauge', 10); // Set gauge to 10
+    var timer = new Date();
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+    sdc.histogram('some.histogram', 10, {
+      foo: 'bar'
+    })
     db.recipe.findAll({
             limit: 10,
             order: [
@@ -1364,6 +1603,7 @@ router.get('/recipies', (req, res) => {
         })
         .then(data => {
             if (data.length < 1) {
+                logger.error("Recepie get-latest method: No data present. Error code : 404");
                 return res.status(404).json({
                     message: 'No data present'
                 });
@@ -1376,6 +1616,8 @@ router.get('/recipies', (req, res) => {
                 //     }
                 // ))
                 const recipeID = data[0].id;
+
+                var DBtimer = new Date();
                 db.nutInfo.findAll({
                         where: {
                             recipe_id: recipeID
@@ -1391,7 +1633,7 @@ router.get('/recipies', (req, res) => {
                             .then(imageInformation => {
                                 if (imageInformation.length > 0) {
                                     res.header("Content-Type", 'application/json');
-
+                                    logger.info("Recepie get-latest method: Getting the latest Recipe with image Successfully Status code : 200");
                                     res.status(200).send(JSON.stringify(
 
                                         {
@@ -1422,7 +1664,7 @@ router.get('/recipies', (req, res) => {
                                     ));
                                 } else {
                                     res.header("Content-Type", 'application/json');
-
+                                    logger.info("Recepie get-latest method: Getting the latest Recipe Successfully Status code : 200");
                                     res.status(200).send(JSON.stringify(
 
                                         {
@@ -1451,10 +1693,17 @@ router.get('/recipies', (req, res) => {
                                 }
 
                             })
-                    })
+                    });
+                    
+                sdc.timing('DBrecipeGet.timer',DBtimer);// Calculates time diff
             }
         })
-        .catch(err => res.status(406).json({
-            message: err.message
-        }));
+        .catch(err => {
+            res.status(406).json({
+                    message: err.message
+                }),
+                logger.error("Recepie get-latest method: Error code : 406. Error : " + err.message)
+        });
+
+        sdc.timing('recipeGet.timer',timer);
 });
