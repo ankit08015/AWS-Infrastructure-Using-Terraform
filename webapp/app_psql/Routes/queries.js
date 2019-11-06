@@ -194,7 +194,8 @@ router.post('/user', (req, res) => {
 //GET
 
 router.get('/user/self', (req, res) => {
-
+  sdc.increment('userGet.counter');
+  var timer = new Date();
   // check for basic auth header
   if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
     return res.status(401).json({
@@ -208,6 +209,7 @@ router.get('/user/self', (req, res) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [email, password] = credentials.split(':');
   //const result;
+  var DBtimer = new Date();
   db.user.findAll({
       where: {
         email: email
@@ -237,7 +239,8 @@ router.get('/user/self', (req, res) => {
                 "account_created": data[0].created_date,
                 "account_updated": data[0].updated_date
               }),
-              logger.info("Got the user with email " + data[0].email + "successfully");
+              logger.info("Got the user with email " + data[0].email + "successfully"),
+              sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
           } else {
             res.status(401).json({
                 message: 'Unauthorized Access Denied'
@@ -257,6 +260,8 @@ router.get('/user/self', (req, res) => {
       console.log(err),
         logger.error(err)
     })
+    sdc.timing('userGet.timer',timer); // Calculates time diff
+
 });
 
 
@@ -265,6 +270,8 @@ router.get('/user/self', (req, res) => {
 
 router.put('/user/self', function (req, res, next) {
 
+  sdc.increment('userPut.counter');
+  var timer = new Date();
 
   // check for basic auth header
   if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
@@ -313,6 +320,7 @@ router.put('/user/self', function (req, res, next) {
                       }),
                       logger.error("Status code :401 - error : " + err);
                   } else {
+                    var DBtimer = new Date();
 
                     db.user.update({
                           first_name: req.body.first_name,
@@ -326,7 +334,8 @@ router.put('/user/self', function (req, res, next) {
                             email: email
                           }
                         },
-                        logger.info("Updated data for the user with email : " + email)
+                        logger.info("Updated data for the user with email : " + email),
+                        sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
                       )
                       .then(function ([rowsUpdate, [updatedDetail]]) {
                         res.json(updatedDetail),
@@ -379,6 +388,7 @@ router.put('/user/self', function (req, res, next) {
       logger.error(err)
       console.log(err)
     })
+    sdc.timing('userPut.timer',timer); // Calculates time diff
 });
 
 module.exports = router;
