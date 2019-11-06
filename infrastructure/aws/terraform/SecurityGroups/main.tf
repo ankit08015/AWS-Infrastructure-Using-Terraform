@@ -76,6 +76,11 @@ variable "dev_secret_access_key" {
   default = ""
 }
 
+variable "bucketname" {
+  type = string
+  default = ""
+}
+
 # Application Security Group
 
 resource "aws_security_group" "allow_tls" {
@@ -268,7 +273,7 @@ echo "USER_DATA = dbuser" >>  /home/centos/.env
 
 echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
 
-echo "BUCKET_NAME = webapp.dev.ankit-yadav.me" >>  /home/centos/.env
+echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
 
 echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
 
@@ -280,13 +285,6 @@ sudo touch /usr/share/collectd/types.db
 
   EOF
 }
-
-
-variable "bucketname" {
-  type = string
-  default = "webapp.dev.ajaygoel.me"
-}
-
 
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucketname}"
