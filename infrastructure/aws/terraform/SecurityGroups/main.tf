@@ -56,6 +56,31 @@ variable "password" {
   default = "AjayGoel"
 }
 
+variable "aws_access_key_id" {
+  type = string
+  default = ""
+}
+
+variable "aws_secret_access_key" {
+  type = string
+  default = ""
+}
+
+variable "dev_access_key_id" {
+  type = string
+  default = ""
+}
+
+variable "dev_secret_access_key" {
+  type = string
+  default = ""
+}
+
+variable "bucketname" {
+  type = string
+  default = ""
+}
+
 # Application Security Group
 
 resource "aws_security_group" "allow_tls" {
@@ -184,11 +209,20 @@ resource "aws_db_instance" "main" {
    username             = "dbuser"
    password             = var.password
    multi_az             = false
-   publicly_accessible  = true
+   publicly_accessible  = false
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
    skip_final_snapshot = true
 }
+
+# variable "endpoint" {
+#   type=string
+#   value = split(":", "${aws_db_instance.main.endpoint}")[0]
+# }
+
+# output "sum" {
+#   value = "${var.endpoint}"
+# }
 
 resource "aws_instance" "instance" {
   ami           =  var.ami
@@ -216,18 +250,41 @@ resource "aws_instance" "instance" {
       
   }
 
-  user_data = "${file(".env")}"
+  # user_data = "${file(".env")}"
   tags = {
     Name = "csye-instance"
   }
+
+  user_data = <<EOF
+#!/bin/bash
+sudo systemctl start httpd
+
+mkdir /home/centos/.aws
+
+sudo touch /home/centos/.aws/config
+
+sudo touch /home/centos/.aws/credentials
+
+sudo touch /home/centos/.env
+
+echo "DATABASE = csye6225" >>  /home/centos/.env
+
+echo "USER_DATA = dbuser" >>  /home/centos/.env
+
+echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
+
+echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
+
+echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
+
+sudo mkdir -p /usr/share/collectd/
+
+sudo touch /usr/share/collectd/types.db
+
+  ##### END OF USER DATA
+
+  EOF
 }
-
-
-variable "bucketname" {
-  type = string
-  default = "webapp.dev.ajaygoel.me"
-}
-
 
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucketname}"
@@ -509,13 +566,16 @@ resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
         {
             "Action": [
                 "s3:Get*",
-                "s3:List*"
+                "s3:List*",
+                "s3:Put*",
+                "s3:Delete*"
             ],
             "Effect": "Allow",
             "Resource": [
               "${aws_s3_bucket.bucket2.arn}/*",
               "${aws_s3_bucket.bucket2.arn}",
-              "${aws_s3_bucket.bucket.arn}"
+              "${aws_s3_bucket.bucket.arn}",
+              "${aws_s3_bucket.bucket.arn}/*"
               ]
         }
     ]

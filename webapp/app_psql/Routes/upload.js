@@ -29,7 +29,6 @@ function uploadToS3(file) {
       });
   });
 }
-
 //module.exports = (router) => {
   // The following is an example of making file upload with additional body
   // parameters.
