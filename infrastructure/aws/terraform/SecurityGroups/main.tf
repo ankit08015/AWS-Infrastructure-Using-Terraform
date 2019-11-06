@@ -184,7 +184,7 @@ resource "aws_db_instance" "main" {
    username             = "dbuser"
    password             = var.password
    multi_az             = false
-   publicly_accessible  = true
+   publicly_accessible  = false
    db_subnet_group_name = "${aws_db_subnet_group.main.name}"
    vpc_security_group_ids      = ["${aws_security_group.allow_tls2.id}"] 
    skip_final_snapshot = true
