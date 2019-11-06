@@ -210,6 +210,15 @@ resource "aws_db_instance" "main" {
    skip_final_snapshot = true
 }
 
+# variable "endpoint" {
+#   type=string
+#   value = split(":", "${aws_db_instance.main.endpoint}")[0]
+# }
+
+# output "sum" {
+#   value = "${var.endpoint}"
+# }
+
 resource "aws_instance" "instance" {
   ami           =  var.ami
   instance_type = "t2.micro"
@@ -295,7 +304,7 @@ echo "BUCKET_NAME = webapp.dev.ankit-yadav.me" >>  /home/centos/.env
 
 #echo "HOST = $endpoint" >> /home/centos/.env
 
-echo "HOST = ${aws_db_instance.main.endpoint}" >> /home/centos/.env
+echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
 
 sudo mkdir -p /usr/share/collectd/
 
