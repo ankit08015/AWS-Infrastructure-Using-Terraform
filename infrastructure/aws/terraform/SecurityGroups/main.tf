@@ -281,7 +281,7 @@ sudo mkdir -p /usr/share/collectd/
 
 sudo touch /usr/share/collectd/types.db
 
-  ###### END OF USER DATA
+  ##### END OF USER DATA
 
   EOF
 }
