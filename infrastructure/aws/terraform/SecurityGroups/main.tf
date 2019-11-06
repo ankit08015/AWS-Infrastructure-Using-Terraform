@@ -604,13 +604,16 @@ resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
         {
             "Action": [
                 "s3:Get*",
-                "s3:List*"
+                "s3:List*",
+                "s3:Put*",
+                "s3:Delete*"
             ],
             "Effect": "Allow",
             "Resource": [
               "${aws_s3_bucket.bucket2.arn}/*",
               "${aws_s3_bucket.bucket2.arn}",
-              "${aws_s3_bucket.bucket.arn}"
+              "${aws_s3_bucket.bucket.arn}",
+              "${aws_s3_bucket.bucket.arn}/*"
               ]
         }
     ]

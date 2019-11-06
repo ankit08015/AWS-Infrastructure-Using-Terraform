@@ -24,6 +24,13 @@ const BUCKET_NAME = process.env.BUCKET_NAME
 //'webapp.dev.ajaygoel.me';
 // const IAM_USER_KEY = 'AKIA2XLRXCUPYQ4KMUHG';
 // const IAM_USER_SECRET = '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';
+
+AWS.config.credentials = new AWS.EC2MetadataCredentials({
+    httpOptions: { timeout: 5000 }, // 5 second timeout
+    maxRetries: 10, // retry 10 times
+    retryDelayOptions: { base: 200 } // see AWS.Config for information
+  });
+
 const IAM_USER_KEY = process.env.DEV_ADMIN_IAM_USER_KEY;
 const IAM_USER_SECRET = process.env.DEV_ADMIN_IAM_USER_SECRET;
 
@@ -1154,9 +1161,9 @@ router.delete('/recipie/:id/image/:imageId', (req, res) => {
                                                 //k = 
                                                 console.log(image_data[0].S3Key)
                                                 let s3bucket = new AWS.S3({
-                                                    accessKeyId: IAM_USER_KEY,
-                                                    secretAccessKey: IAM_USER_SECRET,
-                                                    Bucket: BUCKET_NAME
+                                                    // accessKeyId: IAM_USER_KEY,
+                                                    // secretAccessKey: IAM_USER_SECRET,
+                                                    // Bucket: BUCKET_NAME
                                                 });
                                                 var S3Timer = new Date();
                                                 s3bucket.deleteObject({
@@ -1396,9 +1403,9 @@ router.post('/recipie/:id/image', (req, res) => {
 
                                                 logger.info("Recepie Image-Post method: File upload to S3-bucket in progress");
                                                 let s3bucket = new AWS.S3({
-                                                    accessKeyId: IAM_USER_KEY,
-                                                    secretAccessKey: IAM_USER_SECRET,
-                                                    Bucket: BUCKET_NAME
+                                                    // accessKeyId: IAM_USER_KEY,
+                                                    // secretAccessKey: IAM_USER_SECRET,
+                                                    // Bucket: BUCKET_NAME
                                                 });
                                                 var S3Timer = new Date();
                                                 s3bucket.createBucket(function () {
