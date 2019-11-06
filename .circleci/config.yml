@@ -2,7 +2,69 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/node:9.9.0
     steps:
       - checkout
-      
+      - run:
+          name: Install packages for CLI
+          command : |
+            sudo apt-get update
+            sudo apt-get install -y python-pip
+            sudo pip install awscli
+      - run:
+          name: Run Test Cases
+          command : |
+            mkdir test-suit
+            zip -r csye6225-webapp-${CIRCLE_BUILD_NUM}.zip webapp codedeploy/*.sh appspec.yml
+            pwd
+            ls -al
+            cp csye6225-webapp-${CIRCLE_BUILD_NUM}.zip test-suit/
+            pwd
+            cd test-suit
+            pwd
+            ls -al
+            unzip csye6225-webapp-${CIRCLE_BUILD_NUM}.zip
+            ls -al
+            pwd
+            cd webapp/app_psql
+            npm install
+            ls
+            npm run test
+            pwd
+            ls -al
+            cd ~
+            pwd
+            ls -al
+      - run:
+          name: Build Deployment Artifcat
+          command : |
+            mkdir codedeploy-artifact
+            zip -r csye6225-webapp-${CIRCLE_BUILD_NUM}.zip webapp codedeploy/*.sh appspec.yml index.html scripts/*.sh
+            pwd
+            ls -al
+            mv csye6225-webapp-${CIRCLE_BUILD_NUM}.zip codedeploy-artifact/
+            ls -al
+            pwd
+            cd codedeploy-artifact
+            pwd
+            ls -al
+            cd ..
+            pwd
+            ls -al
+      - run:
+          name: Copy Artifact to  S3
+          command: aws s3 sync ./codedeploy-artifact s3://${S3_CODEDEPLOY_BUCKET}
+      - run:
+          name: CodeDeploy API call
+          command: |
+            DEPLOYMENT_ID=`aws deploy create-deployment \
+              --application-name ${CODEDEPLOY_APPLICATION_NAME} \
+              --deployment-config-name CodeDeployDefault.AllAtOnce \
+              --deployment-group-name ${CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME} \
+              --description "CSYE6255 - CodeDeploy" \
+              --s3-location bucket=${S3_CODEDEPLOY_BUCKET},bundleType=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip \
+              --region us-east-1 \
+              --output text`
+            echo $DEPLOYMENT_ID
+            aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID --region us-east-1
+            aws deploy get-deployment --deployment-id $DEPLOYMENT_ID --query 'deploymentInfo.status' --region us-east-1 --output json

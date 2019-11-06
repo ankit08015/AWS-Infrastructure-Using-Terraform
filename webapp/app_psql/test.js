@@ -1,277 +1,207 @@
-var supertest = require("supertest");
-//var should = require("should");
 let chai = require('chai');
 let chaiHttp = require('chai-http');
 var should = chai.should();
 chai.use(chaiHttp);
+const path = require('path')
 
-// This agent refers to PORT where program is runninng.
-
-var server = supertest.agent("http://localhost:3000/v1");
+var validator = require("email-validator");
+var passwordValidator = require('password-validator');
+var schema = new passwordValidator();
+schema
+    .is().min(8) // Minimum length 8
+    .is().max(100) // Maximum length 100
+    .has().uppercase() // Must have uppercase letters
+    .has().lowercase() // Must have lowercase letters
+    .has().digits() // Must have digits
+    .has().not().spaces() // Should not have spaces
+    .is().not().oneOf(['Passw0rd', 'Password123']);
 
 // UNIT test begin
 
+describe('Sample Test', () => {
+    it('should test that true === true', () => {
+        expect(true).toBe(true)
+    })
+})
 
-describe("Unit test for Posting an user", function () {
+describe("Unit test for email and password validator", () => {
 
-    it("should return Data of the created user", function (done) {
+    it("should return true if valid", () => {
 
-        server
-            .post("/user")
-            .send({
-                "first_name": "Anthony",
-                "last_name": "Lawrence",
-                "email": "Anthony3@gmail.com",
-                "password": "Test@123"
-            })
-            .end(function (err, res) {
-                (res).should.have.status(201);
-                done();
-            })
-        //.catch((err) => done(err));
-    });
-});
 
-describe("Unit test for Getting a user", function () {
+        let user = {
+            "first_name": "Anthony",
+            "last_name": "Lawrence",
+            "email": "Anthony3@gmail.com",
+            "password": "Test@123"
+        }
+        expect(validator.validate(user.email) && schema.validate(user.password)).toBe(true);
 
-    // #1 should return home page
-
-    it("should return Data of a specific user", function (done) {
-
-        // calling home page api
-        server
-            .get("/user/self")
-            .auth('Anthony3@gmail.com', 'Test@123')
-            .end(function (err, res) {
-                if (!err) {
-                    //console.log(res);
-                    (res).should.have.status(200);
-                    (res.body).should.be.a('object');
-                    (res).body.first_name.should.equal('Anthony');
-                    (res).body.last_name.should.equal('Lawrence');
-                    done();
-                }
-            })
-    });
-
+    })
 });
 
 
-describe("Unit test for Updating an user", function () {
+describe("Unit test for email and password validator", () => {
 
-    it("Should return Data of the updated user", function (done) {
-        server
-            .put("/user/self")
-            .auth('Anthony3@gmail.com', 'Test@123')
-            .send({
-                "first_name": "Anthony3",
-                "last_name": "Lawrence2",
-                "password": "Test@123"
-            })
-            .end(function (err, res) {
-                console.log(res);
-                (res).should.have.status(200);
-                (res).should.be.json;
-                (res).body.first_name.should.equal('Anthony3');
-                (res).body.should.have.property('created_date');
-                done();
-            })
-        //.catch((err) => done(err));
-    });
+    it("should return false if invalid", () => {
 
+
+        let user = {
+            "first_name": "Anthony",
+            "last_name": "Lawrence",
+            "email": "Anthony3gmail.com",
+            "password": "Test@123"
+        }
+        expect(validator.validate(user.email) && schema.validate(user.password)).toBe(false);
+
+    })
 });
 
+describe("Unit test for post user", () => {
 
-let id = require('uuid/v4');
+    it("should return false if invalid", () => {
 
-describe("Unit test for Posting a recepie", function () {
 
-    it("should return Data of the created recepie", function (done) {
+        let user = {
+            "first_name": "Anthony",
+            "last_name": "Lawrence",
+            "email": "Anthony3gmail.com"
+        }
 
-        server
-            .auth('Anthony3@gmail.com', 'Test@123')
-            .post("/recipie")
-            .send({
-                "title": "Paneer Tikka",
-                "cook_time_in_min": 15,
-                "prep_time_in_min": 10,
-                "total_time_in_min": 15,
-                "cusine": "Indian",
-                "ingredients": [
-                    "Paneer",
-                    "Musturd seeds"
-                ],
-                "servings": 3,
-                "steps": [{
-                        "position": 1,
-                        "item": "Open frozen packet and heat it for 3 mins"
-                    },
-                    {
-                        "position": 2,
-                        "item": "Open frozen packet and heat it for 3 mins"
-                    }
-                ],
-                "nutritionInformation": {
-                    "calories": 70,
-                    "cholesterol_in_mg": 55.5,
-                    "sodium_in_mg": 80,
-                    "carbohydrates_in_grams": 150,
-                    "protein_in_grams": 7
-                }
+        expect(user.length == 4).toBe(false);
 
-            })
-            .end(function (err, res) {
-                (res).should.have.status(200);
-                res.body.title.should.equal('Paneer Tikka');
-                res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
-                res.body.nutrition_information.calories.should.equal(70);
-
-                id = (res).body.id;
-                //console.log(id);
-                done();
-            })
-    });
+    })
 });
 
-//const id2 = id;
-//GET
-describe("Unit test for Getting a recipie of a user", function () {
+describe("Unit test to get user", () => {
 
-    // #1 should return home page
+    it("should return true if valid authentication", () => {
 
-    it("should return Data of a specific recipe of a user", function (done) {
+        let auth = {
+            "email": "Anthony3@gmail.com",
+            "password": "Test@123"
+        }
 
-        // calling home page api
-        server
-            .get("/recipie/"+id)
-            .auth('Anthony3@gmail.com', 'Test@123')
-            .end(function (err, res) {
-                if (!err) {
-                    (res).should.have.status(200);
-                    (res).body.title.should.equal('Paneer Tikka');
-                    //(res).body.steps.position.equal(1);
-                    console.log(res.body);
-                    (res).body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins')
-                    res.body.nutrition_information.calories.should.equal(70);
-                    //id = res.body.id;
-                    done();
-                }
-            })
-    });
+        let user = {
+            "first_name": "Anthony",
+            "last_name": "Lawrence",
+            "email": "Anthony3@gmail.com",
+            "password": "Test@123"
+        }
+
+        auth.email.should.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
+
+    })
 });
 
-//update
-// describe("Unit test for Updating a recepie of a user", function () {
-//     //console.log(str(id));
-//     it("Should return Data of the updated recepie", function (done) {
-//         server
-//             .put("/recipie/2b2be7cb-e0f8-477e-9235-45241bf450a6")
-//             .auth('Anthony3@gmail.com', 'Test@123')
-//             .send({
-//                 "title": "Paneer Tikka",
-//                 "cook_time_in_min": 35,
-//                 "prep_time_in_min": 10,
-//                 "total_time_in_min": 15,
-//                 "cusine": "Indian",
-//                 "ingredients": [
-//                                 "Paneer",
-//                                 "Musturd seeds",
-//                                 "Yogurt"
-//                                ],
-//                 "servings": 3,
-//                 "steps": [
-//                             {
-//                                "position": 1,
-//                                "item": "Open frozen packet and heat it for 3 mins"
-//                             },
-//                             {
-//                                "position": 2,
-//                                "item": "Open frozen packet and heat it for 3 mins"
-//                             }
-//                         ],
-//                 "nutritionInformation": {
-//                             "calories": 700,
-//                             "cholesterol_in_mg": 55.5,
-//                             "sodium_in_mg": 80,
-//                             "carbohydrates_in_grams": 150,
-//                             "protein_in_grams": 7
-//                         }
-//             })
+describe("Unit test to get user", () => {
 
-//             .end(function (err, res) {
-//                 if (!err) {
-//                     (res).should.have.status(200);
-//                     ///(res).body.title.should.equal('Paneer Tikka');
-//                     //(res).body.steps.position.equal(1);
-//                     console.log(res.body);
-//                     //(res).body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins')
-//                     //res.body.nutrition_information.calories.should.equal(70);
-//                     //id = res.body.id;
-//                     done();
-//                 }
-//             })
-//     });
+    it("should return false if invalid", () => {
 
-// });
+        let auth = {
+            "email": "Anthony@gmail.com",
+            "password": "Test@123"
+        }
 
+        let user = {
+            "first_name": "Anthony",
+            "last_name": "Lawrence",
+            "email": "Anthony3@gmail.com",
+            "password": "Test@123"
+        }
 
-describe("Unit test for updating a recepie", function () {
+        auth.email.should.not.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
 
-    it("should return Data of the updated recepie", function (done) {
+    })
+});
 
-        server
-            .auth('Anthony3@gmail.com', 'Test@123')
-            .put("/recipie/"+id)
-            .send({
-                "title": "Paneer",
-                "cook_time_in_min": 15,
-                "prep_time_in_min": 10,
-                "total_time_in_min": 15,
-                "cusine": "Indian",
-                "ingredients": [
-                    "Paneer",
-                    "Musturd seeds"
-                ],
-                "servings": 3,
-                "steps": [{
-                    "position": 1,
-                    "item": "Open frozen packet and heat it for 3 mins"
-                }],
-                "nutritionInformation": {
-                    "calories": 700,
-                    "cholesterol_in_mg": 55.5,
-                    "sodium_in_mg": 80,
-                    "carbohydrates_in_grams": 150,
-                    "protein_in_grams": 7
-                }
-            })
-            .end(function (err, res) {
-                console.log(res.body);
-                (res).should.have.status(200);
-                res.body.title.should.equal('Paneer');
-                //res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
-                res.body.nutrition_information.calories.should.equal(700);
-                done();
-            })
-    });
+describe("Unit test to add recipe", () => {
+
+    it("should return false if data is invalid", () => {
+
+        let auth = {
+            "email": "Anthony3@gmail.com",
+            "password": "Test@123"
+        }
+
+        let recipe = {
+            "title": "Paneer6",
+            "cook_time_in_min": 60,
+            "prep_time_in_min": 70,
+            "total_time_in_min": 150,
+            "cusine": "Indian",
+            "servings": 4,
+            "ingredients": [
+                "2 Tea Spoon Oils",
+                "currly leaves"
+            ],
+            "steps": [{
+                "position": 1,
+                "items": "some text here"
+            }],
+            "nutritionInformation": {
+                "calories": 102,
+                "cholesterol_in_mg": 100,
+                "sodium_in_mg": 100,
+                "carbohydrates_in_grams": 100,
+                "protein_in_grams": 100
+            }
+        }
+        var rem = recipe.cook_time_in_min % 5;
+        var rem1 = recipe.prep_time_in_min % 5;
+
+        auth.email.should.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
+        rem.should.equal(0);
+        rem1.should.equal(0);
+
+    })
 });
 
 
 
-describe("Unit test for deleting a recepie", function () {
 
-    it("should return deleted recipe =1 ", function (done) {
 
-        server
-            .auth('Anthony3@gmail.com', 'Test@123')
-            .delete("/recipie/"+id)
-            .end(function (err, res) {
-                console.log(res.body);
-                (res).should.have.status(200);
-                res.body.deletedRecipe.should.equal(1);
-                //res.body.steps[0].item.should.equal('Open frozen packet and heat it for 3 mins');
-                //res.body.nutrition_information.calories.should.equal(700);
-                done();
-            })
-    });
+describe("Unit test to validate input file", () => {
+
+    it("should return false if invalid", () => {
+
+        let auth = {
+            "email": "Anthony@gmail.com",
+            "password": "Test@123"
+        }
+        var words = path.basename('./data/download.jpeg').split('.');
+        var req = true;
+        if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
+            req = false;
+        }
+
+        auth.email.should.not.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
+        req.should.equal(true)
+
+    })
+});
+
+describe("Unit test to validate input file", () => {
+
+    it("should return false if invalid", () => {
+
+        let auth = {
+            "email": "Anthony@gmail.com",
+            "password": "Test@123"
+        }
+        var words = path.basename('./Model/user.js').split('.');
+        var req = true;
+        if (words[1] != 'jpg' && words[1] != 'jpeg' && words[1] != 'png') {
+            req = false;
+        }
+
+        auth.email.should.not.equal('Anthony3@gmail.com');
+        auth.password.should.equal('Test@123');
+        req.should.equal(false);
+
+    })
 });

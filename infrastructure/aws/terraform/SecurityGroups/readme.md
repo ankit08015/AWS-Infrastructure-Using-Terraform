@@ -25,7 +25,7 @@
 
 - Run it to check version
 
-     `terraform --version ` 
+     `terraform --version `
 
 #### B- Create infrastructure using terraform
 
