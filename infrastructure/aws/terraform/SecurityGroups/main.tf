@@ -363,10 +363,10 @@ variable "bucketname" {
 
 
 
-// variable "codeDeploybucket" {
-//   type = string
-//   default = "codedeploy.dev.ajaygoel.me"
-// }
+variable "codeDeploybucket" {
+  type = string
+  default = "codedeploy.dev.ajaygoel.me"
+}
 
 
 // resource "aws_s3_bucket" "bucket2" {
@@ -611,6 +611,18 @@ variable "bucketname" {
 //   role       = "${aws_iam_role.Role1.name}"
 //   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess2.arn}"
 // }
+
+// // Assignment8
+
+// // data "aws_iam_policy" "ReadOnlyAccess3" {
+// //   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
+// // }
+// // resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach2" {
+// //   role       = "${aws_iam_role.Role1.name}"
+// //   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess3.arn}"
+// // }
+
+// // Assignment8
 
 // resource "aws_iam_role_policy" "CloudWatchLogsPolicy" {
 //   name = "CloudWatchLogsPolicy"
