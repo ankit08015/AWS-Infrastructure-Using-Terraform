@@ -154,28 +154,33 @@ variable "bucketname" {
 // }
 
 
-// resource "aws_dynamodb_table" "basic-dynamodb-table" {
-//   name           = var.dynamo_table_name
-//   read_capacity  = 5
-//   write_capacity = 5
-//   hash_key       = "id"
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = var.dynamo_table_name
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "id"
+  range_key      = "user_email"
   
-//   attribute {
-//     name = "id"
-//     type = "S"
-//   }
+  attribute {
+    name = "id"
+    type = "S"
+  }
 
+  attribute {
+    name = "user_email"
+    type = "S"
+  }
 
-//   ttl {
-//     attribute_name = "TimeToExist"
-//     enabled        = true
-//   }
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = true
+  }
 
-//   tags = {
-//     Name        = var.dynamo_table_name
-//     Environment = "development"
-//   }
-// }
+  tags = {
+    Name        = var.dynamo_table_name
+    Environment = "development"
+  }
+}
 
 // data "aws_availability_zones" "available" {}
 
