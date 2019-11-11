@@ -1,30 +1,84 @@
 const AWS = require('aws-sdk')
 var ses = new AWS.SES({
-   region: 'us-east-1'
+    region: 'us-east-1'
 });
 
-const docClient = new AWS.DynamoDB.DocumentClient({region:'us-east-1'});
-exports.handler = (event,context,callback) => {
-  var params ={
-    Item:{
-    id:event.Records[0].Sns.MessageId,
-    message:event.Records[0].Sns.Message
-  },
-    TableName:'csye'
-  };
-  docClient.put(params,function(err, data){
-    if(err) {
-      callback(err,null)
-    } else {
-      callback(null,data);
+const docClient = new AWS.DynamoDB.DocumentClient({
+    region: 'us-east-1'
+});
+exports.handler = (event, context, callback) => {
+    var params = {
+        Item: {
+            id: event.Records[0].Sns.MessageId,
+            //user_email: event.Records[0].Sns.user_email,
+            //message: event.Records[0].Sns.Message
+            message: event.Records[0].Sns.Message
+        },
+        TableName: 'csye2'
+    };
+    
+    function putCheck() {
+        return new Promise(function(resolve, reject) {
+            docClient.put(params, function(err, data) {
+                if (err) {
+                    reject(new Error('Ooops, something broke!'));
+                } else {
+                    resolve(data);
+                }
+            });
+        });
     }
-  });
-  console.log("Incoming: ", event);
-   // var output = querystring.parse(event);
+    
+    // docClient.put(params, function(err, data) {
+    //     if (err) {
+    //         callback(err, null)
+    //     } else {
+    //         callback(null, data);
+    //     }
+    // });
 
-    var eParams = {
+    const params2 = {
+        TableName: 'csye2',
+        KeyConditionExpression: 'id = :i',
+        ExpressionAttributeValues: {
+            ':i': event.Records[0].Sns.MessageId
+        }
+    };
+
+
+    function getRandomNumber() {
+        return new Promise(function(resolve, reject) {
+            docClient.query(params2, function(err, data) {
+                if (err) {
+                    reject(new Error('Ooops, something broke!'));
+                } else {
+                    resolve(data);
+                }
+            });
+        });
+    }
+    let number;
+    async function logNumber() {
+        //let number;
+        number = await getRandomNumber();
+        console.log('after await', number.Items.length);
+        if(number.Items.length==0){
+            let number2;
+            number2 = await putCheck();
+            console.log(number2);
+            await sendEmail(event.Records[0].Sns.Message);
+        }
+        
+    }
+    logNumber();
+    console.log('after async call');
+    
+
+    function sendEmail(to_email) {
+        return new Promise(function(resolve, reject) {
+            var eParams = {
         Destination: {
-            ToAddresses: ["goel.aj@northeastern.edu"]
+            ToAddresses: [to_email]
         },
         Message: {
             Body: {
@@ -38,19 +92,15 @@ exports.handler = (event,context,callback) => {
         },
         Source: "goel.aj@northeastern.edu"
     };
-
-    console.log('===SENDING EMAIL===');
-    var email = ses.sendEmail(eParams, function(err, data){
-        if(err) console.log(err);
-        else {
-            console.log("===EMAIL SENT===");
-            console.log(data);
-
-
-            console.log("EMAIL CODE END");
-            console.log('EMAIL: ', email);
-            context.succeed(event);
-
-        }
-    });
+            ses.sendEmail(eParams, function(err, data2) {
+                if (err) {
+                    reject(new Error('Ooops, something broke!'));
+                } else {
+                    //console.log("$%$%#$%$#%"+to_email)
+                    context.succeed(event);
+                    resolve(data2);
+                }
+            });
+        });
+    }
 }
