@@ -17,14 +17,25 @@ exports.handler = (event, context, callback) => {
         TableName: 'csye'
     };
     
+    function putCheck() {
+        return new Promise(function(resolve, reject) {
+            docClient.put(params, function(err, data) {
+                if (err) {
+                    reject(new Error('Ooops, something broke!'));
+                } else {
+                    resolve(data);
+                }
+            });
+        });
+    }
     
-    docClient.put(params, function(err, data) {
-        if (err) {
-            callback(err, null)
-        } else {
-            callback(null, data);
-        }
-    });
+    // docClient.put(params, function(err, data) {
+    //     if (err) {
+    //         callback(err, null)
+    //     } else {
+    //         callback(null, data);
+    //     }
+    // });
 
     const params2 = {
         TableName: 'csye',
@@ -48,10 +59,16 @@ exports.handler = (event, context, callback) => {
     }
     let number;
     async function logNumber() {
-        let number;
+        //let number;
         number = await getRandomNumber();
-        console.log('after await', number.Items[0].message);
-        await sendEmail(number.Items[0].message);
+        console.log('after await', number.Items.length);
+        if(number.Items.length==0){
+            let number2;
+            number2 = await putCheck();
+            console.log(number2);
+            await sendEmail(event.Records[0].Sns.Message);
+        }
+        
     }
     logNumber();
     console.log('after async call');
@@ -66,7 +83,7 @@ exports.handler = (event, context, callback) => {
         Message: {
             Body: {
                 Text: {
-                    Data: "Hey! What is up?"
+                    Data: "Hey! message?"
                 }
             },
             Subject: {
@@ -79,7 +96,7 @@ exports.handler = (event, context, callback) => {
                 if (err) {
                     reject(new Error('Ooops, something broke!'));
                 } else {
-                    console.log("$%$%#$%$#%"+to_email)
+                    //console.log("$%$%#$%$#%"+to_email)
                     context.succeed(event);
                     resolve(data2);
                 }

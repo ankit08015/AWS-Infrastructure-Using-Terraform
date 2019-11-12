@@ -111,7 +111,7 @@ router.post('/user', (req, res) => {
   sdc.increment('userPost.counter');
   sdc.gauge('some.gauge', 10); // Set gauge to 10
   var timer = new Date();
-//  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
   sdc.histogram('some.histogram', 10, {
     foo: 'bar'
   }) // Histogram with tags
@@ -162,7 +162,7 @@ router.post('/user', (req, res) => {
                     "account_updated": gig.updated_date,
                   }),
                   logger.info("Created user Successfully and returns status code 201"),
-                  sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
+                  sdc.timing('DBuserPost.timer', DBtimer) // Calculates time diff
                 )
                 .catch(err => {
                   console.log(err),
@@ -187,7 +187,7 @@ router.post('/user', (req, res) => {
           logger.error("User email already exists");
       }
     });
-    sdc.timing('userPost.timer',timer); // Calculates time diff
+  sdc.timing('userPost.timer', timer); // Calculates time diff
 });
 
 
@@ -240,7 +240,7 @@ router.get('/user/self', (req, res) => {
                 "account_updated": data[0].updated_date
               }),
               logger.info("Got the user with email " + data[0].email + "successfully"),
-              sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
+              sdc.timing('DBuserPost.timer', DBtimer) // Calculates time diff
           } else {
             res.status(401).json({
                 message: 'Unauthorized Access Denied'
@@ -260,7 +260,7 @@ router.get('/user/self', (req, res) => {
       console.log(err),
         logger.error(err)
     })
-    sdc.timing('userGet.timer',timer); // Calculates time diff
+  sdc.timing('userGet.timer', timer); // Calculates time diff
 
 });
 
@@ -335,7 +335,7 @@ router.put('/user/self', function (req, res, next) {
                           }
                         },
                         logger.info("Updated data for the user with email : " + email),
-                        sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
+                        sdc.timing('DBuserPost.timer', DBtimer) // Calculates time diff
                       )
                       .then(function ([rowsUpdate, [updatedDetail]]) {
                         res.json(updatedDetail),
@@ -388,7 +388,45 @@ router.put('/user/self', function (req, res, next) {
       logger.error(err)
       console.log(err)
     })
-    sdc.timing('userPut.timer',timer); // Calculates time diff
+  sdc.timing('userPut.timer', timer); // Calculates time diff
 });
 
 module.exports = router;
+
+var AWS = require('aws-sdk');
+// Set region
+AWS.config.update({
+  region: 'us-east-1'
+});
+
+
+const dotenv = require('dotenv');
+dotenv.config();
+
+router.post('/myrecipes', (req, res) => {
+  const SNS_TOPIC_ARN = process.env.topic_arn;
+  const sns = new AWS.SNS();
+
+  // Scaffold a self-executing async function (so we can use await!)
+  (async () => {
+    try {
+
+      // Create the event object
+      const publishParameters = {
+        Message: 'goel.aj@northeastern.edu',
+        TopicArn: SNS_TOPIC_ARN
+      };
+
+      // Publish and wait using a promise
+      const result = await sns.publish(publishParameters).promise();
+      // Log the result
+      console.log(`Published to ${SNS_TOPIC_ARN}! ${result}`);
+      res.status(200).send(JSON.stringify({
+        "image": "NO IMAGE PRESENT"
+      }));
+    } catch (error) {
+      // Log any errors we get here.
+      console.error(`Unable to publish to SNS: ${error.stack}`);
+    }
+  })();
+});
