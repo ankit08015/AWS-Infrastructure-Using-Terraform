@@ -38,9 +38,9 @@ app.get('/', (request, response) => {
 });
 
 //app.get('/v2',(req,res) => res.send('INDEX'));
-app.use('/v1',require('./Routes/queries'))
-app.use('/v1',require('./Routes/recipie'))
-app.use('/v1',require('./Routes/upload'))
+app.use('/v2',require('./Routes/queries'))
+app.use('/v2',require('./Routes/recipie'))
+app.use('/v2',require('./Routes/upload'))
 //app.get('/v1/user/self', require('./Routes/queries'))
 //app.post('/v1/user', db.createUser)
 //app.put('/v1/user/self', db.updateUser)
