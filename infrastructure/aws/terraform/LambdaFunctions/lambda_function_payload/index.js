@@ -8,9 +8,11 @@ const docClient = new AWS.DynamoDB.DocumentClient({
 });
 
 exports.handler = (event, context, callback) => {
+    
+            var message_data2=event.Records[0].Sns.Message.split(" ");
     var params = {
         Item: {
-            id: event.Records[0].Sns.MessageId,
+            id: message_data2[0],
             //user_email: event.Records[0].Sns.user_email,
             //message: event.Records[0].Sns.Message
             message: event.Records[0].Sns.Message,
@@ -36,7 +38,7 @@ exports.handler = (event, context, callback) => {
         TableName: 'csye',
         KeyConditionExpression: 'id = :i',
         ExpressionAttributeValues: {
-            ':i': event.Records[0].Sns.MessageId
+            ':i': message_data2[0]
         }
     };
 
