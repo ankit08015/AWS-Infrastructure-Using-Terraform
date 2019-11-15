@@ -402,31 +402,124 @@ AWS.config.update({
 
 const dotenv = require('dotenv');
 dotenv.config();
-
 router.post('/myrecipes', (req, res) => {
-  const SNS_TOPIC_ARN = process.env.topic_arn;
-  const sns = new AWS.SNS();
 
-  // Scaffold a self-executing async function (so we can use await!)
-  (async () => {
-    try {
+  // check for basic auth header
+  if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+    return res.status(401).json({
+        message: 'Missing Authorization Header'
+      }),
+      logger.error("Recepie Post method: Header authorization Error Status : 401");
+  }
 
-      // Create the event object
-      const publishParameters = {
-        Message: 'goel.aj@northeastern.edu',
-        TopicArn: SNS_TOPIC_ARN
-      };
+  // verify auth credentials
+  const base64Credentials = req.headers.authorization.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [email, password] = credentials.split(':');
+  //const result;
 
-      // Publish and wait using a promise
-      const result = await sns.publish(publishParameters).promise();
-      // Log the result
-      console.log(`Published to ${SNS_TOPIC_ARN}! ${result}`);
-      res.status(200).send(JSON.stringify({
-        "image": "NO IMAGE PRESENT"
-      }));
-    } catch (error) {
-      // Log any errors we get here.
-      console.error(`Unable to publish to SNS: ${error.stack}`);
-    }
-  })();
+  db.user.findAll({
+      where: {
+        email: email
+      }
+    })
+    .then(data => {
+      console.log(data);
+      if (data.length <= 0) {
+        return res.status(400).json({
+            "message": "Email doesn't exist"
+          }),
+          logger.error("ALL Recepie POST method: Status code :400 - Email " + email + " doesn't exist");
+      }
+      let user_authorized = false;
+      const author_id = data[0].id;
+      if (data[0] != undefined) {
+        const db_password = data[0].password;
+        bcrypt.compare(password, db_password, (err, result) => {
+
+          //result= true;
+          if (err) {
+            res.status(400).json({
+                message: 'Bad Request'
+              }),
+              logger.error("ALL Recepie Post method : Status code :400 - Bad request : " + err);
+          } else if (result) {
+
+            db.recipe.findAll({
+                where: {
+                  userId: author_id
+                }
+              })
+              .then(data => {
+                if (data.length > 0) {
+
+                  var array_id = [];
+                  for (var i = 0; i < data.length; i++) {
+                    array_id.push(data[i].id);
+                  }
+
+                  // const SNS_TOPIC_ARN = process.env.topic_arn;
+                  // const sns = new AWS.SNS();
+
+                  // // Scaffold a self-executing async function (so we can use await!)
+                  // (async () => {
+                  //   try {
+                  //     // Create the event object
+                  //     const publishParameters = {
+                  //       Id: author_id,
+                  //       Message: data,
+                  //       TopicArn: SNS_TOPIC_ARN
+                  //     };
+
+                  //     // Publish and wait using a promise
+                  //     const result = await sns.publish(publishParameters).promise();
+                  //     // Log the result
+                  //     console.log(`Published to ${SNS_TOPIC_ARN}! ${result}`);
+                  //     res.status(200).send(JSON.stringify({
+                  //       "Request": "SENT"
+                  //     }));
+                  //   } catch (error) {
+                  //     // Log any errors we get here.
+                  //     console.error(`Unable to publish to SNS: ${error.stack}`);
+                  //   }
+                  // })();
+
+                  res.header("Content-Type", 'application/json');
+
+                  res.status(200).send(JSON.stringify(
+                      array_id
+                    )),
+                    logger.info("Recipe Post method : Posted the recipie " + data.title + " for the authorized user with email " + email + " successfully")
+                } else {
+                  res.status(200).send(JSON.stringify({
+                    "message": "No recipe for this user"
+                  }))
+                }
+
+
+
+
+              })
+              .catch(err => {
+                res.status(406).json({
+                    message: err.message
+                  }),
+                  logger.error("ALL Recipe POST method : Error with status code : 406. Error : " + err.message)
+              });
+
+          } else {
+            res.status(401).json({
+                message: 'Unauthorized Access Denied'
+              }),
+              logger.error("Recipe Post method : Error while posting the recipe error code - 401, Unauthorized Access Denied")
+          }
+        })
+      } else {
+        res.status(400).json({
+            "message": "Email doesn't exist"
+          }),
+          logger.error("Recipe Post method : Error while posting the recipe error code - 400, Email " + email + " doesn't exist") // return wrong email
+      }
+    })
+    .catch();
 });
