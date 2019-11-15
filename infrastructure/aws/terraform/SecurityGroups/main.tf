@@ -1,4 +1,3 @@
-
 provider "aws" {
     region = var.region
     #profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
@@ -159,15 +158,9 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "id"
-  range_key      = "user_email"
   
   attribute {
     name = "id"
-    type = "S"
-  }
-
-  attribute {
-    name = "user_email"
     type = "S"
   }
 
@@ -264,31 +257,18 @@ resource "aws_instance" "instance" {
   user_data = <<EOF
 #!/bin/bash
 sudo systemctl start httpd
-
 mkdir /home/centos/.aws
-
 sudo touch /home/centos/.aws/config
-
 sudo touch /home/centos/.aws/credentials
-
 sudo touch /home/centos/.env
-
 echo "DATABASE = csye6225" >>  /home/centos/.env
-
 echo "USER_DATA = dbuser" >>  /home/centos/.env
-
 echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
-
 echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
-
 echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
-
 sudo mkdir -p /usr/share/collectd/
-
 sudo touch /usr/share/collectd/types.db
-
   ##### END OF USER DATA
-
   EOF
 }
 
@@ -320,16 +300,6 @@ resource "aws_s3_bucket" "bucket" {
     }
   }
 }
-
-
-///// ASSSIGNMENT 8
-
-module "script2.tf" {
-  source = "/home/ajaygoel/CSYE6225/dev/ccwebapp/infrastructure/aws/terraform/SecurityGroups"
-}
-
-/// ASSSIGNMENT 8
-
 
 data "aws_iam_user" "selected" {
   user_name = "Administrator"
@@ -429,12 +399,10 @@ resource "aws_iam_policy" "policy" {
 }
 POLICY              
 }
-
 resource "aws_iam_user_policy_attachment" "upload-to-s3-attach" {
   user       = "${data.aws_iam_user.select.user_name}"
   policy_arn = "${aws_iam_policy.policy.arn}"
 }
-
 resource "aws_iam_policy" "policy-code-deploy" {
   name = "CircleCI-Code-Deploy"
   policy = <<POLICY
@@ -476,12 +444,10 @@ resource "aws_iam_policy" "policy-code-deploy" {
 }
 POLICY              
 }
-
 resource "aws_iam_user_policy_attachment" "code-Deploy-attach" {
   user       = "${data.aws_iam_user.select.user_name}"
   policy_arn = "${aws_iam_policy.policy-code-deploy.arn}"
 }
-
 resource "aws_iam_policy" "policy-circleci-ec2-ami" {
   name = "circleci-ec2-ami"
   policy = <<POLICY
@@ -529,20 +495,13 @@ resource "aws_iam_policy" "policy-circleci-ec2-ami" {
 }
 POLICY              
 }
-
 resource "aws_iam_user_policy_attachment" "circleci-ec2-ami-attach" {
   user       = "${data.aws_iam_user.select.user_name}"
   policy_arn = "${aws_iam_policy.policy-circleci-ec2-ami.arn}"
 }
-
-
-
-
 # Code until line 426 working fine. Trying role now.
-
 resource "aws_iam_role" "Role1" {
   name = "CodeDeployEC2ServiceRole"    
-
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -558,23 +517,17 @@ resource "aws_iam_role" "Role1" {
   ]
 }
 EOF
-
   tags = {
       tag-key = "CodeDeployRole"
   }
 }
-
-
 resource "aws_iam_instance_profile" "EC2_instance_profile" {
   name = "EC2_instance_profile"
   role = "${aws_iam_role.Role1.name}"
 }
-
-
 resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
   name = "CodeDeploy-EC2-S3"
   role = "${aws_iam_role.Role1.id}"
-
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -598,7 +551,6 @@ resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
 }
 EOF
 }
-
 data "aws_iam_policy" "ReadOnlyAccess" {
   arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
@@ -606,7 +558,6 @@ resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach" {
   role       = "${aws_iam_role.Role1.name}"
   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess.arn}"
 }
-
 data "aws_iam_policy" "ReadOnlyAccess2" {
   arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
 }
@@ -614,23 +565,9 @@ resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach2" {
   role       = "${aws_iam_role.Role1.name}"
   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess2.arn}"
 }
-
-// Assignment8
-
-// data "aws_iam_policy" "ReadOnlyAccess3" {
-//   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
-// }
-// resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach2" {
-//   role       = "${aws_iam_role.Role1.name}"
-//   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess3.arn}"
-// }
-
-// Assignment8
-
 resource "aws_iam_role_policy" "CloudWatchLogsPolicy" {
   name = "CloudWatchLogsPolicy"
   role = "${aws_iam_role.Role1.id}"
-
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -651,14 +588,9 @@ resource "aws_iam_role_policy" "CloudWatchLogsPolicy" {
 }
 EOF
 }
-
-
-
 ## CodeDeployServiceRole
-
 resource "aws_iam_role" "Role2" {
   name = "CodeDeployServiceRole"    
-
 assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -675,37 +607,26 @@ assume_role_policy = <<EOF
 }
 EOF
 }
-
   resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
   role       = "${aws_iam_role.Role2.name}"
-
 }
-
 resource "aws_iam_instance_profile" "Deploy_instance_profile" {
   name = "Deploy_instance_profile"
   role = "${aws_iam_role.Role2.name}"
 }
-
 resource "aws_codedeploy_app" "csye6225-webapp1" {
   compute_platform = "Server"
   name             = "csye6225-webapp"
 }
-
-
-data "aws_iam_role" "getRole" {
-  name = "${aws_iam_role.Role2.name}"
-}
-
-
-
+// data "aws_iam_role" "getRole" {
+//   name = "${aws_iam_role.Role2.name}"
+// }
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
   deployment_config_name = "CodeDeployDefault.AllAtOnce"
   deployment_group_name = "csye6225-webapp-deployment"
-  service_role_arn      = "${data.aws_iam_role.getRole.arn}"
-
-
+  service_role_arn      = "${aws_iam_role.Role2.arn}"
   ec2_tag_set {
     ec2_tag_filter {
       key   = "Name"
@@ -713,22 +634,18 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
       value = "csye-instance"
     }
   }
-
   auto_rollback_configuration {
     enabled = false
     events  = ["DEPLOYMENT_FAILURE"]
   }
-
   alarm_configuration {
     alarms  = ["my-alarm-name"]
     enabled = false
   }
 }
-
 resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
   name = "csye6225_fall2019"
 }
-
 resource "aws_cloudwatch_log_stream" "webapp" {
   name           = "webapp"
   log_group_name = "${aws_cloudwatch_log_group.csye6225_fall2019.name}"
