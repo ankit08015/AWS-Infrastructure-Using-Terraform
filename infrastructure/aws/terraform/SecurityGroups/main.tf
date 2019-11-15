@@ -667,29 +667,42 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   deployment_group_name = "csye6225-webapp-deployment"
   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
 
+  auto_rollback_configuration {
+    enabled = true
+    events  = ["DEPLOYMENT_FAILURE"]
+  }
+
+  blue_green_deployment_config {
+    deployment_ready_option {
+      action_on_timeout = "CONTINUE_DEPLOYMENT"
+    }
+
+    terminate_blue_instances_on_deployment_success {
+      action                           = "TERMINATE"
+      termination_wait_time_in_minutes = 5
+    }
+  }
+
   deployment_style {
     deployment_option = "WITH_TRAFFIC_CONTROL"
     deployment_type   = "BLUE_GREEN"
   }
 
+  # ecs_service {
+  #   cluster_name = "${aws_ecs_cluster.example.name}"
+  #   service_name = "${aws_ecs_service.example.name}"
+  # }
+
   load_balancer_info {
-    elb_info {
-      name = "${aws_lb.main.name}"
-    }
-  }
+    target_group_pair_info {
+      prod_traffic_route {
+        listener_arns = ["${aws_lb_listener.main.arn}"]
+      }
 
-  blue_green_deployment_config {
-    deployment_ready_option {
-      action_on_timeout    = "STOP_DEPLOYMENT"
-      wait_time_in_minutes = 60
-    }
 
-    green_fleet_provisioning_option {
-      action = "DISCOVER_EXISTING"
-    }
-
-    terminate_blue_instances_on_deployment_success {
-      action = "KEEP_ALIVE"
+      target_group {
+        name = "${aws_lb_target_group.main.name}"
+      }
     }
   }
 }
