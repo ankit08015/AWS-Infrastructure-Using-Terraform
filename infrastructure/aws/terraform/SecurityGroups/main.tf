@@ -84,8 +84,13 @@ variable "bucketname" {
 variable "zone-id" {
   type = string
   default = ""
-  
 }
+
+variable "cert-arn" {
+  type = string
+  default = ""
+}
+
 
 
 # Application Security Group
@@ -103,6 +108,15 @@ resource "aws_security_group" "allow_tls" {
     description = "PORT 80"
     cidr_blocks = [var.cidr_block_80]
   }
+
+  #   // ALLOW PORT 80
+  # ingress {
+  #   from_port   = 80
+  #   to_port     = 80
+  #   protocol    = "tcp"
+  #   description = "PORT 80"
+  #   cidr_blocks = [var.cidr_block_80]
+  # }
 
   // ALLOW PORT 443
   ingress {
@@ -728,8 +742,11 @@ resource "aws_lb" "main" {
 
 resource "aws_lb_listener" "main" {
   load_balancer_arn = "${aws_lb.main.arn}"
-  port              = "80"
-  protocol          = "HTTP"
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.cert-arn
+
   default_action {
     type             = "forward"
     target_group_arn = "${aws_lb_target_group.main.arn}"
@@ -850,6 +867,16 @@ resource "aws_security_group" "lb" {
     to_port = 80
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
+  # ALLOW PORT 443
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    description = "PORT 443"
+    cidr_blocks = [var.cidr_block_443]
   }
 }
 
