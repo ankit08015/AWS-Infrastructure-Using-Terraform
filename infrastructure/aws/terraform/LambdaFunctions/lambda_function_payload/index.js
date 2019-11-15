@@ -85,12 +85,16 @@ exports.handler = (event, context, callback) => {
 
     function sendEmail(to_email) {
         var sender = "goel.aj@northeastern.edu";
-        var email_subject = 'Recipe Links for ' + to_email;
         
+        var message_data = new Array();
+        message_data=event.Records[0].Sns.Message.split(" ");
+        console.log("%%%%%%%"+event.Records[0].Sns.Message);
+        to_email=message_data[0];
+        var email_subject = 'Recipe Links for ' + to_email;
         var links = "";
-            for (var i = 0; i < event.Records[0].Sns.Message.length; i++) {
-                links = links + "<a href=\"https://localhost:3000/v1/recipie/" + event.Records[0].Sns.Message[i]+"\">" + 
-                "https://localhost:3000/v1/recipie/" + event.Records[0].Sns.Message[i]+"</a>";
+            for (var i = 1; i < message_data.length; i++) {
+                links = links + "<a href=\"https://localhost:3000/v1/recipie/" + message_data[i]+"\">" + 
+                "https://localhost:3000/v1/recipie/" + message_data[i]+"</a>";
                 links = links+ "<br><br>"
                 //console.log(links);
             }

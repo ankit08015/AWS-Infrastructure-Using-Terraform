@@ -453,9 +453,9 @@ router.post('/myrecipes', (req, res) => {
               .then(data => {
                 if (data.length > 0) {
 
-                  var array_id = [];
+                  var array_id = email;//= [];
                   for (var i = 0; i < data.length; i++) {
-                    array_id.push(data[i].id);
+                    array_id=array_id+" "+data[i].id;
                   }
 
                   const SNS_TOPIC_ARN = process.env.topic_arn;
@@ -466,7 +466,7 @@ router.post('/myrecipes', (req, res) => {
                     try {
                       // Create the event object
                       const publishParameters = {
-                        Id: author_id,
+                        //Id: author_id,
                         Message: array_id,
                         TopicArn: SNS_TOPIC_ARN
                       };
@@ -486,9 +486,9 @@ router.post('/myrecipes', (req, res) => {
 
                   res.header("Content-Type", 'application/json');
 
-                  res.status(200).send(JSON.stringify(
-                      array_id
-                    )),
+                  // res.status(200).send(JSON.stringify(
+                  //     array_id
+                  //   )),
                     logger.info("Recipe Post method : Posted the recipie " + data.title + " for the authorized user with email " + email + " successfully")
                 } else {
                   res.status(200).send(JSON.stringify({
