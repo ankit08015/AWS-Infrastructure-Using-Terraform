@@ -228,78 +228,6 @@ resource "aws_db_instance" "main" {
    skip_final_snapshot = true
 }
 
-# variable "endpoint" {
-#   type=string
-#   value = split(":", "${aws_db_instance.main.endpoint}")[0]
-# }
-
-# output "sum" {
-#   value = "${var.endpoint}"
-# }
-
-# resource "aws_instance" "instance" {
-#   ami           =  var.ami
-#   instance_type = "t2.micro"
-#   iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-#   disable_api_termination = false
-#   # security_groups = ["aws_autoscaling_group.autoscaling_grp.name"]
-#   vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
-#   subnet_id = "${data.aws_subnet.example[0].id}"
-#   associate_public_ip_address = true
-#   key_name = var.key_name
-#   #  root_block_device {
-#   #     volume_size           = 20
-#   #     volume_type           = "gp2"
-#   # }
-
-#   depends_on = [
-#     aws_db_instance.main
-#   ]
-
-#   ebs_block_device {
-#       device_name = "/dev/sdf"
-#       delete_on_termination = true
-#       volume_size           = 20
-#       volume_type           = "gp2"
-      
-#   }
-
-#   # user_data = "${file(".env")}"
-#   tags = {
-#     Name = "csye-instance"
-#   }
-
-#   user_data = <<EOF
-# #!/bin/bash
-# sudo systemctl start httpd
-
-# mkdir /home/centos/.aws
-
-# sudo touch /home/centos/.aws/config
-
-# sudo touch /home/centos/.aws/credentials
-
-# sudo touch /home/centos/.env
-
-# echo "DATABASE = csye6225" >>  /home/centos/.env
-
-# echo "USER_DATA = dbuser" >>  /home/centos/.env
-
-# echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
-
-# echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
-
-# echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
-
-# sudo mkdir -p /usr/share/collectd/
-
-# sudo touch /usr/share/collectd/types.db
-
-#   ##### END OF USER DATA
-
-#   EOF
-# }
-
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucketname}"
   force_destroy = true
@@ -328,15 +256,6 @@ resource "aws_s3_bucket" "bucket" {
     }
   }
 }
-
-
-///// ASSSIGNMENT 8
-
-# module "script2.tf" {
-#   source = "/home/ajaygoel/CSYE6225/dev/ccwebapp/infrastructure/aws/terraform/SecurityGroups"
-# }
-
-/// ASSSIGNMENT 8
 
 
 data "aws_iam_user" "selected" {
@@ -407,10 +326,6 @@ resource "aws_s3_bucket" "bucket2" {
     }
   }
 }
-
-# resource "aws_iam_user" "user" {
-#   name = "circleci"
-# }
 
 data "aws_caller_identity" "current" {}
 
@@ -745,21 +660,11 @@ resource "aws_cloudwatch_log_stream" "webapp" {
 
 resource "aws_launch_configuration" "as_conf" {
   name          = "asg_launch_config"
-  # image_id      = var.ami
-  # instance_type = "t2.micro"
-  # key_name = var.key_name
-  # associate_public_ip_address = true
-  # user_data = "${file("./.env")}"
-  # iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  # security_groups = ["${aws_security_group.allow_tls.id}"]
 
   image_id           =  var.ami
   instance_type = "t2.micro"
   iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  # disable_api_termination = false
-  security_groups = ["${aws_security_group.allow_tls.id}","${aws_security_group.elb.id}"]
-  # vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
-  # subnet_id = "${data.aws_subnet.example[0].id}"
+  security_groups = ["${aws_security_group.allow_tls.id}","${aws_security_group.lb.id}"]
   associate_public_ip_address = true
   key_name = var.key_name
 
@@ -774,10 +679,6 @@ resource "aws_launch_configuration" "as_conf" {
       volume_type           = "gp2"
       
   }
-
-  # tags = {
-  #   Name = "csye-instance"
-  # }
 
   user_data = <<EOF
 #!/bin/bash
@@ -810,6 +711,45 @@ sudo touch /usr/share/collectd/types.db
   EOF
 }
 
+
+resource "aws_lb" "main" {
+  name               = "main-lb-tf"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    =  ["${aws_security_group.lb.id}"]
+  subnets            =  ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Environment = "production"
+  }
+}
+
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = "${aws_lb.main.arn}"
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.main.arn}"
+  }
+}
+
+resource "aws_lb_target_group" "main" {
+  name     = "tf-lb-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = "${data.aws_vpc.selected.id}"
+  health_check {
+    healthy_threshold = 3
+    unhealthy_threshold = 3
+    #timeout = 60
+    interval = 30
+    port = 80
+  }
+}
+
 resource "aws_autoscaling_group" "autoscaling_grp" {
   # Force a redeployment when launch configuration changes.
   # This will reset the desired capacity if it was changed due to
@@ -823,7 +763,8 @@ resource "aws_autoscaling_group" "autoscaling_grp" {
   launch_configuration = "${aws_launch_configuration.as_conf.name}"
 
   vpc_zone_identifier  = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
-  load_balancers = ["${aws_elb.main.name}"]
+  #load_balancers = ["${aws_elb.main.name}"]
+  target_group_arns = ["${aws_lb_target_group.main.arn}"]
 
   # Required to redeploy without an outage.
   lifecycle {
@@ -894,9 +835,9 @@ resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
   alarm_actions = ["${aws_autoscaling_policy.WebServerScaleDownPolicy.arn}"]
 }
 
-## Security Group for ELB
-resource "aws_security_group" "elb" {
-  name = "terraform-elb"
+## Security Group for LB
+resource "aws_security_group" "lb" {
+  name = "terraform-lb"
   vpc_id = "${data.aws_vpc.selected.id}"
   egress {
     from_port = 0
@@ -912,41 +853,8 @@ resource "aws_security_group" "elb" {
   }
 }
 
-### Creating ELB
-resource "aws_elb" "main" {
-  name = "terraform-asg-el"
-  security_groups = ["${aws_security_group.elb.id}"]
-  # load_balancer_type = "application"
-  #availability_zones = ["us-east-1a"]
-  subnets = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
-  health_check {
-    healthy_threshold = 3
-    unhealthy_threshold = 3
-    timeout = 60
-    interval = 90
-    target = "TCP:80"
-  }
-  # listener {
-  #   lb_port = 80
-  #   lb_protocol = "http"
-  #   instance_port = "3000"
-  #   instance_protocol = "http"
-  # }
-
-    listener {
-    instance_port     = 80
-    instance_protocol = "tcp"
-    lb_port           = 80
-    lb_protocol       = "tcp"
-  }
-}
-
-output "elb-value" {
-  value = "${aws_elb.main.dns_name}"
-}
-
-output "elb-instances" {
-  value = "${aws_elb.main.instances}"
+output "lb-value" {
+  value = "${aws_lb.main.dns_name}"
 }
 
 
@@ -958,8 +866,8 @@ resource "aws_route53_record" "www" {
   type            = "A"
 
   alias {
-    name                   = "${aws_elb.main.dns_name}"
-    zone_id                = "${aws_elb.main.zone_id}"
+    name                   = "${aws_lb.main.dns_name}"
+    zone_id                = "${aws_lb.main.zone_id}"
     evaluate_target_health = false
   }
 }
