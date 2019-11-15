@@ -81,6 +81,13 @@ variable "bucketname" {
   default = ""
 }
 
+variable "zone-id" {
+  type = string
+  default = ""
+  
+}
+
+
 # Application Security Group
 
 resource "aws_security_group" "allow_tls" {
@@ -803,13 +810,6 @@ sudo touch /usr/share/collectd/types.db
   EOF
 }
 
-# resource "aws_launch_template" "ec2Launch" {
-#   name_prefix   = "ec2-launch"
-#   image_id      = var.ami
-#   instance_type = "t2.micro"
-# }
-
-
 resource "aws_autoscaling_group" "autoscaling_grp" {
   # Force a redeployment when launch configuration changes.
   # This will reset the desired capacity if it was changed due to
@@ -924,7 +924,7 @@ resource "aws_elb" "main" {
     unhealthy_threshold = 3
     timeout = 60
     interval = 90
-    target = "HTTP:80/"
+    target = "TCP:80"
   }
   # listener {
   #   lb_port = 80
@@ -941,10 +941,6 @@ resource "aws_elb" "main" {
   }
 }
 
-resource "aws_route53_zone" "primary" {
-  name = "ankit-yadav.me"
-}
-
 output "elb-value" {
   value = "${aws_elb.main.dns_name}"
 }
@@ -955,22 +951,16 @@ output "elb-instances" {
 
 
 resource "aws_route53_record" "www" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = var.zone-id
   allow_overwrite = true
-  name            = "ankit-yadav.me"
-  ttl             = 60
-  type            = "NS"
+  name            = ""
+  #ttl             = 60
+  type            = "A"
 
-  # alias {
-  #   name                   = "${aws_elb.main.dns_name}"
-  #   zone_id                = "${aws_elb.main.zone_id}"
-  #   evaluate_target_health = true
-  # }
-    records = [
-    "${aws_route53_zone.primary.name_servers.0}",
-    "${aws_route53_zone.primary.name_servers.1}",
-    "${aws_route53_zone.primary.name_servers.2}",
-    "${aws_route53_zone.primary.name_servers.3}",
-  ]
+  alias {
+    name                   = "${aws_elb.main.dns_name}"
+    zone_id                = "${aws_elb.main.zone_id}"
+    evaluate_target_health = false
+  }
 }
 
