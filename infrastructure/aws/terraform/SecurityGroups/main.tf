@@ -230,67 +230,68 @@ resource "aws_db_instance" "main" {
 #   value = "${var.endpoint}"
 # }
 
-resource "aws_instance" "instance" {
-  ami           =  var.ami
-  instance_type = "t2.micro"
-  iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  disable_api_termination = false
-  vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
-  subnet_id = "${data.aws_subnet.example[0].id}"
-  associate_public_ip_address = true
-  key_name = var.key_name
-  #  root_block_device {
-  #     volume_size           = 20
-  #     volume_type           = "gp2"
-  # }
+# resource "aws_instance" "instance" {
+#   ami           =  var.ami
+#   instance_type = "t2.micro"
+#   iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
+#   disable_api_termination = false
+#   # security_groups = ["aws_autoscaling_group.autoscaling_grp.name"]
+#   vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
+#   subnet_id = "${data.aws_subnet.example[0].id}"
+#   associate_public_ip_address = true
+#   key_name = var.key_name
+#   #  root_block_device {
+#   #     volume_size           = 20
+#   #     volume_type           = "gp2"
+#   # }
 
-  depends_on = [
-    aws_db_instance.main
-  ]
+#   depends_on = [
+#     aws_db_instance.main
+#   ]
 
-  ebs_block_device {
-      device_name = "/dev/sdf"
-      delete_on_termination = true
-      volume_size           = 20
-      volume_type           = "gp2"
+#   ebs_block_device {
+#       device_name = "/dev/sdf"
+#       delete_on_termination = true
+#       volume_size           = 20
+#       volume_type           = "gp2"
       
-  }
+#   }
 
-  # user_data = "${file(".env")}"
-  tags = {
-    Name = "csye-instance"
-  }
+#   # user_data = "${file(".env")}"
+#   tags = {
+#     Name = "csye-instance"
+#   }
 
-  user_data = <<EOF
-#!/bin/bash
-sudo systemctl start httpd
+#   user_data = <<EOF
+# #!/bin/bash
+# sudo systemctl start httpd
 
-mkdir /home/centos/.aws
+# mkdir /home/centos/.aws
 
-sudo touch /home/centos/.aws/config
+# sudo touch /home/centos/.aws/config
 
-sudo touch /home/centos/.aws/credentials
+# sudo touch /home/centos/.aws/credentials
 
-sudo touch /home/centos/.env
+# sudo touch /home/centos/.env
 
-echo "DATABASE = csye6225" >>  /home/centos/.env
+# echo "DATABASE = csye6225" >>  /home/centos/.env
 
-echo "USER_DATA = dbuser" >>  /home/centos/.env
+# echo "USER_DATA = dbuser" >>  /home/centos/.env
 
-echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
+# echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
 
-echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
+# echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
 
-echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
+# echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
 
-sudo mkdir -p /usr/share/collectd/
+# sudo mkdir -p /usr/share/collectd/
 
-sudo touch /usr/share/collectd/types.db
+# sudo touch /usr/share/collectd/types.db
 
-  ##### END OF USER DATA
+#   ##### END OF USER DATA
 
-  EOF
-}
+#   EOF
+# }
 
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucketname}"
@@ -737,14 +738,76 @@ resource "aws_cloudwatch_log_stream" "webapp" {
 
 resource "aws_launch_configuration" "as_conf" {
   name          = "asg_launch_config"
-  image_id      = var.ami
+  # image_id      = var.ami
+  # instance_type = "t2.micro"
+  # key_name = var.key_name
+  # associate_public_ip_address = true
+  # user_data = "${file("./.env")}"
+  # iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
+  # security_groups = ["${aws_security_group.allow_tls.id}"]
+
+  image_id           =  var.ami
   instance_type = "t2.micro"
-  key_name = var.key_name
-  associate_public_ip_address = true
-  user_data = "${file("./.env")}"
   iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  security_groups = ["${aws_security_group.allow_tls.id}"]
+  # disable_api_termination = false
+  security_groups = ["${aws_security_group.allow_tls.id}","${aws_security_group.elb.id}"]
+  # vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
+  # subnet_id = "${data.aws_subnet.example[0].id}"
+  associate_public_ip_address = true
+  key_name = var.key_name
+
+  depends_on = [
+    aws_db_instance.main
+  ]
+
+  ebs_block_device {
+      device_name = "/dev/sdf"
+      delete_on_termination = true
+      volume_size           = 20
+      volume_type           = "gp2"
+      
+  }
+
+  # tags = {
+  #   Name = "csye-instance"
+  # }
+
+  user_data = <<EOF
+#!/bin/bash
+sudo systemctl start httpd
+
+mkdir /home/centos/.aws
+
+sudo touch /home/centos/.aws/config
+
+sudo touch /home/centos/.aws/credentials
+
+sudo touch /home/centos/.env
+
+echo "DATABASE = csye6225" >>  /home/centos/.env
+
+echo "USER_DATA = dbuser" >>  /home/centos/.env
+
+echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
+
+echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
+
+echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
+
+sudo mkdir -p /usr/share/collectd/
+
+sudo touch /usr/share/collectd/types.db
+
+  ##### END OF USER DATA
+
+  EOF
 }
+
+# resource "aws_launch_template" "ec2Launch" {
+#   name_prefix   = "ec2-launch"
+#   image_id      = var.ami
+#   instance_type = "t2.micro"
+# }
 
 
 resource "aws_autoscaling_group" "autoscaling_grp" {
@@ -758,7 +821,9 @@ resource "aws_autoscaling_group" "autoscaling_grp" {
   max_size             = 10
   default_cooldown     = 60
   launch_configuration = "${aws_launch_configuration.as_conf.name}"
+
   vpc_zone_identifier  = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+  load_balancers = ["${aws_elb.main.name}"]
 
   # Required to redeploy without an outage.
   lifecycle {
@@ -829,113 +894,10 @@ resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
   alarm_actions = ["${aws_autoscaling_policy.WebServerScaleDownPolicy.arn}"]
 }
 
-	
-
-# resource "aws_autoscaling_policy" "autoscaling_policy" {
-#   name        = "Autoscaling-policy"
-#   # description = "An Autoscaling policy"
-#   autoscaling_group_name = "${aws_autoscaling_group.autoscaling_grp.name}"
-
-# #    policy = <<EOF
-# # {
-# #     #   "Version": "2012-10-17",
-# #     # "Statement": [
-# #     #   {
-# 	"WebServerScaleUpPolicy": {
-# 		"Type": "AWS::AutoScaling::ScalingPolicy",
-# 		"Properties": {
-# 			"AdjustmentType": "ChangeInCapacity",
-# 			"AutoScalingGroupName": {
-# 				"Ref": "WebServerGroup"
-# 			},
-# 			"Cooldown": "60",
-# 			"ScalingAdjustment": "1"
-# 		}
-# 	},
-# 	"WebServerScaleDownPolicy": {
-# 		"Type": "AWS::AutoScaling::ScalingPolicy",
-# 		"Properties": {
-# 			"AdjustmentType": "ChangeInCapacity",
-# 			"AutoScalingGroupName": {
-# 				"Ref": "WebServerGroup"
-# 			},
-# 			"Cooldown": "60",
-# 			"ScalingAdjustment": "-1"
-# 		}
-# 	},
-# 	"CPUAlarmHigh": {
-# 		"Type": "AWS::CloudWatch::Alarm",
-# 		"Properties": {
-# 			"AlarmDescription": "Scale-up if CPU > 5% for 10 minutes",
-# 			"MetricName": "CPUUtilization",
-# 			"Namespace": "AWS/EC2",
-# 			"Statistic": "Average",
-# 			"Period": "300",
-# 			"EvaluationPeriods": "2",
-# 			"Threshold": "5",
-# 			"AlarmActions": [{
-# 				"Ref": "WebServerScaleUpPolicy"
-# 			}],
-# 			"Dimensions": [{
-# 				"Name": "AutoScalingGroupName",
-# 				"Value": {
-# 					"Ref": "WebServerGroup"
-# 				}
-# 			}],
-# 			"ComparisonOperator": "GreaterThanThreshold"
-# 		}
-# 	},
-# 	"CPUAlarmLow": {
-# 		"Type": "AWS::CloudWatch::Alarm",
-# 		"Properties": {
-# 			"AlarmDescription": "Scale-down if CPU < 3% for 10 minutes",
-# 			"MetricName": "CPUUtilization",
-# 			"Namespace": "AWS/EC2",
-# 			"Statistic": "Average",
-# 			"Period": "300",
-# 			"EvaluationPeriods": "2",
-# 			"Threshold": "3",
-# 			"AlarmActions": [{
-# 				"Ref": "WebServerScaleDownPolicy"
-# 			}],
-# 			"Dimensions": [{
-# 				"Name": "AutoScalingGroupName",
-# 				"Value": {
-# 					"Ref": "WebServerGroup"
-# 				}
-# 			}],
-# 			"ComparisonOperator": "LessThanThreshold"
-# 		}
-# 	}
-#       # }]
-# # }
-# #  EOF
-# }
-
-#  resource "aws_iam_user_policy_attachment" "autoscaling-policy-attach" {
-#    user       = "${data.aws_iam_user.select.user_name}"
-#    policy_arn = "${aws_autoscaling_policy.autoscaling_policy.arn}"
-#  }
-
-
-## Creating AutoScaling Group
-# resource "aws_autoscaling_group" "example" {
-#   launch_configuration = "${aws_launch_configuration.as_conf.id}"
-#   availability_zones = ["${data.aws_availability_zones.all.names}"]
-#   min_size = 2
-#   max_size = 10
-#   load_balancers = ["${aws_elb.example.name}"]
-#   health_check_type = "ELB"
-#   tag {
-#     key = "Name"
-#     value = "terraform-asg-example"
-#     propagate_at_launch = true
-#   }
-# }
-
 ## Security Group for ELB
 resource "aws_security_group" "elb" {
-  name = "terraform-example-elb"
+  name = "terraform-elb"
+  vpc_id = "${data.aws_vpc.selected.id}"
   egress {
     from_port = 0
     to_port = 0
@@ -951,22 +913,64 @@ resource "aws_security_group" "elb" {
 }
 
 ### Creating ELB
-resource "aws_elb" "example" {
-  name = "terraform-asg-example"
+resource "aws_elb" "main" {
+  name = "terraform-asg-el"
   security_groups = ["${aws_security_group.elb.id}"]
-  availability_zones = ["us-east-1a"]
+  # load_balancer_type = "application"
+  #availability_zones = ["us-east-1a"]
+  subnets = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
   health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 2
-    timeout = 3
-    interval = 30
-    target = "HTTP:3000/"
+    healthy_threshold = 3
+    unhealthy_threshold = 3
+    timeout = 60
+    interval = 90
+    target = "HTTP:80/"
   }
-  listener {
-    lb_port = 80
-    lb_protocol = "http"
-    instance_port = "3000"
-    instance_protocol = "http"
+  # listener {
+  #   lb_port = 80
+  #   lb_protocol = "http"
+  #   instance_port = "3000"
+  #   instance_protocol = "http"
+  # }
+
+    listener {
+    instance_port     = 80
+    instance_protocol = "tcp"
+    lb_port           = 80
+    lb_protocol       = "tcp"
   }
+}
+
+resource "aws_route53_zone" "primary" {
+  name = "ankit-yadav.me"
+}
+
+output "elb-value" {
+  value = "${aws_elb.main.dns_name}"
+}
+
+output "elb-instances" {
+  value = "${aws_elb.main.instances}"
+}
+
+
+resource "aws_route53_record" "www" {
+  zone_id = "${aws_route53_zone.primary.zone_id}"
+  allow_overwrite = true
+  name            = "ankit-yadav.me"
+  ttl             = 60
+  type            = "NS"
+
+  # alias {
+  #   name                   = "${aws_elb.main.dns_name}"
+  #   zone_id                = "${aws_elb.main.zone_id}"
+  #   evaluate_target_health = true
+  # }
+    records = [
+    "${aws_route53_zone.primary.name_servers.0}",
+    "${aws_route53_zone.primary.name_servers.1}",
+    "${aws_route53_zone.primary.name_servers.2}",
+    "${aws_route53_zone.primary.name_servers.3}",
+  ]
 }
 
