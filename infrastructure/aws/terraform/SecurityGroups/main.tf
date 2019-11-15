@@ -309,7 +309,7 @@ POLICY
 
 variable "codeDeploybucket" {
   type = string
-  default = "codedeploy.dev.ajaygoel.me"
+  default = ""
 }
 
 
@@ -636,29 +636,61 @@ data "aws_iam_role" "getRole" {
 
 
 
+# resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
+#   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
+#   deployment_config_name = "CodeDeployDefault.AllAtOnce"
+#   deployment_group_name = "csye6225-webapp-deployment"
+#   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
+
+
+#   ec2_tag_set {
+#     ec2_tag_filter {
+#       key   = "Name"
+#       type  = "KEY_AND_VALUE"
+#       value = "csye-instance"
+#     }
+#   }
+
+#   auto_rollback_configuration {
+#     enabled = false
+#     events  = ["DEPLOYMENT_FAILURE"]
+#   }
+
+#   alarm_configuration {
+#     alarms  = ["my-alarm-name"]
+#     enabled = false
+#   }
+# }
+
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
-  deployment_config_name = "CodeDeployDefault.AllAtOnce"
   deployment_group_name = "csye6225-webapp-deployment"
   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
 
+  deployment_style {
+    deployment_option = "WITH_TRAFFIC_CONTROL"
+    deployment_type   = "BLUE_GREEN"
+  }
 
-  ec2_tag_set {
-    ec2_tag_filter {
-      key   = "Name"
-      type  = "KEY_AND_VALUE"
-      value = "csye-instance"
+  load_balancer_info {
+    elb_info {
+      name = "${aws_lb.main.name}"
     }
   }
 
-  auto_rollback_configuration {
-    enabled = false
-    events  = ["DEPLOYMENT_FAILURE"]
-  }
+  blue_green_deployment_config {
+    deployment_ready_option {
+      action_on_timeout    = "STOP_DEPLOYMENT"
+      wait_time_in_minutes = 60
+    }
 
-  alarm_configuration {
-    alarms  = ["my-alarm-name"]
-    enabled = false
+    green_fleet_provisioning_option {
+      action = "DISCOVER_EXISTING"
+    }
+
+    terminate_blue_instances_on_deployment_success {
+      action = "KEEP_ALIVE"
+    }
   }
 }
 
