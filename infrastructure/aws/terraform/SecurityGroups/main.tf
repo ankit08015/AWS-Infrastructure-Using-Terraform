@@ -640,7 +640,7 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
 
     deployment_style {
-    deployment_option = "WITH_TRAFFIC_CONTROL"
+    deployment_option = "WITHOUT_TRAFFIC_CONTROL"
     deployment_type   = "IN_PLACE"
   }
 
@@ -656,7 +656,7 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     }
 
     green_fleet_provisioning_option {
-      action = "COPY_AUTO_SCALING_GROUP"
+      action = "DISCOVER_EXISTING"
     }
 
     terminate_blue_instances_on_deployment_success {
@@ -744,7 +744,7 @@ resource "aws_lb" "main" {
   name               = "main-lb-tf"
   internal           = false
   load_balancer_type = "application"
-  security_groups    =  ["${aws_security_group.lb.id}"]
+  security_groups    =  ["${aws_security_group.lb.id}","${aws_security_group.allow_tls.id}"]
   subnets            =  ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
 
   enable_deletion_protection = false
