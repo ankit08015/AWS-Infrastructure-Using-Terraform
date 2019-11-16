@@ -640,8 +640,8 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
 
     deployment_style {
-    deployment_option = "WITH_TRAFFIC_CONTROL"
-    deployment_type   = "BLUE_GREEN"
+    deployment_option = "WITHOUT_TRAFFIC_CONTROL"
+    deployment_type   = "IN_PLACE"
   }
 
   load_balancer_info {
@@ -656,11 +656,11 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     }
 
     green_fleet_provisioning_option {
-      action = "DISCOVER_EXISTING"
+      action = "COPY_AUTO_SCALING_GROUP"
     }
 
     terminate_blue_instances_on_deployment_success {
-      action = "KEEP-ALIVE"
+      action = "TERMINATE"
     }
   }
 
