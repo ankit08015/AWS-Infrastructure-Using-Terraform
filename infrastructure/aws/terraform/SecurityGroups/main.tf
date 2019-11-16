@@ -244,9 +244,9 @@ resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach8" {
   policy_arn = "${data.aws_iam_policy.AmazonSESFullAccess.arn}"
 }
 
-data "aws_dynamodb_table" "csye" {
-  name = "csye"
-}
+# data "aws_dynamodb_table" "csye" {
+#   name = "csye"
+# }
 
 resource "aws_iam_role_policy" "DynamoDBPost" {
   name = "DynamoDBPost"
@@ -262,8 +262,8 @@ resource "aws_iam_role_policy" "DynamoDBPost" {
 			      "dynamodb:*"
 		      ],
 		      "Resource": [
-			      "${data.aws_dynamodb_table.csye.arn}",
-			      "${data.aws_dynamodb_table.csye.arn}/*"
+			      "${aws_dynamodb_table.basic-dynamodb-table.arn}",
+			      "${aws_dynamodb_table.basic-dynamodb-table.arn}/*"
 		      ]
         }
     ]

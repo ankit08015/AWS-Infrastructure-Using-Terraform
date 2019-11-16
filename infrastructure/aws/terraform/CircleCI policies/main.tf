@@ -80,6 +80,11 @@ variable "bucketname" {
   default = ""
 }
 
+variable "lambdabucket" {
+  type = string
+  default = ""
+}
+
 # Application Security Group
 
 
@@ -100,15 +105,20 @@ resource "aws_iam_policy" "policy" {
 {
     "Version": "2012-10-17",
     "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "*"
-            ]
-        }
+      {
+          "Sid": "VisualEditor0",
+          "Effect": "Allow",
+          "Action": [
+              "s3:PutObject",
+              "s3:ListBucket"
+          ],
+          "Resource": [
+              "arn:aws:s3:::${var.bucketname}",
+              "arn:aws:s3:::${var.bucketname}/*",
+              "arn:aws:s3:::${var.lambdabucket}",
+              "arn:aws:s3:::${var.lambdabucket}/*"
+          ]
+      }
     ]
 }
 POLICY              
