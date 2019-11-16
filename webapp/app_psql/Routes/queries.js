@@ -453,42 +453,42 @@ router.post('/myrecipes', (req, res) => {
               .then(data => {
                 if (data.length > 0) {
 
-                  var array_id = [];
+                  var array_id = email;//= [];
                   for (var i = 0; i < data.length; i++) {
-                    array_id.push(data[i].id);
+                    array_id=array_id+" "+data[i].id;
                   }
 
-                  // const SNS_TOPIC_ARN = process.env.topic_arn;
-                  // const sns = new AWS.SNS();
+                  const SNS_TOPIC_ARN = process.env.topic_arn;
+                  const sns = new AWS.SNS();
 
-                  // // Scaffold a self-executing async function (so we can use await!)
-                  // (async () => {
-                  //   try {
-                  //     // Create the event object
-                  //     const publishParameters = {
-                  //       Id: author_id,
-                  //       Message: data,
-                  //       TopicArn: SNS_TOPIC_ARN
-                  //     };
+                  // Scaffold a self-executing async function (so we can use await!)
+                  (async () => {
+                    try {
+                      // Create the event object
+                      const publishParameters = {
+                        //Id: author_id,
+                        Message: array_id,
+                        TopicArn: SNS_TOPIC_ARN
+                      };
 
-                  //     // Publish and wait using a promise
-                  //     const result = await sns.publish(publishParameters).promise();
-                  //     // Log the result
-                  //     console.log(`Published to ${SNS_TOPIC_ARN}! ${result}`);
-                  //     res.status(200).send(JSON.stringify({
-                  //       "Request": "SENT"
-                  //     }));
-                  //   } catch (error) {
-                  //     // Log any errors we get here.
-                  //     console.error(`Unable to publish to SNS: ${error.stack}`);
-                  //   }
-                  // })();
+                      // Publish and wait using a promise
+                      const result = await sns.publish(publishParameters).promise();
+                      // Log the result
+                      console.log(`Published to ${SNS_TOPIC_ARN}! ${result}`);
+                      res.status(200).send(JSON.stringify({
+                        "Request": "SENT"
+                      }));
+                    } catch (error) {
+                      // Log any errors we get here.
+                      console.error(`Unable to publish to SNS: ${error.stack}`);
+                    }
+                  })();
 
                   res.header("Content-Type", 'application/json');
 
-                  res.status(200).send(JSON.stringify(
-                      array_id
-                    )),
+                  // res.status(200).send(JSON.stringify(
+                  //     array_id
+                  //   )),
                     logger.info("Recipe Post method : Posted the recipie " + data.title + " for the authorized user with email " + email + " successfully")
                 } else {
                   res.status(200).send(JSON.stringify({
