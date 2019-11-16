@@ -665,15 +665,6 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   }
 
   autoscaling_groups = ["${aws_autoscaling_group.autoscaling_grp.name}"]
-
-
-  # ec2_tag_set {
-  #   ec2_tag_filter {
-  #     key   = "Name"
-  #     type  = "KEY_AND_VALUE"
-  #     value = "csye6225_autoscaling_group"
-  #   }
-  # }
 }
 
 resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
@@ -781,23 +772,23 @@ resource "aws_lb_target_group" "main" {
   }
 }
 
-resource "aws_lb_listener" "main1" {
-  load_balancer_arn = "${aws_lb.main.arn}"
-  port              = 80
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.cert-arn
+# resource "aws_lb_listener" "main1" {
+#   load_balancer_arn = "${aws_lb.main.arn}"
+#   port              = 80
+#   protocol          = "HTTPS"
+#   ssl_policy        = "ELBSecurityPolicy-2016-08"
+#   certificate_arn   = var.cert-arn
 
-  default_action {
-    type             = "redirect"
-    redirect {
-      port        = "3000"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-    #target_group_arn = "${aws_lb_target_group.main1.arn}"
-  }
-}
+#   default_action {
+#     type             = "redirect"
+#     redirect {
+#       port        = "3000"
+#       protocol    = "HTTPS"
+#       status_code = "HTTP_301"
+#     }
+#     #target_group_arn = "${aws_lb_target_group.main1.arn}"
+#   }
+# }
 
 resource "aws_autoscaling_group" "autoscaling_grp" {
   # Force a redeployment when launch configuration changes.
@@ -828,8 +819,7 @@ resource "aws_autoscaling_group" "autoscaling_grp" {
 
 }
 
-  resource "aws_autoscaling_policy" "WebServerScaleUpPolicy" {
- # count = "${var.NumberOfAzs == 2 ? 1: 0}"
+resource "aws_autoscaling_policy" "WebServerScaleUpPolicy" {
   name                   = "WebServerScaleUpPolicy"
   scaling_adjustment     = "1"
   adjustment_type        = "ChangeInCapacity"
@@ -838,7 +828,6 @@ resource "aws_autoscaling_group" "autoscaling_grp" {
 }
 
 resource "aws_autoscaling_policy" "WebServerScaleDownPolicy" {
- # count = "${var.NumberOfAzs == 2 ? 1: 0}"
   name                   = "WebServerScaleDownPolicy"
   scaling_adjustment     = "-1"
   adjustment_type        = "ChangeInCapacity"
@@ -848,7 +837,6 @@ resource "aws_autoscaling_policy" "WebServerScaleDownPolicy" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
- # count = "${var.NumberOfAzs == 2 ? 1: 0}"
   alarm_name                = "CPUAlarmHigh"
   comparison_operator       = "GreaterThanThreshold"
   evaluation_periods        = "2"
@@ -867,7 +855,6 @@ resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
 }
 
   resource "aws_cloudwatch_metric_alarm" "CPUAlarmLow" {
-  #count = "${var.NumberOfAzs == 2 ? 1: 0}"
   alarm_name                = "CPUAlarmLow"
   comparison_operator       = "LessThanThreshold"
   evaluation_periods        = "2"
