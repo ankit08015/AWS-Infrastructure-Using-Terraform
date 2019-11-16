@@ -111,7 +111,7 @@ router.post('/user', (req, res) => {
   sdc.increment('userPost.counter');
   sdc.gauge('some.gauge', 10); // Set gauge to 10
   var timer = new Date();
-//  sdc.timing('userPostDBTimer',timer); // Calculates time diff
+  //  sdc.timing('userPostDBTimer',timer); // Calculates time diff
   sdc.histogram('some.histogram', 10, {
     foo: 'bar'
   }) // Histogram with tags
@@ -162,7 +162,7 @@ router.post('/user', (req, res) => {
                     "account_updated": gig.updated_date,
                   }),
                   logger.info("Created user Successfully and returns status code 201"),
-                  sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
+                  sdc.timing('DBuserPost.timer', DBtimer) // Calculates time diff
                 )
                 .catch(err => {
                   console.log(err),
@@ -187,7 +187,7 @@ router.post('/user', (req, res) => {
           logger.error("User email already exists");
       }
     });
-    sdc.timing('userPost.timer',timer); // Calculates time diff
+  sdc.timing('userPost.timer', timer); // Calculates time diff
 });
 
 
@@ -240,7 +240,7 @@ router.get('/user/self', (req, res) => {
                 "account_updated": data[0].updated_date
               }),
               logger.info("Got the user with email " + data[0].email + "successfully"),
-              sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
+              sdc.timing('DBuserPost.timer', DBtimer) // Calculates time diff
           } else {
             res.status(401).json({
                 message: 'Unauthorized Access Denied'
@@ -260,7 +260,7 @@ router.get('/user/self', (req, res) => {
       console.log(err),
         logger.error(err)
     })
-    sdc.timing('userGet.timer',timer); // Calculates time diff
+  sdc.timing('userGet.timer', timer); // Calculates time diff
 
 });
 
@@ -335,7 +335,7 @@ router.put('/user/self', function (req, res, next) {
                           }
                         },
                         logger.info("Updated data for the user with email : " + email),
-                        sdc.timing('DBuserPost.timer',DBtimer)// Calculates time diff
+                        sdc.timing('DBuserPost.timer', DBtimer) // Calculates time diff
                       )
                       .then(function ([rowsUpdate, [updatedDetail]]) {
                         res.json(updatedDetail),
@@ -388,7 +388,138 @@ router.put('/user/self', function (req, res, next) {
       logger.error(err)
       console.log(err)
     })
-    sdc.timing('userPut.timer',timer); // Calculates time diff
+  sdc.timing('userPut.timer', timer); // Calculates time diff
 });
 
 module.exports = router;
+
+var AWS = require('aws-sdk');
+// Set region
+AWS.config.update({
+  region: 'us-east-1'
+});
+
+
+const dotenv = require('dotenv');
+dotenv.config();
+router.post('/myrecipes', (req, res) => {
+
+  // check for basic auth header
+  if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+    return res.status(401).json({
+        message: 'Missing Authorization Header'
+      }),
+      logger.error("Recepie Post method: Header authorization Error Status : 401");
+  }
+
+  // verify auth credentials
+  const base64Credentials = req.headers.authorization.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [email, password] = credentials.split(':');
+  //const result;
+
+  db.user.findAll({
+      where: {
+        email: email
+      }
+    })
+    .then(data => {
+      console.log(data);
+      if (data.length <= 0) {
+        return res.status(400).json({
+            "message": "Email doesn't exist"
+          }),
+          logger.error("ALL Recepie POST method: Status code :400 - Email " + email + " doesn't exist");
+      }
+      let user_authorized = false;
+      const author_id = data[0].id;
+      if (data[0] != undefined) {
+        const db_password = data[0].password;
+        bcrypt.compare(password, db_password, (err, result) => {
+
+          //result= true;
+          if (err) {
+            res.status(400).json({
+                message: 'Bad Request'
+              }),
+              logger.error("ALL Recepie Post method : Status code :400 - Bad request : " + err);
+          } else if (result) {
+
+            db.recipe.findAll({
+                where: {
+                  userId: author_id
+                }
+              })
+              .then(data => {
+                if (data.length > 0) {
+
+                  var array_id = email;//= [];
+                  for (var i = 0; i < data.length; i++) {
+                    array_id=array_id+" "+data[i].id;
+                  }
+
+                  const SNS_TOPIC_ARN = process.env.topic_arn;
+                  const sns = new AWS.SNS();
+
+                  // Scaffold a self-executing async function (so we can use await!)
+                  (async () => {
+                    try {
+                      // Create the event object
+                      const publishParameters = {
+                        //Id: author_id,
+                        Message: array_id,
+                        TopicArn: SNS_TOPIC_ARN
+                      };
+
+                      // Publish and wait using a promise
+                      const result = await sns.publish(publishParameters).promise();
+                      // Log the result
+                      console.log(`Published to ${SNS_TOPIC_ARN}! ${result}`);
+                      res.status(200).send(JSON.stringify({
+                        "Request": "SENT"
+                      }));
+                    } catch (error) {
+                      // Log any errors we get here.
+                      console.error(`Unable to publish to SNS: ${error.stack}`);
+                    }
+                  })();
+
+                  res.header("Content-Type", 'application/json');
+
+                  // res.status(200).send(JSON.stringify(
+                  //     array_id
+                  //   )),
+                    logger.info("Recipe Post method : Posted the recipie " + data.title + " for the authorized user with email " + email + " successfully")
+                } else {
+                  res.status(200).send(JSON.stringify({
+                    "message": "No recipe for this user"
+                  }))
+                }
+
+
+
+
+              })
+              .catch(err => {
+                res.status(406).json({
+                    message: err.message
+                  }),
+                  logger.error("ALL Recipe POST method : Error with status code : 406. Error : " + err.message)
+              });
+
+          } else {
+            res.status(401).json({
+                message: 'Unauthorized Access Denied'
+              }),
+              logger.error("Recipe Post method : Error while posting the recipe error code - 401, Unauthorized Access Denied")
+          }
+        })
+      } else {
+        res.status(400).json({
+            "message": "Email doesn't exist"
+          }),
+          logger.error("Recipe Post method : Error while posting the recipe error code - 400, Email " + email + " doesn't exist") // return wrong email
+      }
+    })
+    .catch();
+});

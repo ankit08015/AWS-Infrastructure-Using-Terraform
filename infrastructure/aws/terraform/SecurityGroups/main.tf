@@ -1,4 +1,3 @@
-
 provider "aws" {
     region = var.region
     #profile = "${var.region == "us-east-1" ? "dev" : "prod"}"
@@ -180,15 +179,9 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "id"
-  range_key      = "user_email"
   
   attribute {
     name = "id"
-    type = "S"
-  }
-
-  attribute {
-    name = "user_email"
     type = "S"
   }
 
@@ -202,6 +195,153 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     Environment = "development"
   }
 }
+
+//////////////////////////////ASSIGNMENT8 LAMBDA POLICIES
+// CREATING ROles and policies for lambda
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "lambdaServiceRole"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+data "aws_iam_policy" "lambdaexecutionPolicy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach3" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.lambdaexecutionPolicy.arn}"
+}
+
+data "aws_iam_policy" "AWSXrayWriteOnlyAccess" {
+  arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach4" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.AWSXrayWriteOnlyAccess.arn}"
+}
+
+data "aws_iam_policy" "AWSLambdaDynamoDBExecutionRole" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach5" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.AWSLambdaDynamoDBExecutionRole.arn}"
+}
+data "aws_iam_policy" "AWSLambdaSQSQueueExecutionRole" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach6" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.AWSLambdaSQSQueueExecutionRole.arn}"
+}
+data "aws_iam_policy" "AWSLambdaVPCAccessExecutionRole" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach7" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn}"
+}
+
+data "aws_iam_policy" "AmazonSESFullAccess" {
+  arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach8" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.AmazonSESFullAccess.arn}"
+}
+
+data "aws_dynamodb_table" "csye" {
+  name = "csye"
+}
+
+resource "aws_iam_role_policy" "DynamoDBPost" {
+  name = "DynamoDBPost"
+  role = "${aws_iam_role.iam_for_lambda.name}"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+          "Effect": "Allow",
+		      "Action": [
+			      "dynamodb:*"
+		      ],
+		      "Resource": [
+			      "${data.aws_dynamodb_table.csye.arn}",
+			      "${data.aws_dynamodb_table.csye.arn}/*"
+		      ]
+        }
+    ]
+}
+EOF
+}
+
+/// LAMBDA function
+
+// data "aws_iam_role" "role_lambda" {
+//   name = "lambdaServiceRole"
+// }
+
+resource "aws_lambda_function" "test_lambda" {
+  filename      = "lambda_function_payload.zip"
+  function_name = "lambda_csye"
+  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  handler       = "index.handler"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${base64sha256("lambda_function_payload.zip")}"
+
+  runtime = "nodejs8.10"
+
+  environment {
+    variables = {
+      foo = "bar"
+    }
+  }
+} 
+
+// creating topic and subscription for SNS
+resource "aws_sns_topic" "user_recipes" {
+  name = "user-recipes-topic"
+}
+
+// resource "aws_sqs_queue" "user_recipes_queue" {
+//   name = "user-recipes-queue"
+// }
+
+resource "aws_lambda_permission" "with_sns" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.test_lambda.function_name}"
+  principal     = "sns.amazonaws.com"
+  source_arn    = "${aws_sns_topic.user_recipes.arn}"
+}
+
+resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
+  topic_arn = "${aws_sns_topic.user_recipes.arn}"
+  protocol  = "lambda"
+  endpoint  = "${aws_lambda_function.test_lambda.arn}"
+}
+
+//////////////////////////////ASSIGNMENT8 LAMBDA POLICIES
 
 data "aws_availability_zones" "available" {}
 
@@ -270,7 +410,6 @@ resource "aws_s3_bucket" "bucket" {
     }
   }
 }
-
 
 data "aws_iam_user" "selected" {
   user_name = "Administrator"
@@ -341,145 +480,52 @@ resource "aws_s3_bucket" "bucket2" {
   }
 }
 
+
+variable "lambdabucket" {
+  type = string
+  default = "lambda.dev.ajaygoel.me"
+}
+
+resource "aws_s3_bucket" "bucket3" {
+  bucket = "${var.lambdabucket}"
+  force_destroy = true
+  acl = "private"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm     = "AES256"
+      }
+    }
+ }
+    cors_rule {
+    allowed_headers = ["Authorization"]
+    allowed_methods = ["GET", "POST", "DELETE"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = 60
+    }
+  }
+}
+# resource "aws_iam_user" "user" {
+#   name = "circleci"
+# }
+
 data "aws_caller_identity" "current" {}
 
 data "aws_iam_user" "select" {
   user_name = "circleci"
 }
 
-resource "aws_iam_policy" "policy" {
-  name = "CircleCI-Upload-To-S3"
-  policy = <<POLICY
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "${aws_s3_bucket.bucket.arn}"
-            ]
-        }
-    ]
-}
-POLICY              
-}
-
-resource "aws_iam_user_policy_attachment" "upload-to-s3-attach" {
-  user       = "${data.aws_iam_user.select.user_name}"
-  policy_arn = "${aws_iam_policy.policy.arn}"
-}
-
-resource "aws_iam_policy" "policy-code-deploy" {
-  name = "CircleCI-Code-Deploy"
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codedeploy:RegisterApplicationRevision",
-        "codedeploy:GetApplicationRevision"
-      ],
-      "Resource": [
-        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:application:Dummy"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codedeploy:CreateDeployment",
-        "codedeploy:GetDeployment"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.bucket.arn}"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codedeploy:GetDeploymentConfig"
-      ],
-      "Resource": [
-        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.OneAtATime",
-        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.HalfAtATime",
-        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:deploymentconfig:CodeDeployDefault.AllAtOnce"
-      ]
-    }
-  ]
-}
-POLICY              
-}
-
-resource "aws_iam_user_policy_attachment" "code-Deploy-attach" {
-  user       = "${data.aws_iam_user.select.user_name}"
-  policy_arn = "${aws_iam_policy.policy-code-deploy.arn}"
-}
-
-resource "aws_iam_policy" "policy-circleci-ec2-ami" {
-  name = "circleci-ec2-ami"
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-      "Effect": "Allow",
-      "Action" : [
-        "ec2:AttachVolume",
-        "ec2:AuthorizeSecurityGroupIngress",
-        "ec2:CopyImage",
-        "ec2:CreateImage",
-        "ec2:CreateKeypair",
-        "ec2:CreateSecurityGroup",
-        "ec2:CreateSnapshot",
-        "ec2:CreateTags",
-        "ec2:CreateVolume",
-        "ec2:DeleteKeyPair",
-        "ec2:DeleteSecurityGroup",
-        "ec2:DeleteSnapshot",
-        "ec2:DeleteVolume",
-        "ec2:DeregisterImage",
-        "ec2:DescribeImageAttribute",
-        "ec2:DescribeImages",
-        "ec2:DescribeInstances",
-        "ec2:DescribeInstanceStatus",
-        "ec2:DescribeRegions",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeSnapshots",
-        "ec2:DescribeSubnets",
-        "ec2:DescribeTags",
-        "ec2:DescribeVolumes",
-        "ec2:DetachVolume",
-        "ec2:GetPasswordData",
-        "ec2:ModifyImageAttribute",
-        "ec2:ModifyInstanceAttribute",
-        "ec2:ModifySnapshotAttribute",
-        "ec2:RegisterImage",
-        "ec2:RunInstances",
-        "ec2:StopInstances",
-        "ec2:TerminateInstances"
-      ],
-      "Resource": "${aws_s3_bucket.bucket.arn}"
-  }]
-}
-POLICY              
-}
-
-resource "aws_iam_user_policy_attachment" "circleci-ec2-ami-attach" {
-  user       = "${data.aws_iam_user.select.user_name}"
-  policy_arn = "${aws_iam_policy.policy-circleci-ec2-ami.arn}"
-}
-
-
-
-
 # Code until line 426 working fine. Trying role now.
-
 resource "aws_iam_role" "Role1" {
   name = "CodeDeployEC2ServiceRole"    
-
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -495,23 +541,17 @@ resource "aws_iam_role" "Role1" {
   ]
 }
 EOF
-
   tags = {
       tag-key = "CodeDeployRole"
   }
 }
-
-
 resource "aws_iam_instance_profile" "EC2_instance_profile" {
   name = "EC2_instance_profile"
   role = "${aws_iam_role.Role1.name}"
 }
-
-
 resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
   name = "CodeDeploy-EC2-S3"
   role = "${aws_iam_role.Role1.id}"
-
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -535,7 +575,6 @@ resource "aws_iam_role_policy" "CodeDeploy-EC2-S3" {
 }
 EOF
 }
-
 data "aws_iam_policy" "ReadOnlyAccess" {
   arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
@@ -543,7 +582,6 @@ resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach" {
   role       = "${aws_iam_role.Role1.name}"
   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess.arn}"
 }
-
 data "aws_iam_policy" "ReadOnlyAccess2" {
   arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
 }
@@ -551,23 +589,9 @@ resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach2" {
   role       = "${aws_iam_role.Role1.name}"
   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess2.arn}"
 }
-
-// Assignment8
-
-// data "aws_iam_policy" "ReadOnlyAccess3" {
-//   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
-// }
-// resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach2" {
-//   role       = "${aws_iam_role.Role1.name}"
-//   policy_arn = "${data.aws_iam_policy.ReadOnlyAccess3.arn}"
-// }
-
-// Assignment8
-
 resource "aws_iam_role_policy" "CloudWatchLogsPolicy" {
   name = "CloudWatchLogsPolicy"
   role = "${aws_iam_role.Role1.id}"
-
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -588,14 +612,9 @@ resource "aws_iam_role_policy" "CloudWatchLogsPolicy" {
 }
 EOF
 }
-
-
-
 ## CodeDeployServiceRole
-
 resource "aws_iam_role" "Role2" {
   name = "CodeDeployServiceRole"    
-
 assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -612,28 +631,21 @@ assume_role_policy = <<EOF
 }
 EOF
 }
-
   resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
   role       = "${aws_iam_role.Role2.name}"
-
 }
-
 resource "aws_iam_instance_profile" "Deploy_instance_profile" {
   name = "Deploy_instance_profile"
   role = "${aws_iam_role.Role2.name}"
 }
-
 resource "aws_codedeploy_app" "csye6225-webapp1" {
   compute_platform = "Server"
   name             = "csye6225-webapp"
 }
-
-
-data "aws_iam_role" "getRole" {
-  name = "${aws_iam_role.Role2.name}"
-}
-
+// data "aws_iam_role" "getRole" {
+//   name = "${aws_iam_role.Role2.name}"
+// }
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
   deployment_group_name = "csye6225-webapp-deployment"
@@ -666,11 +678,9 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
 
   autoscaling_groups = ["${aws_autoscaling_group.autoscaling_grp.name}"]
 }
-
 resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
   name = "csye6225_fall2019"
 }
-
 resource "aws_cloudwatch_log_stream" "webapp" {
   name           = "webapp"
   log_group_name = "${aws_cloudwatch_log_group.csye6225_fall2019.name}"
@@ -720,6 +730,8 @@ echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
 echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
 
 echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
+
+echo "topic_arn = ${aws_sns_topic.user_recipes.arn}" >> /home/centos/.env
 
 sudo mkdir -p /usr/share/collectd/
 

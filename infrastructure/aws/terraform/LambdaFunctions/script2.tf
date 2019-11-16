@@ -112,12 +112,75 @@
 
 #   runtime = "nodejs8.10"
 
+<<<<<<< HEAD:infrastructure/aws/terraform/SecurityGroups/script2.tf
 #   environment {
 #     variables = {
 #       foo = "bar"
 #     }
 #   }
 # } 
+=======
+data "aws_iam_policy" "AmazonSESFullAccess" {
+  arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach8" {
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${data.aws_iam_policy.AmazonSESFullAccess.arn}"
+}
+
+data "aws_dynamodb_table" "csye" {
+  name = "csye"
+}
+
+resource "aws_iam_role_policy" "DynamoDBPost" {
+  name = "DynamoDBPost"
+  role = "${aws_iam_role.iam_for_lambda.name}"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+          "Effect": "Allow",
+		      "Action": [
+			      "dynamodb:*"
+		      ],
+		      "Resource": [
+			      "${data.aws_dynamodb_table.csye.arn}",
+			      "${data.aws_dynamodb_table.csye.arn}/*"
+		      ]
+        }
+    ]
+}
+EOF
+}
+
+/// LAMBDA function
+
+// data "aws_iam_role" "role_lambda" {
+//   name = "lambdaServiceRole"
+// }
+
+resource "aws_lambda_function" "test_lambda" {
+  filename      = "lambda_function_payload.zip"
+  function_name = "lambda_csye"
+  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  handler       = "lambda_function_payload/index.handler"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${base64sha256("lambda_function_payload.zip")}"
+
+  runtime = "nodejs8.10"
+
+  environment {
+    variables = {
+      foo = "bar"
+    }
+  }
+} 
+>>>>>>> 51a333f002290a71137815ce5524913f2cc5bc09:infrastructure/aws/terraform/LambdaFunctions/script2.tf
 
 # // creating topic and subscription for SNS
 # resource "aws_sns_topic" "user_recipes" {
