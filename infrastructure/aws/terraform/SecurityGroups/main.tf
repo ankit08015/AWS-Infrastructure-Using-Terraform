@@ -769,7 +769,7 @@ resource "aws_lb_listener" "main" {
 
 resource "aws_lb_target_group" "main" {
   name     = "tf-lb-tg"
-  port     = 80
+  port     = 3000
   protocol = "HTTP"
   vpc_id   = "${data.aws_vpc.selected.id}"
   health_check {
@@ -780,6 +780,38 @@ resource "aws_lb_target_group" "main" {
     port = 80
   }
 }
+
+resource "aws_lb_listener" "main1" {
+  load_balancer_arn = "${aws_lb.main.arn}"
+  port              = 80
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.cert-arn
+
+  default_action {
+    type             = "redirect"
+    redirect {
+      port        = "3000"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+    #target_group_arn = "${aws_lb_target_group.main1.arn}"
+  }
+}
+
+# resource "aws_lb_target_group" "main1" {
+#   name     = "tf-lb-tg1"
+#   port     = 3000
+#   protocol = "HTTP"
+#   vpc_id   = "${data.aws_vpc.selected.id}"
+#   health_check {
+#     healthy_threshold = 3
+#     unhealthy_threshold = 3
+#     #timeout = 60
+#     interval = 30
+#     port = 3000
+#   }
+# }
 
 resource "aws_autoscaling_group" "autoscaling_grp" {
   # Force a redeployment when launch configuration changes.
@@ -881,6 +913,22 @@ resource "aws_security_group" "lb" {
     to_port = 80
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+    // ALLOW PORT 22
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    description = "PORT 22"
+    cidr_blocks = [var.cidr_block_22]
+  }
+  // ALLOW PORT 3000
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    description = "PORT 3000"
+    cidr_blocks = [var.cidr_block_3000]
   }
 
 
