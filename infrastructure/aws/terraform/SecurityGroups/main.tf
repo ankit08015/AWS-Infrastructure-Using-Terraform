@@ -799,20 +799,6 @@ resource "aws_lb_listener" "main1" {
   }
 }
 
-# resource "aws_lb_target_group" "main1" {
-#   name     = "tf-lb-tg1"
-#   port     = 3000
-#   protocol = "HTTP"
-#   vpc_id   = "${data.aws_vpc.selected.id}"
-#   health_check {
-#     healthy_threshold = 3
-#     unhealthy_threshold = 3
-#     #timeout = 60
-#     interval = 30
-#     port = 3000
-#   }
-# }
-
 resource "aws_autoscaling_group" "autoscaling_grp" {
   # Force a redeployment when launch configuration changes.
   # This will reset the desired capacity if it was changed due to
