@@ -660,7 +660,7 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     }
 
     terminate_blue_instances_on_deployment_success {
-      action = "TERMINATE"
+      action = "KEEP-ALIVE"
     }
   }
 
