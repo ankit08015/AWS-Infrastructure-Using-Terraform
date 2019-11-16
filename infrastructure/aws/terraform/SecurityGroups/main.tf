@@ -634,34 +634,6 @@ data "aws_iam_role" "getRole" {
   name = "${aws_iam_role.Role2.name}"
 }
 
-
-
-# resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
-#   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
-#   deployment_config_name = "CodeDeployDefault.AllAtOnce"
-#   deployment_group_name = "csye6225-webapp-deployment"
-#   service_role_arn      = "${data.aws_iam_role.getRole.arn}"
-
-
-#   ec2_tag_set {
-#     ec2_tag_filter {
-#       key   = "Name"
-#       type  = "KEY_AND_VALUE"
-#       value = "csye-instance"
-#     }
-#   }
-
-#   auto_rollback_configuration {
-#     enabled = false
-#     events  = ["DEPLOYMENT_FAILURE"]
-#   }
-
-#   alarm_configuration {
-#     alarms  = ["my-alarm-name"]
-#     enabled = false
-#   }
-# }
-
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
   deployment_group_name = "csye6225-webapp-deployment"
@@ -684,7 +656,7 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     }
 
     green_fleet_provisioning_option {
-      action = "COPY_AUTO_SCALING_GROUP"
+      action = "DISCOVER_EXISTING"
     }
 
     terminate_blue_instances_on_deployment_success {
@@ -694,10 +666,6 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
 
   autoscaling_groups = ["${aws_autoscaling_group.autoscaling_grp.name}"]
 
-  # deployment_style {
-  #   deployment_option = "WITH_TRAFFIC_CONTROL"
-  #   deployment_type   = "BLUE_GREEN"
-  # }
 
   # ec2_tag_set {
   #   ec2_tag_filter {
@@ -706,28 +674,6 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   #     value = "csye6225_autoscaling_group"
   #   }
   # }
-
-  # load_balancer_info {
-  #   elb_info {
-  #     name = "${aws_lb.main.name}"
-  #   }
-  # }
-
-  # blue_green_deployment_config {
-  #   deployment_ready_option {
-  #     action_on_timeout    = "STOP_DEPLOYMENT"
-  #     wait_time_in_minutes = 60
-  #   }
-
-  #   green_fleet_provisioning_option {
-  #     action = "DISCOVER_EXISTING"
-  #   }
-
-  #   terminate_blue_instances_on_deployment_success {
-  #     action = "KEEP_ALIVE"
-  #   }
-  # }
-
 }
 
 resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
