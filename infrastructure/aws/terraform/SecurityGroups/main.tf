@@ -672,12 +672,18 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
     deployment_type   = "BLUE_GREEN"
   }
 
+  ec2_tag_set {
+    ec2_tag_filter {
+      key   = "Name"
+      type  = "KEY_AND_VALUE"
+      value = "csye6225_autoscaling_group"
+    }
+  }
+
   load_balancer_info {
-
-
-          target_group_info {
-        name = "${aws_lb_target_group.main.name}"
-      }
+    elb_info {
+      name = "${aws_lb.main.name}"
+    }
   }
 
   blue_green_deployment_config {
@@ -694,6 +700,21 @@ resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
       action = "KEEP_ALIVE"
     }
   }
+
+  # blue_green_deployment_config {
+  #   deployment_ready_option {
+  #     action_on_timeout    = "STOP_DEPLOYMENT"
+  #     wait_time_in_minutes = 60
+  #   }
+
+  #   green_fleet_provisioning_option {
+  #     action = "DISCOVER_EXISTING"
+  #   }
+
+  #   terminate_blue_instances_on_deployment_success {
+  #     action = "KEEP_ALIVE"
+  #   }
+  # }
 }
 
 resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
