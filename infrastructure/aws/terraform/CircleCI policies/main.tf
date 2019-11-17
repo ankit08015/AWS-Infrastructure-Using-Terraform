@@ -140,7 +140,7 @@ resource "aws_iam_policy" "policy-code-deploy" {
         "codedeploy:GetApplicationRevision"
       ],
       "Resource": [
-        "arn:aws:codedeploy:${var.region}:${data.aws_caller_identity.current.account_id}:application:Dummy"
+        "*"
       ]
     },
     {
