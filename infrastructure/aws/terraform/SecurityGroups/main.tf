@@ -265,9 +265,9 @@ resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach8" {
   policy_arn = "${data.aws_iam_policy.AmazonSESFullAccess.arn}"
 }
 
-data "aws_dynamodb_table" "csye" {
-  name = "csye"
-}
+# data "aws_dynamodb_table" "csye" {
+#   name = "csye"
+# }
 
 resource "aws_iam_role_policy" "DynamoDBPost" {
   name = "DynamoDBPost"
@@ -283,8 +283,8 @@ resource "aws_iam_role_policy" "DynamoDBPost" {
 			      "dynamodb:*"
 		      ],
 		      "Resource": [
-			      "${data.aws_dynamodb_table.csye.arn}",
-			      "${data.aws_dynamodb_table.csye.arn}/*"
+			      "${aws_dynamodb_table.basic-dynamodb-table.arn}",
+			      "${aws_dynamodb_table.basic-dynamodb-table.arn}/*"
 		      ]
         }
     ]
@@ -643,9 +643,11 @@ resource "aws_codedeploy_app" "csye6225-webapp1" {
   compute_platform = "Server"
   name             = "csye6225-webapp"
 }
-// data "aws_iam_role" "getRole" {
-//   name = "${aws_iam_role.Role2.name}"
-// }
+
+data "aws_iam_role" "getRole" {
+   name = "${aws_iam_role.Role2.name}"
+}
+
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
   deployment_group_name = "csye6225-webapp-deployment"

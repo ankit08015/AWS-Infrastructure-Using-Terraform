@@ -1,103 +1,24 @@
-# // CREATING ROles and policies for lambda
+// CREATING ROles and policies for lambda
 
-# resource "aws_iam_role" "iam_for_lambda" {
-#   name = "lambdaServiceRole"
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "lambdaServiceRole"
 
-#   assume_role_policy = <<EOF
-# {
-#   "Version": "2012-10-17",
-#   "Statement": [
-#     {
-#       "Action": "sts:AssumeRole",
-#       "Principal": {
-#         "Service": "lambda.amazonaws.com"
-#       },
-#       "Effect": "Allow",
-#       "Sid": ""
-#     }
-#   ]
-# }
-# EOF
-# }
-
-# data "aws_iam_policy" "lambdaexecutionPolicy" {
-#   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-# }
-# resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach3" {
-#   role       = "${aws_iam_role.iam_for_lambda.name}"
-#   policy_arn = "${data.aws_iam_policy.lambdaexecutionPolicy.arn}"
-# }
-
-# data "aws_iam_policy" "AWSXrayWriteOnlyAccess" {
-#   arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
-# }
-# resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach4" {
-#   role       = "${aws_iam_role.iam_for_lambda.name}"
-#   policy_arn = "${data.aws_iam_policy.AWSXrayWriteOnlyAccess.arn}"
-# }
-
-# data "aws_iam_policy" "AWSLambdaDynamoDBExecutionRole" {
-#   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole"
-# }
-# resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach5" {
-#   role       = "${aws_iam_role.iam_for_lambda.name}"
-#   policy_arn = "${data.aws_iam_policy.AWSLambdaDynamoDBExecutionRole.arn}"
-# }
-# data "aws_iam_policy" "AWSLambdaSQSQueueExecutionRole" {
-#   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
-# }
-# resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach6" {
-#   role       = "${aws_iam_role.iam_for_lambda.name}"
-#   policy_arn = "${data.aws_iam_policy.AWSLambdaSQSQueueExecutionRole.arn}"
-# }
-# data "aws_iam_policy" "AWSLambdaVPCAccessExecutionRole" {
-#   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-# }
-# resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach7" {
-#   role       = "${aws_iam_role.iam_for_lambda.name}"
-#   policy_arn = "${data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn}"
-# }
-
-# data "aws_iam_policy" "AmazonSESFullAccess" {
-#   arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
-# }
-# resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach8" {
-#   role       = "${aws_iam_role.iam_for_lambda.name}"
-#   policy_arn = "${data.aws_iam_policy.AmazonSESFullAccess.arn}"
-# }
-
-# data "aws_dynamodb_table" "csye" {
-#   name = "csye"
-# }
-
-# resource "aws_iam_role_policy" "DynamoDBPost" {
-#   name = "DynamoDBPost"
-#   role = "${aws_iam_role.iam_for_lambda.name}"
-
-#   policy = <<EOF
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#           "Effect": "Allow",
-# 		      "Action": [
-# 			      "dynamodb:*"
-# 		      ],
-# 		      "Resource": [
-# 			      "${data.aws_dynamodb_table.csye.arn}",
-# 			      "${data.aws_dynamodb_table.csye.arn}/*"
-# 		      ]
-#         }
-#     ]
-# }
-# EOF
-# }
-
-# /// LAMBDA function
-
-# data "aws_iam_role" "role_lambda" {
-#   name = "lambdaServiceRole"
-# }
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
 
 # resource "aws_lambda_function" "test_lambda" {
 #   filename      = "lambda_function_payload.zip"
@@ -112,14 +33,6 @@
 
 #   runtime = "nodejs8.10"
 
-<<<<<<< HEAD:infrastructure/aws/terraform/SecurityGroups/script2.tf
-#   environment {
-#     variables = {
-#       foo = "bar"
-#     }
-#   }
-# } 
-=======
 data "aws_iam_policy" "AmazonSESFullAccess" {
   arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
 }
@@ -180,7 +93,6 @@ resource "aws_lambda_function" "test_lambda" {
     }
   }
 } 
->>>>>>> 51a333f002290a71137815ce5524913f2cc5bc09:infrastructure/aws/terraform/LambdaFunctions/script2.tf
 
 # // creating topic and subscription for SNS
 # resource "aws_sns_topic" "user_recipes" {
@@ -199,8 +111,8 @@ resource "aws_lambda_function" "test_lambda" {
 #   source_arn    = "${aws_sns_topic.user_recipes.arn}"
 # }
 
-# resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
-#   topic_arn = "${aws_sns_topic.user_recipes.arn}"
-#   protocol  = "lambda"
-#   endpoint  = "${aws_lambda_function.test_lambda.arn}"
-# }
+resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
+  topic_arn = "${aws_sns_topic.user_recipes.arn}"
+  protocol  = "lambda"
+  endpoint  = "${aws_lambda_function.test_lambda.arn}"
+}
