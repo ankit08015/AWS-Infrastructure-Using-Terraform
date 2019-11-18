@@ -181,6 +181,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   hash_key       = "id"
   range_key      = "token"  
   
+  range_key      = "token"  
   attribute {
     name = "id"
     type = "S"
@@ -344,6 +345,41 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
   topic_arn = "${aws_sns_topic.user_recipes.arn}"
   protocol  = "lambda"
   endpoint  = "${aws_lambda_function.test_lambda.arn}"
+}
+
+///////////////////////////////Lambda policy for the User
+
+data "aws_iam_user" "select12" {
+  user_name = "circleci"
+}
+
+resource "aws_iam_policy" "lambda_policy" {
+  name = "Lambda_Policy"
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor2",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:GetFunction",
+                "lambda:ListFunctions",
+                "lambda:UpdateFunctionCode",
+                "lambda:UpdateFunctionConfiguration"
+            ],
+            "Resource": [
+                "${aws_lambda_function.test_lambda.arn}",
+                "${aws_lambda_function.test_lambda.arn}/*"
+            ]
+        }]
+}
+POLICY              
+}
+
+resource "aws_iam_user_policy_attachment" "lambda_policy_attach" {
+  user       = "${data.aws_iam_user.select12.user_name}"
+  policy_arn = "${aws_iam_policy.lambda_policy.arn}"
 }
 
 //////////////////////////////ASSIGNMENT8 LAMBDA POLICIES
