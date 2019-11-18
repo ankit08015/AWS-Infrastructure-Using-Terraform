@@ -179,9 +179,14 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "id"
+  range_key      = "token"  
   
   attribute {
     name = "id"
+    type = "S"
+  }
+  attribute {
+    name = "token"
     type = "S"
   }
 
@@ -988,7 +993,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   metric_name = "tfWAFRuleRate"
 
   rate_key   = "IP"
-  rate_limit = 100
+  rate_limit = 10000
 
   predicate {
     data_id = "${aws_wafregional_ipset.ipset.id}"
@@ -1224,8 +1229,8 @@ resource "aws_wafregional_web_acl" "main" {
   }
 }
 
-resource "aws_wafregional_web_acl_association" "main" {
-  resource_arn = "${aws_lb.main.arn}"
-  web_acl_id   = "${aws_wafregional_web_acl.main.id}"
-}
+# resource "aws_wafregional_web_acl_association" "main" {
+#   resource_arn = "${aws_lb.main.arn}"
+#   web_acl_id   = "${aws_wafregional_web_acl.main.id}"
+# }
 
