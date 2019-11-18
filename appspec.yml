@@ -15,5 +15,5 @@ hooks:
      runas: root
   BeforeInstall:
    - location: ./codedeploy/beforeInstall.sh
-     timeout: 180
+     timeout: 480
      runas: root
