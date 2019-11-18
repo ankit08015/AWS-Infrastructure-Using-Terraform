@@ -80,6 +80,18 @@ variable "bucketname" {
   default = ""
 }
 
+variable "zone-id" {
+  type = string
+  default = ""
+}
+
+variable "cert-arn" {
+  type = string
+  default = ""
+}
+
+
+
 # Application Security Group
 
 resource "aws_security_group" "allow_tls" {
@@ -95,6 +107,15 @@ resource "aws_security_group" "allow_tls" {
     description = "PORT 80"
     cidr_blocks = [var.cidr_block_80]
   }
+
+  #   // ALLOW PORT 80
+  # ingress {
+  #   from_port   = 80
+  #   to_port     = 80
+  #   protocol    = "tcp"
+  #   description = "PORT 80"
+  #   cidr_blocks = [var.cidr_block_80]
+  # }
 
   // ALLOW PORT 443
   ingress {
@@ -158,6 +179,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "id"
+  range_key      = "token"  
   
   range_key      = "token"  
   attribute {
@@ -401,65 +423,6 @@ resource "aws_db_instance" "main" {
    skip_final_snapshot = true
 }
 
-# variable "endpoint" {
-#   type=string
-#   value = split(":", "${aws_db_instance.main.endpoint}")[0]
-# }
-
-# output "sum" {
-#   value = "${var.endpoint}"
-# }
-
-resource "aws_instance" "instance" {
-  ami           =  var.ami
-  instance_type = "t2.micro"
-  iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  disable_api_termination = false
-  vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
-  subnet_id = "${data.aws_subnet.example[0].id}"
-  associate_public_ip_address = true
-  key_name = var.key_name
-  #  root_block_device {
-  #     volume_size           = 20
-  #     volume_type           = "gp2"
-  # }
-
-  depends_on = [
-    aws_db_instance.main
-  ]
-
-  ebs_block_device {
-      device_name = "/dev/sdf"
-      delete_on_termination = true
-      volume_size           = 20
-      volume_type           = "gp2"
-      
-  }
-
-  # user_data = "${file(".env")}"
-  tags = {
-    Name = "csye-instance"
-  }
-
-  user_data = <<EOF
-#!/bin/bash
-sudo systemctl start httpd
-mkdir /home/centos/.aws
-sudo touch /home/centos/.aws/config
-sudo touch /home/centos/.aws/credentials
-sudo touch /home/centos/.env
-echo "DATABASE = csye6225" >>  /home/centos/.env
-echo "USER_DATA = dbuser" >>  /home/centos/.env
-echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
-echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
-echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
-echo "topic_arn = ${aws_sns_topic.user_recipes.arn}" >> /home/centos/.env
-sudo mkdir -p /usr/share/collectd/
-sudo touch /usr/share/collectd/types.db
-  ##### END OF USER DATA
-  EOF
-}
-
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucketname}"
   force_destroy = true
@@ -526,7 +489,7 @@ POLICY
 
 variable "codeDeploybucket" {
   type = string
-  default = "codedeploy.dev.ajaygoel.me"
+  default = ""
 }
 
 
@@ -721,29 +684,42 @@ resource "aws_codedeploy_app" "csye6225-webapp1" {
   compute_platform = "Server"
   name             = "csye6225-webapp"
 }
-// data "aws_iam_role" "getRole" {
-//   name = "${aws_iam_role.Role2.name}"
-// }
+
+data "aws_iam_role" "getRole" {
+   name = "${aws_iam_role.Role2.name}"
+}
+
 resource "aws_codedeploy_deployment_group" "CodeDeploy_Deployment_Group1" {
   app_name              = "${aws_codedeploy_app.csye6225-webapp1.name}"
-  deployment_config_name = "CodeDeployDefault.AllAtOnce"
   deployment_group_name = "csye6225-webapp-deployment"
-  service_role_arn      = "${aws_iam_role.Role2.arn}"
-  ec2_tag_set {
-    ec2_tag_filter {
-      key   = "Name"
-      type  = "KEY_AND_VALUE"
-      value = "csye-instance"
+  service_role_arn      = "${data.aws_iam_role.getRole.arn}"
+
+    deployment_style {
+    deployment_option = "WITHOUT_TRAFFIC_CONTROL"
+    deployment_type   = "IN_PLACE"
+  }
+
+  load_balancer_info {
+    target_group_info {
+      name = "${aws_lb_target_group.main.name}"
     }
   }
-  auto_rollback_configuration {
-    enabled = false
-    events  = ["DEPLOYMENT_FAILURE"]
+
+  blue_green_deployment_config {
+    deployment_ready_option {
+      action_on_timeout = "CONTINUE_DEPLOYMENT"
+    }
+
+    green_fleet_provisioning_option {
+      action = "DISCOVER_EXISTING"
+    }
+
+    terminate_blue_instances_on_deployment_success {
+      action = "TERMINATE"
+    }
   }
-  alarm_configuration {
-    alarms  = ["my-alarm-name"]
-    enabled = false
-  }
+
+  autoscaling_groups = ["${aws_autoscaling_group.autoscaling_grp.name}"]
 }
 resource "aws_cloudwatch_log_group" "csye6225_fall2019" {
   name = "csye6225_fall2019"
@@ -752,3 +728,545 @@ resource "aws_cloudwatch_log_stream" "webapp" {
   name           = "webapp"
   log_group_name = "${aws_cloudwatch_log_group.csye6225_fall2019.name}"
 }
+
+
+resource "aws_launch_configuration" "as_conf" {
+  name          = "asg_launch_config"
+
+  image_id           =  var.ami
+  instance_type = "t2.micro"
+  iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
+  security_groups = ["${aws_security_group.allow_tls.id}","${aws_security_group.lb.id}"]
+  associate_public_ip_address = true
+  key_name = var.key_name
+
+  depends_on = [
+    aws_db_instance.main
+  ]
+
+  ebs_block_device {
+      device_name = "/dev/sdf"
+      delete_on_termination = true
+      volume_size           = 20
+      volume_type           = "gp2"
+      
+  }
+
+  user_data = <<EOF
+#!/bin/bash
+sudo systemctl start httpd
+
+mkdir /home/centos/.aws
+
+sudo touch /home/centos/.aws/config
+
+sudo touch /home/centos/.aws/credentials
+
+sudo touch /home/centos/.env
+
+echo "DATABASE = csye6225" >>  /home/centos/.env
+
+echo "USER_DATA = dbuser" >>  /home/centos/.env
+
+echo "DATABASE_PASSWORD = ${var.password}" >>  /home/centos/.env
+
+echo "BUCKET_NAME = ${var.bucketname}" >>  /home/centos/.env
+
+echo "HOST = ${split(":", "${aws_db_instance.main.endpoint}")[0]}" >> /home/centos/.env
+
+echo "topic_arn = ${aws_sns_topic.user_recipes.arn}" >> /home/centos/.env
+
+sudo mkdir -p /usr/share/collectd/
+
+sudo touch /usr/share/collectd/types.db
+
+  ##### END OF USER DATA
+
+  EOF
+}
+
+
+resource "aws_lb" "main" {
+  name               = "main-lb-tf"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    =  ["${aws_security_group.lb.id}","${aws_security_group.allow_tls.id}"]
+  subnets            =  ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Environment = "production"
+  }
+}
+
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = "${aws_lb.main.arn}"
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.cert-arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.main.arn}"
+  }
+}
+
+resource "aws_lb_target_group" "main" {
+  name     = "tf-lb-tg"
+  port     = 3000
+  protocol = "HTTP"
+  vpc_id   = "${data.aws_vpc.selected.id}"
+  health_check {
+    healthy_threshold = 3
+    unhealthy_threshold = 3
+    #timeout = 60
+    interval = 30
+    port = 80
+  }
+}
+
+# resource "aws_lb_listener" "main1" {
+#   load_balancer_arn = "${aws_lb.main.arn}"
+#   port              = 80
+#   protocol          = "HTTPS"
+#   ssl_policy        = "ELBSecurityPolicy-2016-08"
+#   certificate_arn   = var.cert-arn
+
+#   default_action {
+#     type             = "redirect"
+#     redirect {
+#       port        = "3000"
+#       protocol    = "HTTPS"
+#       status_code = "HTTP_301"
+#     }
+#     #target_group_arn = "${aws_lb_target_group.main1.arn}"
+#   }
+# }
+
+resource "aws_autoscaling_group" "autoscaling_grp" {
+  # Force a redeployment when launch configuration changes.
+  # This will reset the desired capacity if it was changed due to
+  # autoscaling events.
+  name = "${aws_launch_configuration.as_conf.name}-asg"
+  force_delete         = true
+  min_size             = 3
+  desired_capacity     = 3
+  max_size             = 10
+  default_cooldown     = 60
+  launch_configuration = "${aws_launch_configuration.as_conf.name}"
+
+  vpc_zone_identifier  = ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
+  #load_balancers = ["${aws_elb.main.name}"]
+  target_group_arns = ["${aws_lb_target_group.main.arn}"]
+
+  # Required to redeploy without an outage.
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "csye6225_autoscaling_group"
+    propagate_at_launch = true
+  }
+
+}
+
+resource "aws_autoscaling_policy" "WebServerScaleUpPolicy" {
+  name                   = "WebServerScaleUpPolicy"
+  scaling_adjustment     = "1"
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = "60"
+  autoscaling_group_name = "${aws_autoscaling_group.autoscaling_grp.name}"
+}
+
+resource "aws_autoscaling_policy" "WebServerScaleDownPolicy" {
+  name                   = "WebServerScaleDownPolicy"
+  scaling_adjustment     = "-1"
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = "60"
+  autoscaling_group_name = "${aws_autoscaling_group.autoscaling_grp.name}"
+
+}
+
+resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
+  alarm_name                = "CPUAlarmHigh"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = "2"
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/EC2"
+  period                    = "300"
+  statistic                 = "Average"
+  threshold                 = "5"
+  alarm_description         = "Scale-up if CPU > 5% for 10 minutes"
+  insufficient_data_actions = []
+  dimensions = {
+    AutoScalingGroupName = "${aws_autoscaling_group.autoscaling_grp.name}"
+  }
+  alarm_actions = ["${aws_autoscaling_policy.WebServerScaleUpPolicy.arn}"]
+
+}
+
+  resource "aws_cloudwatch_metric_alarm" "CPUAlarmLow" {
+  alarm_name                = "CPUAlarmLow"
+  comparison_operator       = "LessThanThreshold"
+  evaluation_periods        = "2"
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/EC2"
+  period                    = "300"
+  statistic                 = "Average"
+  threshold                 = "3"
+  alarm_description         = "Scale-down if CPU < 3% for 10 minutes"
+  insufficient_data_actions = []
+  dimensions = {
+    AutoScalingGroupName = "${aws_autoscaling_group.autoscaling_grp.name}"
+  }
+  alarm_actions = ["${aws_autoscaling_policy.WebServerScaleDownPolicy.arn}"]
+}
+
+## Security Group for LB
+resource "aws_security_group" "lb" {
+  name = "terraform-lb"
+  vpc_id = "${data.aws_vpc.selected.id}"
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+    // ALLOW PORT 22
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    description = "PORT 22"
+    cidr_blocks = [var.cidr_block_22]
+  }
+  // ALLOW PORT 3000
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    description = "PORT 3000"
+    cidr_blocks = [var.cidr_block_3000]
+  }
+
+
+  # ALLOW PORT 443
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    description = "PORT 443"
+    cidr_blocks = [var.cidr_block_443]
+  }
+}
+
+output "lb-value" {
+  value = "${aws_lb.main.dns_name}"
+}
+
+
+resource "aws_route53_record" "www" {
+  zone_id = var.zone-id
+  allow_overwrite = true
+  name            = ""
+  #ttl             = 60
+  type            = "A"
+
+  alias {
+    name                   = "${aws_lb.main.dns_name}"
+    zone_id                = "${aws_lb.main.zone_id}"
+    evaluate_target_health = false
+  }
+}
+
+## Associate AWS WAF to ALB
+
+resource "aws_wafregional_sql_injection_match_set" "sql_injection_match_set" {
+  name = "tf-sql_injection_match_set"
+
+  sql_injection_match_tuple {
+    text_transformation = "URL_DECODE"
+
+    field_to_match {
+      type = "QUERY_STRING"
+    }
+  }
+}
+
+resource "aws_wafregional_rule" "main" {
+  name        = "tfWAFRule"
+  metric_name = "tfWAFRule"
+
+  predicate {
+    data_id = "${aws_wafregional_sql_injection_match_set.sql_injection_match_set.id}"
+    negated = false
+    type    = "SqlInjectionMatch"
+  }
+}
+
+resource "aws_wafregional_ipset" "ipset" {
+  name = "tfIPSet"
+
+  ip_set_descriptor {
+    type  = "IPV4"
+    value = "192.0.7.0/24"
+  }
+}
+
+resource "aws_wafregional_rate_based_rule" "wafrule" {
+  depends_on  = ["aws_wafregional_ipset.ipset"]
+  name        = "tfWAFRuleRate"
+  metric_name = "tfWAFRuleRate"
+
+  rate_key   = "IP"
+  rate_limit = 10000
+
+  predicate {
+    data_id = "${aws_wafregional_ipset.ipset.id}"
+    negated = false
+    type    = "IPMatch"
+  }
+}
+
+resource "aws_wafregional_rule" "wafrule" {
+  name        = "tfWAFRule"
+  metric_name = "tfWAFRule"
+
+  predicate {
+    data_id = "${aws_wafregional_ipset.ipset.id}"
+    negated = false
+    type    = "IPMatch"
+  }
+}
+
+resource "aws_wafregional_xss_match_set" "xss_match_set" {
+  name = "xss_match_set"
+
+  xss_match_tuple {
+    text_transformation = "NONE"
+
+    field_to_match {
+      type = "URI"
+    }
+  }
+
+  xss_match_tuple {
+    text_transformation = "NONE"
+
+    field_to_match {
+      type = "QUERY_STRING"
+    }
+  }
+}
+
+resource "aws_wafregional_rule" "xssrule" {
+  name        = "tfWAFRuleXss"
+  metric_name = "tfWAFRuleXss"
+
+  predicate {
+    data_id = "${aws_wafregional_xss_match_set.xss_match_set.id}"
+    negated = false
+    type    = "XssMatch"
+  }
+}
+
+resource "aws_wafregional_geo_match_set" "geo_match_set" {
+  name = "geo_match_set"
+
+  geo_match_constraint {
+    type  = "Country"
+    value = "US"
+  }
+
+  geo_match_constraint {
+    type  = "Country"
+    value = "CA"
+  }
+}
+
+resource "aws_wafregional_rule" "georule" {
+  name        = "tfWAFRuleGeo"
+  metric_name = "tfWAFRuleGeo"
+
+  predicate {
+    data_id = "${aws_wafregional_geo_match_set.geo_match_set.id}"
+    negated = false
+    type    = "GeoMatch"
+  }
+}
+
+resource "aws_wafregional_byte_match_set" "byte_set" {
+  name = "tf_waf_byte_match_set"
+
+  byte_match_tuples {
+    text_transformation   = "NONE"
+    target_string         = "badrefer1"
+    positional_constraint = "CONTAINS"
+
+    field_to_match {
+      type = "HEADER"
+      data = "referer"
+    }
+  }
+}
+
+resource "aws_wafregional_rule" "byterule" {
+  name        = "tfWAFRuleByte"
+  metric_name = "tfWAFRuleByte"
+
+  predicate {
+    data_id = "${aws_wafregional_byte_match_set.byte_set.id}"
+    negated = false
+    type    = "ByteMatch"
+  }
+}
+
+resource "aws_wafregional_size_constraint_set" "size_constraint_set" {
+  name = "tfsize_constraints"
+
+  size_constraints {
+    text_transformation = "NONE"
+    comparison_operator = "LE"
+    size                = "40960"
+
+    field_to_match {
+      type = "BODY"
+    }
+  }
+}
+
+resource "aws_wafregional_rule" "sizerule" {
+  name        = "tfWAFRuleSize"
+  metric_name = "tfWAFRuleSize"
+
+  predicate {
+    data_id = "${aws_wafregional_size_constraint_set.size_constraint_set.id}"
+    negated = false
+    type    = "SizeConstraint"
+  }
+}
+
+resource "aws_wafregional_regex_match_set" "main" {
+  name = "main"
+
+  regex_match_tuple {
+    field_to_match {
+      data = "User-Agent"
+      type = "HEADER"
+    }
+
+    regex_pattern_set_id = "${aws_wafregional_regex_pattern_set.main.id}"
+    text_transformation  = "NONE"
+  }
+}
+
+resource "aws_wafregional_regex_pattern_set" "main" {
+  name                  = "main"
+  regex_pattern_strings = ["one", "two"]
+}
+
+resource "aws_wafregional_rule" "regexrule" {
+  name        = "tfWAFRuleRegex"
+  metric_name = "tfWAFRuleRegex"
+
+  predicate {
+    data_id = "${aws_wafregional_regex_match_set.main.id}"
+    negated = false
+    type    = "RegexMatch"
+  }
+}
+
+resource "aws_wafregional_web_acl" "main" {
+  name        = "main"
+  metric_name = "acl"
+
+  default_action {
+    type = "ALLOW"
+  }
+
+  rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 1
+    rule_id  = "${aws_wafregional_rule.main.id}"
+  }
+
+    rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 2
+    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    type     = "REGULAR"
+  }
+
+    rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 3
+    rule_id  = "${aws_wafregional_rule.xssrule.id}"
+    type     = "REGULAR"
+  }
+
+
+  rule {
+    action {
+      type = "ALLOW"
+    }
+
+    priority = 4
+    rule_id  = "${aws_wafregional_rule.georule.id}"
+    type     = "REGULAR"
+  }
+
+  rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 5
+    rule_id  = "${aws_wafregional_rule.byterule.id}"
+    type     = "REGULAR"
+  }
+
+    rule {
+    action {
+      type = "ALLOW"
+    }
+
+    priority = 6
+    rule_id  = "${aws_wafregional_rule.sizerule.id}"
+    type     = "REGULAR"
+  }
+
+  rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 7
+    rule_id  = "${aws_wafregional_rule.regexrule.id}"
+    type     = "REGULAR"
+  }
+}
+
+# resource "aws_wafregional_web_acl_association" "main" {
+#   resource_arn = "${aws_lb.main.arn}"
+#   web_acl_id   = "${aws_wafregional_web_acl.main.id}"
+# }
+

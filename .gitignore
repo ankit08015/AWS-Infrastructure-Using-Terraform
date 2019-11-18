@@ -533,3 +533,4 @@ __MACOSX
 
 # for tfvar files
 *.tfvars
+*csye6225.tfvars

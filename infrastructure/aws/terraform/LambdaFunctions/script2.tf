@@ -20,43 +20,18 @@ resource "aws_iam_role" "iam_for_lambda" {
 EOF
 }
 
-data "aws_iam_policy" "lambdaexecutionPolicy" {
-  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach3" {
-  role       = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.lambdaexecutionPolicy.arn}"
-}
+# resource "aws_lambda_function" "test_lambda" {
+#   filename      = "lambda_function_payload.zip"
+#   function_name = "lambda_csye"
+#   role          = "${data.aws_iam_role.role_lambda.arn}"
+#   handler       = "lambda_function_payload/index.handler"
 
-data "aws_iam_policy" "AWSXrayWriteOnlyAccess" {
-  arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
-}
-resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach4" {
-  role       = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.AWSXrayWriteOnlyAccess.arn}"
-}
+#   # The filebase64sha256() function is available in Terraform 0.11.12 and later
+#   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+#   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+#   source_code_hash = "${base64sha256("lambda_function_payload.zip")}"
 
-data "aws_iam_policy" "AWSLambdaDynamoDBExecutionRole" {
-  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole"
-}
-resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach5" {
-  role       = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.AWSLambdaDynamoDBExecutionRole.arn}"
-}
-data "aws_iam_policy" "AWSLambdaSQSQueueExecutionRole" {
-  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
-}
-resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach6" {
-  role       = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.AWSLambdaSQSQueueExecutionRole.arn}"
-}
-data "aws_iam_policy" "AWSLambdaVPCAccessExecutionRole" {
-  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-}
-resource "aws_iam_role_policy_attachment" "sto-readonly-role-policy-attach7" {
-  role       = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn}"
-}
+#   runtime = "nodejs8.10"
 
 data "aws_iam_policy" "AmazonSESFullAccess" {
   arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
@@ -119,22 +94,22 @@ resource "aws_lambda_function" "test_lambda" {
   }
 } 
 
-// creating topic and subscription for SNS
-resource "aws_sns_topic" "user_recipes" {
-  name = "user-recipes-topic"
-}
+# // creating topic and subscription for SNS
+# resource "aws_sns_topic" "user_recipes" {
+#   name = "user-recipes-topic"
+# }
 
-// resource "aws_sqs_queue" "user_recipes_queue" {
-//   name = "user-recipes-queue"
-// }
+# // resource "aws_sqs_queue" "user_recipes_queue" {
+# //   name = "user-recipes-queue"
+# // }
 
-resource "aws_lambda_permission" "with_sns" {
-  statement_id  = "AllowExecutionFromSNS"
-  action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.test_lambda.function_name}"
-  principal     = "sns.amazonaws.com"
-  source_arn    = "${aws_sns_topic.user_recipes.arn}"
-}
+# resource "aws_lambda_permission" "with_sns" {
+#   statement_id  = "AllowExecutionFromSNS"
+#   action        = "lambda:InvokeFunction"
+#   function_name = "${aws_lambda_function.test_lambda.function_name}"
+#   principal     = "sns.amazonaws.com"
+#   source_arn    = "${aws_sns_topic.user_recipes.arn}"
+# }
 
 resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
   topic_arn = "${aws_sns_topic.user_recipes.arn}"
