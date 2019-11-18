@@ -180,8 +180,6 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   write_capacity = 5
   hash_key       = "id"
   range_key      = "token"  
-  
-  range_key      = "token"  
   attribute {
     name = "id"
     type = "S"
