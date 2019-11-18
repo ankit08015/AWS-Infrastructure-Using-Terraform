@@ -2,6 +2,7 @@
 ##### CLOUD WATCH AGENT
 
 # run the node js application
+sleep 5m
 mv /home/centos/.env /home/centos/ccwebapp/webapp/app_psql
 sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/cloudwatch-config.json -s
 
