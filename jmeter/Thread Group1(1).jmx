@@ -16,9 +16,9 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1000</stringProp>
+          <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">1000</stringProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
         <stringProp name="ThreadGroup.ramp_time">1</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration"></stringProp>
@@ -30,7 +30,7 @@
           <collectionProp name="AuthManager.auth_list">
             <elementProp name="" elementType="Authorization">
               <stringProp name="Authorization.url"></stringProp>
-              <stringProp name="Authorization.username">ajaygoel1993@gmail.com</stringProp>
+              <stringProp name="Authorization.username">ankit.yadav08015@gmail.com</stringProp>
               <stringProp name="Authorization.password">Test@123</stringProp>
               <stringProp name="Authorization.domain"></stringProp>
               <stringProp name="Authorization.realm"></stringProp>
@@ -73,7 +73,7 @@
               </elementProp>
             </collectionProp>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">dev.ajaygoel.me</stringProp>
+          <stringProp name="HTTPSampler.domain">prod.ankit-yadav.me</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
           <stringProp name="HTTPSampler.protocol">https</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
@@ -94,8 +94,22 @@
                 <stringProp name="Header.name">Content-Type</stringProp>
                 <stringProp name="Header.value">application/json</stringProp>
               </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">postman-token</stringProp>
+                <stringProp name="Header.value">d4967e29-250a-432a-80d9-1fb17a2e9930</stringProp>
+              </elementProp>
             </collectionProp>
           </HeaderManager>
+          <hashTree/>
+          <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="postman-token" elementType="Argument">
+                <stringProp name="Argument.name">postman-token</stringProp>
+                <stringProp name="Argument.value">d4967e29-250a-432a-80d9-1fb17a2e9930</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </Arguments>
           <hashTree/>
         </hashTree>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
