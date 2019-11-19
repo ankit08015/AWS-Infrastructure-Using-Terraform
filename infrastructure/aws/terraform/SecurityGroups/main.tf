@@ -90,6 +90,19 @@ variable "cert-arn" {
   default = ""
 }
 
+variable "email-source" {
+  type = string
+  default = ""
+  
+}
+
+variable "domain" {
+  type = string
+  default = ""
+  
+}
+
+
 
 
 # Application Security Group
@@ -317,7 +330,10 @@ resource "aws_lambda_function" "test_lambda" {
 
   environment {
     variables = {
-      foo = "bar"
+      EMAIL_SOURCE = var.email-source
+      DOMAIN = var.domain
+      CRYPTO_BYTE_SIZE = 128
+      DYNAMO_TABLE = "csye"
     }
   }
 } 
