@@ -804,7 +804,7 @@ resource "aws_lb" "main" {
   name               = "main-lb-tf"
   internal           = false
   load_balancer_type = "application"
-  #security_groups    =  ["${aws_security_group.allow_tls.id}"]
+  security_groups    =  ["${aws_security_group.allow_tls.id}"]
   subnets            =  ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
 
   enable_deletion_protection = false
