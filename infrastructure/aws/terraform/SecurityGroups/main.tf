@@ -734,7 +734,7 @@ resource "aws_launch_configuration" "as_conf" {
   image_id           =  var.ami
   instance_type = "t2.micro"
   iam_instance_profile =  "${aws_iam_instance_profile.EC2_instance_profile.name}"
-  security_groups = ["${aws_security_group.allow_tls.id}","${aws_security_group.lb.id}"]
+  security_groups = ["${aws_security_group.allow_tls.id}"]
   associate_public_ip_address = true
   key_name = var.key_name
 
@@ -788,7 +788,7 @@ resource "aws_lb" "main" {
   name               = "main-lb-tf"
   internal           = false
   load_balancer_type = "application"
-  security_groups    =  ["${aws_security_group.lb.id}","${aws_security_group.allow_tls.id}"]
+  #security_groups    =  ["${aws_security_group.allow_tls.id}"]
   subnets            =  ["${data.aws_subnet.example[0].id}", "${data.aws_subnet.example[1].id}", "${data.aws_subnet.example[2].id}"]
 
   enable_deletion_protection = false
@@ -924,50 +924,6 @@ resource "aws_cloudwatch_metric_alarm" "CPUAlarmHigh" {
   alarm_actions = ["${aws_autoscaling_policy.WebServerScaleDownPolicy.arn}"]
 }
 
-## Security Group for LB
-resource "aws_security_group" "lb" {
-  name = "terraform-lb"
-  vpc_id = "${data.aws_vpc.selected.id}"
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-    // ALLOW PORT 22
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    description = "PORT 22"
-    cidr_blocks = [var.cidr_block_22]
-  }
-  // ALLOW PORT 3000
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    description = "PORT 3000"
-    cidr_blocks = [var.cidr_block_3000]
-  }
-
-
-  # ALLOW PORT 443
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    description = "PORT 443"
-    cidr_blocks = [var.cidr_block_443]
-  }
-}
-
 output "lb-value" {
   value = "${aws_lb.main.dns_name}"
 }
@@ -987,284 +943,19 @@ resource "aws_route53_record" "www" {
   }
 }
 
-## Associate AWS WAF to ALB
-
-resource "aws_wafregional_sql_injection_match_set" "sql_injection_match_set" {
-  name = "tf-sql_injection_match_set"
-
-  sql_injection_match_tuple {
-    text_transformation = "URL_DECODE"
-
-    field_to_match {
-      type = "QUERY_STRING"
-    }
+resource "aws_cloudformation_stack" "owasp-cf" {
+  name = "owasp-top-stack"
+  parameters = {
+    stackScope = "Regional"
+    maxExpectedBodySize="8000000"
+    csrfExpectedHeader = "Postman-Token"
   }
-}
-
-resource "aws_wafregional_rule" "main" {
-  name        = "tfWAFRule"
-  metric_name = "tfWAFRule"
-
-  predicate {
-    data_id = "${aws_wafregional_sql_injection_match_set.sql_injection_match_set.id}"
-    negated = false
-    type    = "SqlInjectionMatch"
-  }
-}
-
-resource "aws_wafregional_ipset" "ipset" {
-  name = "tfIPSet"
-
-  ip_set_descriptor {
-    type  = "IPV4"
-    value = "192.0.7.0/24"
-  }
-}
-
-# resource "aws_wafregional_rate_based_rule" "wafrule" {
-#   depends_on  = ["aws_wafregional_ipset.ipset"]
-#   name        = "tfWAFRuleRate"
-#   metric_name = "tfWAFRuleRate"
-
-#   rate_key   = "IP"
-#   rate_limit = 10000
-
-#   predicate {
-#     data_id = "${aws_wafregional_ipset.ipset.id}"
-#     negated = false
-#     type    = "IPMatch"
-#   }
-# }
-
-resource "aws_wafregional_rule" "wafrule" {
-  name        = "tfWAFRule"
-  metric_name = "tfWAFRule"
-
-  predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
-    negated = false
-    type    = "IPMatch"
-  }
-}
-
-resource "aws_wafregional_xss_match_set" "xss_match_set" {
-  name = "xss_match_set"
-
-  xss_match_tuple {
-    text_transformation = "NONE"
-
-    field_to_match {
-      type = "URI"
-    }
-  }
-
-  xss_match_tuple {
-    text_transformation = "NONE"
-
-    field_to_match {
-      type = "QUERY_STRING"
-    }
-  }
-}
-
-resource "aws_wafregional_rule" "xssrule" {
-  name        = "tfWAFRuleXss"
-  metric_name = "tfWAFRuleXss"
-
-  predicate {
-    data_id = "${aws_wafregional_xss_match_set.xss_match_set.id}"
-    negated = false
-    type    = "XssMatch"
-  }
-}
-
-resource "aws_wafregional_geo_match_set" "geo_match_set" {
-  name = "geo_match_set"
-
-  geo_match_constraint {
-    type  = "Country"
-    value = "US"
-  }
-
-  geo_match_constraint {
-    type  = "Country"
-    value = "CA"
-  }
-}
-
-resource "aws_wafregional_rule" "georule" {
-  name        = "tfWAFRuleGeo"
-  metric_name = "tfWAFRuleGeo"
-
-  predicate {
-    data_id = "${aws_wafregional_geo_match_set.geo_match_set.id}"
-    negated = false
-    type    = "GeoMatch"
-  }
-}
-
-resource "aws_wafregional_byte_match_set" "byte_set" {
-  name = "tf_waf_byte_match_set"
-
-  byte_match_tuples {
-    text_transformation   = "NONE"
-    target_string         = "badrefer1"
-    positional_constraint = "CONTAINS"
-
-    field_to_match {
-      type = "HEADER"
-      data = "referer"
-    }
-  }
-}
-
-resource "aws_wafregional_rule" "byterule" {
-  name        = "tfWAFRuleByte"
-  metric_name = "tfWAFRuleByte"
-
-  predicate {
-    data_id = "${aws_wafregional_byte_match_set.byte_set.id}"
-    negated = false
-    type    = "ByteMatch"
-  }
-}
-
-resource "aws_wafregional_size_constraint_set" "size_constraint_set" {
-  name = "tfsize_constraints"
-
-  size_constraints {
-    text_transformation = "NONE"
-    comparison_operator = "LE"
-    size                = "40960"
-
-    field_to_match {
-      type = "BODY"
-    }
-  }
-}
-
-resource "aws_wafregional_rule" "sizerule" {
-  name        = "tfWAFRuleSize"
-  metric_name = "tfWAFRuleSize"
-
-  predicate {
-    data_id = "${aws_wafregional_size_constraint_set.size_constraint_set.id}"
-    negated = false
-    type    = "SizeConstraint"
-  }
-}
-
-resource "aws_wafregional_regex_match_set" "main" {
-  name = "main"
-
-  regex_match_tuple {
-    field_to_match {
-      data = "User-Agent"
-      type = "HEADER"
-    }
-
-    regex_pattern_set_id = "${aws_wafregional_regex_pattern_set.main.id}"
-    text_transformation  = "NONE"
-  }
-}
-
-resource "aws_wafregional_regex_pattern_set" "main" {
-  name                  = "main"
-  regex_pattern_strings = ["one", "two"]
-}
-
-resource "aws_wafregional_rule" "regexrule" {
-  name        = "tfWAFRuleRegex"
-  metric_name = "tfWAFRuleRegex"
-
-  predicate {
-    data_id = "${aws_wafregional_regex_match_set.main.id}"
-    negated = false
-    type    = "RegexMatch"
-  }
-}
-
-resource "aws_wafregional_web_acl" "main" {
-  name        = "main"
-  metric_name = "acl"
-
-  default_action {
-    type = "ALLOW"
-  }
-
-  rule {
-    action {
-      type = "BLOCK"
-    }
-
-    priority = 1
-    rule_id  = "${aws_wafregional_rule.main.id}"
-  }
-
-    rule {
-    action {
-      type = "BLOCK"
-    }
-
-    priority = 2
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
-    type     = "REGULAR"
-  }
-
-    rule {
-    action {
-      type = "BLOCK"
-    }
-
-    priority = 3
-    rule_id  = "${aws_wafregional_rule.xssrule.id}"
-    type     = "REGULAR"
-  }
-
-
-  rule {
-    action {
-      type = "ALLOW"
-    }
-
-    priority = 4
-    rule_id  = "${aws_wafregional_rule.georule.id}"
-    type     = "REGULAR"
-  }
-
-  rule {
-    action {
-      type = "BLOCK"
-    }
-
-    priority = 5
-    rule_id  = "${aws_wafregional_rule.byterule.id}"
-    type     = "REGULAR"
-  }
-
-    rule {
-    action {
-      type = "ALLOW"
-    }
-
-    priority = 6
-    rule_id  = "${aws_wafregional_rule.sizerule.id}"
-    type     = "REGULAR"
-  }
-
-  rule {
-    action {
-      type = "BLOCK"
-    }
-
-    priority = 7
-    rule_id  = "${aws_wafregional_rule.regexrule.id}"
-    type     = "REGULAR"
-  }
-}
+  template_url = "https://s3.us-east-2.amazonaws.com/awswaf-owasp/owasp_10_base.yml"
+} 
 
 resource "aws_wafregional_web_acl_association" "main" {
   resource_arn = "${aws_lb.main.arn}"
-  web_acl_id   = "${aws_wafregional_web_acl.main.id}"
+ # web_acl_id   = "${aws_wafregional_web_acl.main.id}"
+  web_acl_id = "${aws_cloudformation_stack.owasp-cf.outputs["wafWebACL"]}"
 }
 
