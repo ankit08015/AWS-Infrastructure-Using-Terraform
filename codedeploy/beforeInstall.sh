@@ -2,6 +2,7 @@
 #sudo chmod 777 /home/centos/confAws.sh
 #cd /home/centos/
 #./confAws.sh
+sleep 5m
 
 echo "{
     \"agent\": {
