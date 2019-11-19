@@ -1021,20 +1021,20 @@ resource "aws_wafregional_ipset" "ipset" {
   }
 }
 
-resource "aws_wafregional_rate_based_rule" "wafrule" {
-  depends_on  = ["aws_wafregional_ipset.ipset"]
-  name        = "tfWAFRuleRate"
-  metric_name = "tfWAFRuleRate"
+# resource "aws_wafregional_rate_based_rule" "wafrule" {
+#   depends_on  = ["aws_wafregional_ipset.ipset"]
+#   name        = "tfWAFRuleRate"
+#   metric_name = "tfWAFRuleRate"
 
-  rate_key   = "IP"
-  rate_limit = 10000
+#   rate_key   = "IP"
+#   rate_limit = 10000
 
-  predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
-    negated = false
-    type    = "IPMatch"
-  }
-}
+#   predicate {
+#     data_id = "${aws_wafregional_ipset.ipset.id}"
+#     negated = false
+#     type    = "IPMatch"
+#   }
+# }
 
 resource "aws_wafregional_rule" "wafrule" {
   name        = "tfWAFRule"
